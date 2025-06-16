@@ -1,0 +1,25 @@
+#+title: Readme
+
+
+* Common use cases
+** Rebuilding user:
+#+begin_src bash
+home-manager switch --flake .
+#+end_src
+** Changing permissions for configuration.nix
+#+begin_src bash
+sudo chown root configuration.nix
+sudo chown root hardware-configuration.nix
+#+end_src
+** Switching flakes on the nix level
+#+begin_src bash
+sudo nixos-rebuild switch --flake .
+#+end_src
+** "File doesn't exist errors"
+Try adding it to the repo and trying again
+
+* Organization
+** System level configuration
+This will be within the system directory
+** User level configuration
+This will be within the user directory
