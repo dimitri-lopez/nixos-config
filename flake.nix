@@ -13,6 +13,11 @@
       system = "x86_64-linux";
       lib = nixpkgs.lib;
       pkgs = nixpkgs.legacyPackages.${system};
+      userSettings = {
+        username = "dimitril";
+        name = "Dimitri";
+        dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
+      };
     in {
       nixosConfigurations = {
         nixos = lib.nixosSystem {
@@ -24,6 +29,9 @@
         "dimitril" = home-manager.lib.homeManagerConfiguration {
           inherit pkgs;
           modules = [ ./home.nix ];
+          extraSpecialArgs = {
+            inherit userSettings;
+          };
         };
       };
     };
