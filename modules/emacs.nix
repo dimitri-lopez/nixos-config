@@ -17,5 +17,8 @@
     graphviz
 
     texliveFull
+
+    stdenv.cc.cc.lib
+    nodejs # needed for github copilot
   ];
 }

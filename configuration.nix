@@ -109,29 +109,10 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-  vim
 
   # Doom Emacs Dependencies
   # required dependencies
 
-  dropbox
-
-  stdenv.cc.cc.lib
-  # (python312.withPackages (ps: with ps; [
-  #   # List your desired Python packages here (same as in shell.nix):
-  #   requests
-  #   numpy
-  #   pandas]))
-  # xwintool
-  # xclip
-  # xwininfo
-
-  nodejs
-
-  redshift
-  geoclue2
-  git-credential-manager
-  blueman
 
   ];
 

@@ -4,7 +4,11 @@
 {
   environment = {
     systemPackages = with pkgs; [
+      redshift
+      geoclue2
+      dropbox
       blueman
+      vim
       firefox
       font-manager
       # file-roller # broken
@@ -37,6 +41,7 @@
       xfce.xfce4-xkb-plugin
       xfce.xfdashboard
       xorg.xev
+      xorg.xkill
       xsel
       xwinmosaic
     ];
