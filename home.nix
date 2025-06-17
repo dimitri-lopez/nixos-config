@@ -2,10 +2,9 @@
 
 {
   imports = [
-    ./python.nix
-    ./sh.nix
-    ./brave.nix
-    # ./git.nix
+    ./modules/python.nix
+    ./modules/sh.nix
+    ./modules/brave.nix
   ];
 
   # Home Manager needs a bit of information about you and the paths it should
