@@ -2,8 +2,11 @@
 
 {
   imports = [
+    ./modules/xfce-home.nix
     ./modules/python.nix
     ./modules/sh.nix
+    ./modules/scripting.nix
+    ./modules/emacs.nix
     ./modules/brave.nix
   ];
 

@@ -8,6 +8,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ./modules/xfce.nix
     ];
 
   # Bootloader.
@@ -47,11 +48,19 @@
   };
 
   # Enable the X11 windowing system.
-  services.xserver.enable = true;
+  # services.xserver = {
+  #   enable = true;
+  #   desktopManager = {
+  #     xfce = {
+  #       enable = true;
+  #     };
+  #   };
+  # };
+  # services.displayManager.defaultSession = "xfce";
 
-  # Enable the XFCE Desktop Environment.
-  services.xserver.displayManager.lightdm.enable = true;
-  services.xserver.desktopManager.xfce.enable = true;
+  # # Enable the XFCE Desktop Environment.
+  # services.xserver.displayManager.lightdm.enable = true;
+  # services.xserver.desktopManager.xfce.enable = true;
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -101,24 +110,12 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
   vim
-  zsh
 
   # Doom Emacs Dependencies
   # required dependencies
-  git
-  emacs    # Emacs 27.2
-  ripgrep
-  # optional dependencies
-  coreutils # basic GNU utilities
-  fd
-  clang
 
   dropbox
-  cmake
-  gnumake
-  libtool
 
-  jumpapp
   stdenv.cc.cc.lib
   # (python312.withPackages (ps: with ps; [
   #   # List your desired Python packages here (same as in shell.nix):
@@ -129,7 +126,6 @@
   # xclip
   # xwininfo
 
-  graphviz
   nodejs
 
   redshift
@@ -137,9 +133,6 @@
   git-credential-manager
   blueman
 
-  libnotify # forr sending notifcations
-  wmctrl #for window management
-  texliveFull
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
