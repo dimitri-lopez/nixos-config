@@ -113,8 +113,6 @@
   fd
   clang
 
-  # Browser
-  brave
   dropbox
   cmake
   gnumake
@@ -142,7 +140,6 @@
   libnotify # forr sending notifcations
   wmctrl #for window management
   texliveFull
-  jupyter
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

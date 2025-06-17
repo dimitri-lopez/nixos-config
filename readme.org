@@ -1,6 +1,4 @@
 #+title: Readme
-
-
 * Common use cases
 ** Rebuilding user:
 #+begin_src bash
@@ -17,6 +15,10 @@ sudo nixos-rebuild switch --flake .
 #+end_src
 ** "File doesn't exist errors"
 Try adding it to the repo and trying again
+** Conflicting packages
+#+begin_src bash
+nix-env -q
+#+end_src
 
 * Organization
 ** System level configuration

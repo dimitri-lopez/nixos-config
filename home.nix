@@ -1,20 +1,17 @@
 { config, pkgs, ... }:
-let
-  myAliases = {
-    ll = "ls -l";
-    dotdot = "cd ..";
-    ec = "emacs client ..";
-  };
-in
+
 {
   imports = [
     ./python.nix
+    ./sh.nix
+    ./brave.nix
   ];
 
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = "dimitril";
   home.homeDirectory = "/home/dimitril";
+  # sessionPath = ["/home/dimitril/.config/emacs"];
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -25,14 +22,6 @@ in
   # release notes.
   home.stateVersion = "25.05"; # Please read the comment before changing.
 
-  programs.bash = {
-    enable = true;
-    shellAliases = myAliases;
-  };
-  programs.zsh = {
-    enable = true;
-    shellAliases = myAliases;
-  };
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
