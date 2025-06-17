@@ -1,17 +1,17 @@
 { config, lib, pkgs, ... }:
 
 {
-  home.packages = [
-    (pkgs.python312.withPackages (ppkgs: [
-      ppkgs.numpy
-      ppkgs.sympy
-      ppkgs.pandas
-      ppkgs.scipy
-      ppkgs.matplotlib
-      ppkgs.seaborn
-      ppkgs.plotly
-      ppkgs.networkx
-      ppkgs.requests
+  home.packages = with pkgs; [
+    (python312.withPackages (python3Packages: with python3Packages; [
+      numpy
+      sympy
+      pandas
+      scipy
+      matplotlib
+      seaborn
+      plotly
+      networkx
+      requests
     ]))
   ];
 }
