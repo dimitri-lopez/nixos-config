@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ./modules/xfce-home.nix
+    ./modules/xfce/xfce-home.nix
     ./modules/python.nix
     ./modules/sh.nix
     ./modules/scripting.nix
