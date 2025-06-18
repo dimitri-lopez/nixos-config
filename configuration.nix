@@ -9,6 +9,7 @@
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ./modules/xfce/xfce.nix
+      ./modules/steam.nix
     ];
 
   # Bootloader.
@@ -105,6 +106,10 @@
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
+
+  fonts.packages = with pkgs; [
+      nerd-fonts.jetbrains-mono
+  ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget

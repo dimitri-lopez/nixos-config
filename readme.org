@@ -29,6 +29,13 @@ nix-env -q
 
 #+RESULTS:
 : dl/nixos-remove-package
+** Github
+#+begin_src bash
+git config --global user.email "dimitrilopez01@gmail.com"
+git config --global user.name "Dimitri Lopez"
+#+end_src
+
+#+RESULTS:
 
 
 * Organization
