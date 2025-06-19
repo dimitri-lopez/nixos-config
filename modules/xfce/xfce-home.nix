@@ -1,12 +1,10 @@
 { config, pkgs, lib, ... }:
 
 {
-
   home.file."/home/dimitril/.themes/Everforest-Dark-Soft" = {
     source = ./themes/everforest-xfce-now-window-borders;
     recursive = true;
   };
-
   gtk = {
     enable = true;
       iconTheme = {
@@ -29,26 +27,22 @@
       '';
     };
   };
-
   xfconf = {
     enable = true;
     settings = {
-
       keyboards = {
         "Default/KeyRepeat" = true;
         "Default/KeyRepeat/Delay" = 185;
         "Default/KeyRepeat/Rate" = 75;
       };
-
       xfce4-panel = {
-        "panels" = [1];
+        "panels/" = [1];
         "panels/darkmode" = true;
         "panels/panel-1/autohide-behavior" = 2;
         "panels/panel-1/plugin-ids" = [11 2 3 4 5 6 7 8 9 10];
         "panels/panel-1/position" = "p=2;x=3420;y=720";
         "panels/panel-1/size" = 40;
         "panels/panel-1/length" = 100.0;
-
         "plugins/plugin2" = "tasklist";
         "plugins/plugin2/grouping" = 1;
         "plugins/plugin3" = "separator";
@@ -68,7 +62,6 @@
         "plugins/plugin10" = "actions";
         "plugins/plugin11" = "whiskermenu";
       };
-
       xfce4-keyboard-shortcuts = {
         "commands/custom/override" = true;
 
@@ -132,16 +125,12 @@
         "xfwm4/custom/<Shift><Super>Right" = "move_window_right_key";
         "xfwm4/custom/<Shift><Super>Up" = "move_window_up_key";
         "xfwm4/custom/<Shift><Super>Down" = "move_window_down_key";
-
       };
-
       xfwm4 = {
         "general/theme" = "Everforest-Dark-Soft";
       };
-
     };
   };
-
   programs.gpg.enable = true;
   services.gpg-agent.enable = true;
 }

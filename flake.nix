@@ -1,6 +1,5 @@
-# ~/.config/nixos/nixos-config.org
 {
-  description = "My first flake!";
+  description = "dimitril's flake";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-25.05";

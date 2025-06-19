@@ -1,9 +1,21 @@
 #+title: Readme
 
 * Common use cases
-** Rebuilding user:
+This acts as a little dashboard for me. I can never remember what commands I need to go about basic tasks.
+** Rebuild all
+#+begin_src bash
+home-manager switch --flake . && sudo nixos-rebuild switch --flake .
+#+end_src
+** Rebuild home config
 #+begin_src bash
 home-manager switch --flake .
+#+end_src
+
+#+RESULTS:
+
+** Rebuild system config
+#+begin_src bash
+sudo nixos-rebuild switch --flake .
 #+end_src
 ** Changing permissions for configuration.nix
 #+begin_src bash
@@ -21,7 +33,7 @@ Try adding it to the repo and trying again
 nix-env -q
 #+end_src
 ** Cleaning up broken packages
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp
 
 (defalias 'dl/nixos-remove-package
    (kmacro "y y SPC w l i n i x - e n v SPC - e SPC <escape> p a <backspace> ; SPC h o m e - m a n a g e r SPC s w i t c h SPC - - f l a k e  SPC . <escape> <return>"))
@@ -39,96 +51,864 @@ git config --global user.name "Dimitri Lopez"
 
 
 * Organization
-** System level configuration
-This will be within the system directory
-** User level configuration
-This will be within the user directory
-* Packages
-#+begin_src
-blueman-2.4.4
-bluez-5.80
-catfish-4.20.0
-cmake-3.31.6
-emacs-30.1
-exo-4.20.0
-garcon-4.20.0
-geoclue-2.7.2
-gigolo-0.5.4
-git-2.49.0
-git-credential-manager-2.6.1
-gnumake-4.4.1
-home-manager-path
-jumpapp-1.2
-libnotify-0.8.6
-libtool-2.5.4
-libxfce4ui-4.20.1
-libxfce4util-4.20.1
-libxfce4windowing-4.20.2
-mousepad-0.6.5
-nodejs-22.14.0
-orage-4.20.1
-parole-4.18.2
-redshift-1.12
-ripgrep-14.1.1
-ristretto-0.13.4
-tesseract-5.5.0
-texlive-2024-env
-thunar-4.20.3
-thunar-4.20.3
-thunar-archive-plugin-0.5.3
-thunar-dropbox-0.3.1
-thunar-media-tags-plugin-0.5.0
-thunar-vcs-plugin-0.3.0
-thunar-volman-4.20.0
-tumbler-4.20.0
-unzip-6.0
-vim-9.1.1336
-wmctrl-1.07
-xfburn-0.7.2
-xfce4-appfinder-4.20.0
-xfce4-battery-plugin-1.1.6
-xfce4-clipman-plugin-1.6.7
-xfce4-cpufreq-plugin-1.2.9
-xfce4-cpugraph-plugin-1.2.11
-xfce4-datetime-plugin-0.8.3
-xfce4-dev-tools-4.20.0
-xfce4-dict-0.8.9
-xfce4-dockbarx-plugin-0.7.2
-xfce4-docklike-plugin-0.4.3
-xfce4-eyes-plugin-4.6.2
-xfce4-fsguard-plugin-1.1.4
-xfce4-genmon-plugin-4.2.1
-xfce4-i3-workspaces-plugin-1.4.2
-xfce4-icon-theme-4.4.3
-xfce4-mailwatch-plugin-1.3.2
-xfce4-mpc-plugin-0.5.5
-xfce4-netload-plugin-1.4.2
-xfce4-notes-plugin-1.11.2
-xfce4-notifyd-0.9.7
-xfce4-panel-4.20.4
-xfce4-panel-profiles-1.0.15
-xfce4-power-manager-4.20.0
-xfce4-pulseaudio-plugin-0.5.1
-xfce4-screensaver-4.18.4
-xfce4-screenshooter-1.11.1
-xfce4-sensors-plugin-1.4.5
-xfce4-session-4.20.2
-xfce4-settings-4.20.1
-xfce4-systemload-plugin-1.3.3
-xfce4-taskmanager-1.5.8
-xfce4-terminal-1.1.5
-xfce4-time-out-plugin-1.1.4
-xfce4-timer-plugin-1.7.3
-xfce4-verve-plugin-2.0.4
-xfce4-volumed-pulse-0.2.5
-xfce4-weather-plugin-0.11.3
-xfce4-whiskermenu-plugin-2.9.2
-xfce4-windowck-plugin-0.5.2
-xfce4-xkb-plugin-0.8.5
-xfconf-4.20.0
-xfdashboard-1.0.0
-xfdesktop-4.20.1
-xfmpc-0.3.2
-xfwm4-4.20.0
-xfwm4-themes-4.10.0
+I am going to keep this fairly basic and then organize it a little more over time. This is all powered through emacs org-mode. Running:
+#+begin_src emacs-lisp
+(org-babel-tangle)
+#+end_src
+
+Will tangle this file into the files that I actually care about. I keep it within org-mode so that I can leverage the better organization and jumping tools.
+
+There are three main sources of files that I am concerned about:
+- configuration.nix: System configuration
+- flake.nix: Flake configuration, this rarely changes
+- home.nix: Home configuration, this changes all the time
+
+Within configuration.nix and home.nix I have a set of modules that I can add and subtract as need be. Each of the modules is usually some modular piece of code that I would like to build my system. As this configuration matures, I am sure that things will change quite a bit over time.
+
+
+** Buiconfiguration.nix
+** flake.nix
+
+* flake.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref flake.nix
+:END:
+#+begin_src nix :tangle flake.nix :noweb-ref flake.nix-setup
+{
+  description = "dimitril's flake";
+
+  inputs = {
+    nixpkgs.url = "nixpkgs/nixos-25.05";
+    home-manager.url = "github:nix-community/home-manager/release-25.05";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  outputs = { self, nixpkgs, home-manager, ... }:
+    let
+      system = "x86_64-linux";
+      lib = nixpkgs.lib;
+      pkgs = nixpkgs.legacyPackages.${system};
+      userSettings = {
+        username = "dimitril";
+        name = "Dimitri";
+        dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
+      };
+    in {
+      nixosConfigurations = {
+        nixos = lib.nixosSystem {
+          inherit system;
+          modules = [ ./configuration.nix ];
+        };
+      };
+      homeConfigurations = {
+        "dimitril" = home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
+          modules = [ ./home.nix ];
+          extraSpecialArgs = {
+            inherit userSettings;
+          };
+        };
+      };
+    };
+}
+#+end_src
+
+* configuration.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref configuration.nix
+:END:
+Help is available in the configuration.nix(5) man page and in the NixOS manual (accessible by running ‘nixos-help’).
+
+#+begin_src nix :noweb yes :tangle configuration.nix :noweb-ref configuration.nix-setup
+{ config, pkgs, ... }:
+
+{
+<<configuration.nix-imports>>
+<<configuration.nix>>
+}
+#+end_src
+
+** configuration.nix imports
+See [[*configuration.nix modules][configuration.nix modules]]
+** Bootloader
+#+begin_src nix
+
+  # Bootloader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  networking.hostName = "nixos"; # Define your hostname.
+  networking.networkmanager.enable = true; # Enable networking
+  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+
+  # Configure network proxy if necessary
+  # networking.proxy.default = "http://user:password@proxy:port/";
+  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+
+#+end_src
+** Bluetooth
+#+begin_src nix
+  # Enable bluetooth
+  hardware.bluetooth.enable = true; # enables support for Bluetooth
+  hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
+
+#+end_src
+** Sound
+#+begin_src nix
+
+  # Enable sound with pipewire.
+  services.pulseaudio.enable = false;
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    # If you want to use JACK applications, uncomment this
+    #jack.enable = true;
+
+    # use the example session manager (no others are packaged yet so this is enabled by default,
+    # no need to redefine it in your config for now)
+    #media-session.enable = true;
+  };
+
+  # Enable touchpad support (enabled default in most desktopManager).
+  # services.xserver.libinput.enable = true;
+
+#+end_src
+** Fonts
+#+begin_src nix
+  fonts.packages = with pkgs; [
+      nerd-fonts.jetbrains-mono
+  ];
+
+#+end_src
+** Time Zone
+#+begin_src nix
+  # Set your time zone.
+  time.timeZone = "America/New_York";
+
+#+end_src
+** File Encoding
+#+begin_src nix
+  # Select internationalisation properties.
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "en_US.UTF-8";
+    LC_IDENTIFICATION = "en_US.UTF-8";
+    LC_MEASUREMENT = "en_US.UTF-8";
+    LC_MONETARY = "en_US.UTF-8";
+    LC_NAME = "en_US.UTF-8";
+    LC_NUMERIC = "en_US.UTF-8";
+    LC_PAPER = "en_US.UTF-8";
+    LC_TELEPHONE = "en_US.UTF-8";
+    LC_TIME = "en_US.UTF-8";
+  };
+
+#+end_src
+** DISABLED X11 windowing system
+#+begin_src nix
+  # Enable the X11 windowing system.
+  # services.xserver = {
+  #   enable = true;
+  #   desktopManager = {
+  #     xfce = {
+  #       enable = true;
+  #     };
+  #   };
+  # };
+  # services.displayManager.defaultSession = "xfce";
+
+  # # Enable the XFCE Desktop Environment.
+  # services.xserver.displayManager.lightdm.enable = true;
+  # services.xserver.desktopManager.xfce.enable = true;
+
+#+end_src
+** X11 Keymap
+#+begin_src nix
+  # Configure keymap in X11
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "";
+  };
+
+#+end_src
+** CUPS printing
+#+begin_src nix
+  # Enable CUPS to print documents.
+  services.printing.enable = true;
+#+end_src
+** User Account
+#+begin_src nix
+  # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.users.dimitril = {
+    isNormalUser = true;
+    description = "Dimitri Lopez";
+    extraGroups = [ "networkmanager" "wheel" ];
+    packages = with pkgs; [
+    #  thunderbird
+    ];
+  };
+
+#+end_src
+** Programs config
+#+begin_src nix
+  # Install firefox.
+  programs.firefox.enable = true;
+
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
+#+end_src
+** System Packages
+#+begin_src nix
+  # List packages installed in system profile. To search, run:
+  # $ nix search wget
+  environment.systemPackages = with pkgs; [
+
+  ];
+
+#+end_src
+** Additional config
+#+begin_src nix
+  # Some programs need SUID wrappers, can be configured further or are
+  # started in user sessions.
+  # programs.mtr.enable = true;
+  # programs.gnupg.agent = {
+  #   enable = true;
+  #   enableSSHSupport = true;
+  # };
+
+  # List services that you want to enable:
+
+  # Enable the OpenSSH daemon.
+  # services.openssh.enable = true;
+
+  # Open ports in the firewall.
+  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  # networking.firewall.enable = false;
+
+  # This value determines the NixOS release from which the default
+  # settings for stateful data, like file locations and database versions
+  # on your system were taken. It‘s perfectly fine and recommended to leave
+  # this value at the release version of the first install of this system.
+  # Before changing this value read the documentation for this option
+  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+  system.stateVersion = "25.05"; # Did you read the comment?
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+#+end_src
+* home.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref home.nix
+:END:
+** Setup
+#+begin_src nix :noweb yes :tangle home.nix :noweb-ref home.nix-setup
+{ config, pkgs, ... }:
+
+{
+<<home.nix.imports>>
+<<home.nix>>
+}
+#+end_src
+** home.nix Imports
+See [[*home.nix modules][home.nix modules]].
+** Default settings
+#+begin_src nix
+  # Home Manager needs a bit of information about you and the paths it should
+  # manage.
+  home.username = "dimitril";
+  home.homeDirectory = "/home/dimitril";
+  # sessionPath = ["/home/dimitril/.config/emacs"];
+
+  # This value determines the Home Manager release that your configuration is
+  # compatible with. This helps avoid breakage when a new Home Manager release
+  # introduces backwards incompatible changes.
+  #
+  # You should not change this value, even if you update Home Manager. If you do
+  # want to update the value, then make sure to first check the Home Manager
+  # release notes.
+  home.stateVersion = "25.05"; # Please read the comment before changing.
+#+end_src
+** home.nix packages inbox
+#+begin_src nix
+  # The home.packages option allows you to install Nix packages into your
+  # environment.
+  home.packages = [
+    # # Adds the 'hello' command to your environment. It prints a friendly
+    # # "Hello, world!" when run.
+    # pkgs.hello
+
+    # # It is sometimes useful to fine-tune packages, for example, by applying
+    # # overrides. You can do that directly here, just don't forget the
+    # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
+    # # fonts?
+    # (pkgs.nerdfonts.override { fonts = [ "FantasqueSansMono" ]; })
+
+    # # You can also create simple shell scripts directly inside your
+    # # configuration. For example, this adds a command 'my-hello' to your
+    # # environment:
+    # (pkgs.writeShellScriptBin "my-hello" ''
+    #   echo "Hello, ${config.home.username}!"
+    # '')
+  ];
+#+end_src
+** home.nix dotfiles
+#+begin_src nix
+  # Home Manager is pretty good at managing dotfiles. The primary way to manage
+  # plain files is through 'home.file'.
+  home.file = {
+    # # Building this configuration will create a copy of 'dotfiles/screenrc' in
+    # # the Nix store. Activating the configuration will then make '~/.screenrc' a
+    # # symlink to the Nix store copy.
+    # ".screenrc".source = dotfiles/screenrc;
+
+    # # You can also set the file content immediately.
+    # ".gradle/gradle.properties".text = ''
+    #   org.gradle.console=verbose
+    #   org.gradle.daemon.idletimeout=3600000
+    # '';
+  };
+#+end_src
+** Environment variables
+
+#+begin_src nix
+  # Home Manager can also manage your environment variables through
+  # 'home.sessionVariables'. These will be explicitly sourced when using a
+  # shell provided by Home Manager. If you don't want to manage your shell
+  # through Home Manager then you have to manually source 'hm-session-vars.sh'
+  # located at either
+  #
+  #  ~/.nix-profile/etc/profile.d/hm-session-vars.sh
+  #
+  # or
+  #
+  #  ~/.local/state/nix/profiles/profile/etc/profile.d/hm-session-vars.sh
+  #
+  # or
+  #
+  #  /etc/profiles/per-user/dimitril/etc/profile.d/hm-session-vars.sh
+  #
+  home.sessionVariables = {
+    # EDITOR = "emacs";
+  };
+#+end_src
+
+** home-manager configuration
+#+begin_src nix
+  # Let Home Manager install and manage itself.
+  programs.home-manager.enable = true;
+#+end_src
+* Modules
+** home.nix modules
+#+begin_src nix :noweb-ref home.nix.imports
+  imports = [
+    ./modules/xfce/xfce-home.nix
+    ./modules/python.nix
+    ./modules/sh.nix
+    ./modules/scripting.nix
+    ./modules/emacs.nix
+    ./modules/brave.nix
+  ];
+#+end_src
+** configuration.nix modules
+[[*configuration.nix imports][configuration.nix imports]]
+#+begin_src nix :noweb-ref configuration.nix-imports
+  imports =
+    [ # Include the results of the hardware scan.
+      ./hardware-configuration.nix
+      ./modules/xfce/xfce.nix
+      ./modules/steam.nix
+    ];
+#+end_src
+** brave.nix
+
+#+begin_src nix :tangle ./modules/brave.nix
+{ config, lib, pkgs, ... }:
+# https://stackoverflow.com/questions/8946325/chrome-extension-id-how-to-find-it
+{
+
+  programs.chromium = {
+    enable = true;
+    package = pkgs.brave;
+
+    # https://www.reddit.com/r/NixOS/comments/1bqilmi/how_to_configure_brave_browser_package_to_install/
+    # Look at the url for the id either on the chrome web store or within the brave extensions page
+    extensions = [
+      # https://chromewebstore.google.com/detail/bitwarden-password-manage/nngceckbapebfimnlniiiahkandclblb
+      { id = "nngceckbapebfimnlniiiahkandclblb"; }
+      # https://chromewebstore.google.com/detail/grammarly-ai-writing-and/kbfnbcaeplbcioakkpcpgfkobkghlhen
+      { id = "kbfnbcaeplbcioakkpcpgfkobkghlhen"; }
+      # https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
+      { id = "hfjbmagddngcpeloejdejnfgbamkjaeg";}
+      # https://chromewebstore.google.com/detail/youtube-ad-accelerator-ea/lmcggcabhocpfkbddekmconplfjmmgmn
+      { id = "lmcggcabhocpfkbddekmconplfjmmgmn";}
+    ];
+    commandLineArgs = [
+      "--disable-features=WebRtcAllowInputVolumeAdjustment"
+    ];
+  };
+  xdg.mimeApps.defaultApplications = {
+  "text/html" = "brave-browser.desktop";
+  "x-scheme-handler/http" = "brave-browser.desktop";
+  "x-scheme-handler/https" = "brave-browser.desktop";
+  "x-scheme-handler/about" = "brave-browser.desktop";
+  "x-scheme-handler/unknown" = "brave-browser.desktop";
+  };
+
+  home.sessionVariables = {
+    DEFAULT_BROWSER = "${pkgs.brave}/bin/brave";
+  };
+}
+#+end_src
+** emacs.nix
+
+#+begin_src nix :tangle ./modules/emacs.nix
+{ config, lib, pkgs, ... }:
+
+{
+
+  home.packages = with pkgs; [
+    emacs    # Emacs 27.2
+    ripgrep
+    # optional dependencies
+    coreutils # basic GNU utilities
+    fd
+    clang
+
+    cmake
+    gnumake
+    libtool
+
+    graphviz
+
+    texliveFull
+
+    stdenv.cc.cc.lib
+    nodejs # needed for github copilot
+  ];
+}
+
+#+end_src
+** git.nix
+#+begin_src nix :tangle ./modules/git.nix
+{ config, pkgs, userSettings, ... }:
+
+{
+  home.packages = [
+    pkgs.git
+    pkgs.git-credential-manager
+                  ];
+  programs.git.enable = true;
+  programs.git.userName = userSettings.name;
+  programs.git.userEmail = userSettings.email;
+  # programs.git.extraConfig = {
+  #   init.defaultBranch = "main";
+  #   safe.directory = [ ("/home/" + userSettings.username + "/.dotfiles")
+  #                      ("/home/" + userSettings.username + "/.dotfiles/.git") ];
+  # };
+}
+#+end_src
+** python.nix
+#+begin_src nix :tangle ./modules/python.nix
+{ config, lib, pkgs, ... }:
+
+{
+  home.packages = with pkgs; [
+    (python312.withPackages (python3Packages: with python3Packages; [
+      numpy
+      sympy
+      pandas
+      scipy
+      matplotlib
+      seaborn
+      plotly
+      networkx
+      requests
+    ]))
+  ];
+}
+#+end_src
+** scripting.nix
+#+begin_src nix :tangle ./modules/scripting.nix
+{ config, lib, pkgs, ... }:
+
+{
+
+  home.packages = with pkgs; [
+    jumpapp
+    libnotify # forr sending notifcations
+    wmctrl #for window management
+  ];
+}
+#+end_src
+** sh.nix
+#+begin_src nix :tangle ./modules/sh.nix
+{ config, lib, pkgs, ... }:
+let
+  myAliases = {
+    ll = "ls -la";
+    ec = "emacsclient";
+  };
+in
+{
+  programs.zsh = {
+    enable = true;
+    autosuggestion.enable = true;
+    syntaxHighlighting.enable = true;
+    enableCompletion = true;
+    shellAliases = myAliases;
+    initContent = ''
+    PROMPT=" - %U%F{magenta}%n%f%u@%U%F{blue}%m%f%u:%F{yellow}%~%f
+     %F{green}→%f "
+    RPROMPT="%F{red}|%f%F{yellow}|%f%F{green}|%f%F{cyan}|%f%F{blue}|%f%F{magenta}|%f%F{white}|%f"
+    [ $TERM = "dumb" ] && unsetopt zle && PS1='$ '
+    bindkey '^P' history-beginning-search-backward
+    bindkey '^N' history-beginning-search-forward
+    '';
+  };
+
+  programs.bash = {
+    enable = true;
+    enableCompletion = true;
+    shellAliases = myAliases;
+  };
+
+  home.packages = with pkgs; [
+    # disfetch lolcat cowsay onefetch
+    # gnugrep gnused
+    # bat eza bottom fd bc
+    # direnv nix-direnv
+  ];
+
+  programs.direnv.enable = true;
+  programs.direnv.enableZshIntegration = true;
+  programs.direnv.nix-direnv.enable = true;
+}
+#+end_src
+** steam.nix
+#+begin_src nix :tangle ./modules/steam.nix
+{ config, lib, pkgs, ... }:
+
+{
+  # https://nixos.wiki/wiki/Steam
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+    localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
+  };
+}
+#+end_src
+** xfce.nix
+#+begin_src nix :tangle ./modules/xfce/xfce.nix
+{ config, lib, pkgs, ... }:
+
+# https://gist.github.com/nat-418/1101881371c9a7b419ba5f944a7118b0
+{
+  environment = {
+    systemPackages = with pkgs; [
+      redshift
+      geoclue2
+      dropbox
+      blueman
+      vim
+      firefox
+      font-manager
+      # file-roller # broken
+      gnome-disk-utility
+      libreoffice
+      orca
+      pavucontrol # pulseaudio
+      wmctrl
+      xclip
+      xcolor
+      xcolor
+      xdo
+      xdotool
+      xfce.catfish
+      xfce.gigolo
+      xfce.orage
+      xfce.xfburn
+      xfce.xfce4-appfinder
+      xfce.xfce4-clipman-plugin
+      xfce.xfce4-cpugraph-plugin
+      xfce.xfce4-dict
+      xfce.xfce4-fsguard-plugin
+      xfce.xfce4-genmon-plugin
+      xfce.xfce4-netload-plugin
+      xfce.xfce4-panel
+      xfce.xfce4-pulseaudio-plugin
+      xfce.xfce4-systemload-plugin
+      xfce.xfce4-weather-plugin
+      xfce.xfce4-whiskermenu-plugin
+      xfce.xfce4-xkb-plugin
+      xfce.xfdashboard
+      xorg.xev
+      xorg.xkill
+      xsel
+      xwinmosaic
+    ];
+  };
+  hardware = {
+    bluetooth.enable = true;
+  };
+
+  programs = {
+    dconf.enable = true;
+    gnupg.agent = {
+      enable = true;
+      enableSSHSupport = true;
+    };
+    thunar = {
+      enable = true;
+      plugins = with pkgs.xfce; [
+        thunar-archive-plugin
+        thunar-media-tags-plugin
+        thunar-volman
+      ];
+    };
+  };
+
+  # security.pam.services.gdm.enableGnomeKeyring = true;
+
+  services = {
+    blueman.enable = true;
+    # gnome.gnome-keyring.enable = true;
+    pipewire = { # multimedia framework
+      enable = true;
+      alsa = {
+        enable = true;
+        support32Bit = true;
+      };
+      pulse.enable = true;
+    };
+    xserver = {
+      enable = true;
+      excludePackages = with pkgs; [
+        xterm
+      ];
+      displayManager = {
+        lightdm = {
+          enable = true;
+          greeters.slick = {
+            enable = true;
+            theme.name = "Zukitre-dark";
+          };
+        };
+      };
+      desktopManager.xfce.enable = true;
+    };
+  };
+}
+#+end_src
+** xfce-home.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref xfce-home
+:END:
+#+begin_src nix :noweb yes :noweb-ref xfce-home.nix-setup :tangle ./modules/xfce/xfce-home.nix
+{ config, pkgs, lib, ... }:
+
+{
+<<xfce-home>>
+}
+#+end_src
+
+*** Copy theme to appropriate directory
+#+begin_src nix
+  home.file."/home/dimitril/.themes/Everforest-Dark-Soft" = {
+    source = ./themes/everforest-xfce-now-window-borders;
+    recursive = true;
+  };
+#+end_src
+
+*** GTK Configuration
+#+begin_src nix
+  gtk = {
+    enable = true;
+      iconTheme = {
+      name = "elementary-Xfce-dark";
+      package = pkgs.elementary-xfce-icon-theme;
+    };
+    theme = {
+      name = "Everforest-Dark-Soft";
+    #   name = "zukitre-dark";
+    #   package = pkgs.zuki-themes;
+    };
+    gtk3.extraConfig = {
+      Settings = ''
+        gtk-application-prefer-dark-theme=1
+      '';
+    };
+    gtk4.extraConfig = {
+      Settings = ''
+        gtk-application-prefer-dark-theme=1
+      '';
+    };
+  };
+#+end_src
+
+*** XFConf Configuration
+**** Setup
+#+begin_src nix
+  xfconf = {
+    enable = true;
+    settings = {
+#+end_src
+**** Keyboard settings
+#+begin_src nix
+      keyboards = {
+        "Default/KeyRepeat" = true;
+        "Default/KeyRepeat/Delay" = 185;
+        "Default/KeyRepeat/Rate" = 75;
+      };
+#+end_src
+**** Panel settings
+#+begin_src nix
+      xfce4-panel = {
+        "panels/" = [1];
+        "panels/darkmode" = true;
+        "panels/panel-1/autohide-behavior" = 2;
+        "panels/panel-1/plugin-ids" = [11 2 3 4 5 6 7 8 9 10];
+        "panels/panel-1/position" = "p=2;x=3420;y=720";
+        "panels/panel-1/size" = 40;
+        "panels/panel-1/length" = 100.0;
+#+end_src
+**** Plugin settings
+#+begin_src nix
+        "plugins/plugin2" = "tasklist";
+        "plugins/plugin2/grouping" = 1;
+        "plugins/plugin3" = "separator";
+        "plugins/plugin3/expand" = true;
+        "plugins/plugin3/style" = 0;
+        "plugins/plugin4" = "pager";
+        "plugins/plugin5" = "separator";
+        "plugins/plugin5/style" = 0;
+        "plugins/plugin6" = "systray";
+        "plugins/plugin6/square-icons" = true;
+        "plugins/plugin7" = "separator";
+        "plugins/plugin7/style" = 0;
+        "plugins/plugin8" = "clock";
+        "plugins/plugin8/mode" = 2;
+        "plugins/plugin9" = "separator";
+        "plugins/plugin9/style" = 0;
+        "plugins/plugin10" = "actions";
+        "plugins/plugin11" = "whiskermenu";
+      };
+#+end_src
+**** Keyboard shortcuts
+***** Setup
+#+begin_src nix
+      xfce4-keyboard-shortcuts = {
+        "commands/custom/override" = true;
+
+#+end_src
+***** Run scripts
+#+begin_src nix
+        # Scripts
+        "commands/custom/<Super>Print" = "/home/dimitril/bin/simulate-keystrokes";
+        "commands/custom/<Primary><Alt>c" = "xdotool mousemove 1750 60 click 1";
+        "commands/custom/<Super>q" = "pkill -USR1 '^redshift$'";
+
+#+end_src
+***** Run Emacs scripts
+#+begin_src nix
+        # Emacs Scripts
+        "commands/custom/<Super>Insert" = "/home/dimitril/.emacs.d/bin/everywhere";
+        "commands/custom/<Super>BackSpace" = "/home/dimitril/.config/emacs/bin/org-capture";
+        "commands/custom/<Alt>Favorites" = "/home/dimitril/.config/emacs/bin/org-capture";
+
+#+end_src
+***** Launch apps
+#+begin_src nix
+        # Launching apps
+        "commands/custom/<Super>space" = "xfce4-popup-whiskermenu";
+        "commands/custom/<Alt>0" = "/home/dimitril/bin/restart-emacs-daemon";
+        "commands/custom/<Alt>e" = "/home/dimitril/bin/jumpapp-emacs";
+        "commands/custom/<Super>Tab" = "jumpapp -m thunar";
+        "commands/custom/<Super>b" = "jumpapp -m blueman-manager";
+        "commands/custom/<Super>c" = "jumpapp -m brave";
+        "commands/custom/<Super>e" = "/home/dimitril/bin/jumpapp-emacs";
+        "commands/custom/<Super>t" = "jumpapp xfce4-terminal";
+        "commands/custom/<Primary><Alt>Delete" = "xfce4-session-logout";
+        "commands/custom/<Primary><Shift>Escape" = "xfce4-taskmanager";
+        "commands/custom/<Super>minus" = "xkill";
+
+#+end_src
+***** Screenshot
+#+begin_src nix
+        # Screenshot
+        "commands/custom/<Alt>Print" = "xfce4-screenshooter -w";
+        "commands/custom/Print" = "xfce4-screenshooter";
+        "commands/custom/<Shift>Print" = "xfce4-screenshooter -r";
+
+#+end_src
+***** XFWM4 Keybindings / Window Manager Keybindings
+****** Select window options
+#+begin_src nix
+        # xfwm4/custom
+        "xfwm4/custom/override" = true;
+
+        "xfwm4/custom/<Alt>Tab" = "cycle_windows_key";
+        "xfwm4/custom/<Shift><Alt>ISO_Left_Tab" = "cycle_reverse_windows_key";
+
+        "xfwm4/custom/<Shift><Super>space" = "popup_menu_key"; # window menu options
+        "xfwm4/custom/<Super>Delete" = "close_window_key";
+
+#+end_src
+****** Move windows
+#+begin_src nix
+        # Move windows
+        "xfwm4/custom/<Alt><Super>1" = "move_window_workspace_1_key";
+        "xfwm4/custom/<Alt><Super>2" = "move_window_workspace_2_key";
+        "xfwm4/custom/<Super>bracketright" = "move_window_to_monitor_right_key";
+        "xfwm4/custom/<Super>bracketleft" = "move_window_to_monitor_left_key";
+
+#+end_src
+****** Resize windows
+#+begin_src nix
+        # Resize windows
+        "xfwm4/custom/<Alt>w" = "maximize_window_key";
+        "xfwm4/custom/<Alt>m" = "move_window_key";
+        "xfwm4/custom/<Alt>r" = "resize_window_key";
+        "xfwm4/custom/<Alt>v" = "maximize_vert_key";
+        "xfwm4/custom/<Super>f" = "fullscreen_key";
+
+#+end_src
+****** Tile windows
+#+begin_src nix
+        # Tile windows
+        "xfwm4/custom/<Super>h" = "tile_left_key";
+        "xfwm4/custom/<Super>l" = "tile_right_key";
+        # "xfwm4/custom/<Shift><Super>h" = "tile_up_left_key";
+        # "xfwm4/custom/<Shift><Super>j" = "tile_down_left_key";
+        # "xfwm4/custom/<Shift><Super>k" = "tile_down_right_key";
+        "xfwm4/custom/<Shift><Super>Left" = "move_window_left_key";
+        "xfwm4/custom/<Shift><Super>Right" = "move_window_right_key";
+        "xfwm4/custom/<Shift><Super>Up" = "move_window_up_key";
+        "xfwm4/custom/<Shift><Super>Down" = "move_window_down_key";
+#+end_src
+***** Teardown
+#+begin_src nix
+      };
+#+end_src
+**** XFWM4 Theme
+#+begin_src nix
+      xfwm4 = {
+        "general/theme" = "Everforest-Dark-Soft";
+      };
+#+end_src
+**** Teardown
+#+begin_src nix
+    };
+  };
+#+end_src
+
+*** GPG Configuration
+
+#+begin_src nix
+  programs.gpg.enable = true;
+  services.gpg-agent.enable = true;
 #+end_src

@@ -9,7 +9,6 @@
     ./modules/emacs.nix
     ./modules/brave.nix
   ];
-
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = "dimitril";
@@ -24,7 +23,6 @@
   # want to update the value, then make sure to first check the Home Manager
   # release notes.
   home.stateVersion = "25.05"; # Please read the comment before changing.
-
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
@@ -45,7 +43,6 @@
     #   echo "Hello, ${config.home.username}!"
     # '')
   ];
-
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
   home.file = {
@@ -60,7 +57,6 @@
     #   org.gradle.daemon.idletimeout=3600000
     # '';
   };
-
   # Home Manager can also manage your environment variables through
   # 'home.sessionVariables'. These will be explicitly sourced when using a
   # shell provided by Home Manager. If you don't want to manage your shell
@@ -80,7 +76,6 @@
   home.sessionVariables = {
     # EDITOR = "emacs";
   };
-
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 }

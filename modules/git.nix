@@ -14,4 +14,3 @@
   #                      ("/home/" + userSettings.username + "/.dotfiles/.git") ];
   # };
 }
-}
