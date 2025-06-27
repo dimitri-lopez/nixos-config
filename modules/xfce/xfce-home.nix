@@ -121,7 +121,7 @@
         # "xfwm4/custom/<Shift><Super>h" = "tile_up_left_key";
         # "xfwm4/custom/<Shift><Super>j" = "tile_down_left_key";
         # "xfwm4/custom/<Shift><Super>k" = "tile_down_right_key";
-        "xfwm4/custom/<Shift><Super>Left" = "move_window_left_key";
+        # "xfwm4/custom/<Shift><Super>Left" = "move_window_left_key";
         "xfwm4/custom/<Shift><Super>Right" = "move_window_right_key";
         "xfwm4/custom/<Shift><Super>Up" = "move_window_up_key";
         "xfwm4/custom/<Shift><Super>Down" = "move_window_down_key";

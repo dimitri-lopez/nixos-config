@@ -1,5 +1,48 @@
 #+title: Readme
 
+- [[elisp:(vterm-nixos-config)][Launch terminal for config]]
+-----
+- [[elisp:(org-babel-tangle)][Tangle file]]
+- [[elisp:(dl/nixos-update-all-config)][Update all config]]
+- [[elisp:(dl/nixos-update-user-config)][Update home config]]
+- [[elisp:(dl/nixos-update-system-config)][Update system config]]
+-------
+- [[elisp:(dl/nixos-try-package)][Try package]]
+- [[*System Packages][configuration.nix packages]]
+- [[*home.nix packages inbox][home.nix packages]]
+- [[id:93410304-5af5-429b-ab09-18892f0950bc][Nix tasks]]
+* Nixos Terminal
+#+begin_src elisp
+(defun vterm-nixos-config ()
+  "Switch to or create a vterm in ~/.dotfiles/."
+  (interactive)
+  (let ((buffer-name "*nixos-config-vterm*")
+        (dotfiles-dir "~/.dotfiles/"))
+    (if (get-buffer buffer-name)
+        (switch-to-buffer buffer-name)
+      (let ((default-directory (expand-file-name dotfiles-dir)))
+        (vterm buffer-name)
+        ))))
+(vterm-nixos-config)
+#+end_src
+
+#+RESULTS:
+: #<buffer *nixos-config-vterm*>
+#+begin_src emacs-lisp
+(defun dl/nixos-send-string-to-nixos-vterm (str)
+  (vterm-nixos-config)
+  (vterm-send-string str)
+  (vterm-send-return))
+
+(defun dl/nixos-populate-string-nixos-vterm (str)
+  (vterm-nixos-config)
+  (vterm-send-string str))
+#+end_src
+
+#+RESULTS:
+: dl/nixos-update-home-config
+
+
 * Common use cases
 This acts as a little dashboard for me. I can never remember what commands I need to go about basic tasks.
 ** Rebuild all
@@ -178,10 +221,11 @@ See [[*configuration.nix modules][configuration.nix modules]]
 #+end_src
 ** Fonts
 #+begin_src nix
-  fonts.packages = with pkgs; [
-      nerd-fonts.jetbrains-mono
-  ];
-
+fonts.packages = with pkgs; [
+  nerd-fonts.fira-code
+  nerd-fonts.droid-sans-mono
+  nerd-fonts.jetbrains-mono
+];
 #+end_src
 ** Time Zone
 #+begin_src nix
@@ -445,6 +489,8 @@ See [[*home.nix modules][home.nix modules]].
       { id = "hfjbmagddngcpeloejdejnfgbamkjaeg";}
       # https://chromewebstore.google.com/detail/youtube-ad-accelerator-ea/lmcggcabhocpfkbddekmconplfjmmgmn
       { id = "lmcggcabhocpfkbddekmconplfjmmgmn";}
+      # https://chromewebstore.google.com/detail/wallabagger/gbmgphmejlcoihgedabhgjdkcahacjlj?hl=en
+      {id = "gbmgphmejlcoihgedabhgjdkcahacjlj";}
     ];
     commandLineArgs = [
       "--disable-features=WebRtcAllowInputVolumeAdjustment"
@@ -527,6 +573,7 @@ See [[*home.nix modules][home.nix modules]].
       plotly
       networkx
       requests
+      markdownify
     ]))
   ];
 }
@@ -751,6 +798,7 @@ in
 #+end_src
 
 *** XFConf Configuration
+- [[file:~/.config/xfce4/desktop][Location on disk]]
 **** Setup
 #+begin_src nix
   xfconf = {
@@ -885,7 +933,7 @@ in
         # "xfwm4/custom/<Shift><Super>h" = "tile_up_left_key";
         # "xfwm4/custom/<Shift><Super>j" = "tile_down_left_key";
         # "xfwm4/custom/<Shift><Super>k" = "tile_down_right_key";
-        "xfwm4/custom/<Shift><Super>Left" = "move_window_left_key";
+        # "xfwm4/custom/<Shift><Super>Left" = "move_window_left_key";
         "xfwm4/custom/<Shift><Super>Right" = "move_window_right_key";
         "xfwm4/custom/<Shift><Super>Up" = "move_window_up_key";
         "xfwm4/custom/<Shift><Super>Down" = "move_window_down_key";
@@ -911,4 +959,19 @@ in
 #+begin_src nix
   programs.gpg.enable = true;
   services.gpg-agent.enable = true;
+#+end_src
+** watchy.nix
+
+- [ ] [[*configuration.nix modules][configuration.nix modules]]
+- [ ] [[*home.nix modules][home.nix modules]]
+- [ ] [[elisp:(org-babel-tangle)]]
+- [ ] [[git add -A ./modules/watchy]]
+#+begin_src nix :tangle ./modules/watchy.nix
+{ config, lib, pkgs, ... }:
+
+{
+  home.packages = with pkgs; [
+    esptool
+  ];
+}
 #+end_src

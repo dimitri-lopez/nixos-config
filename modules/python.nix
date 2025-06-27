@@ -12,6 +12,7 @@
       plotly
       networkx
       requests
+      markdownify
     ]))
   ];
 }

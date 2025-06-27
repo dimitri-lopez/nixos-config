@@ -44,10 +44,11 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
-  fonts.packages = with pkgs; [
-      nerd-fonts.jetbrains-mono
-  ];
-
+fonts.packages = with pkgs; [
+  nerd-fonts.fira-code
+  nerd-fonts.droid-sans-mono
+  nerd-fonts.jetbrains-mono
+];
   # Set your time zone.
   time.timeZone = "America/New_York";
 

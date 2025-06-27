@@ -17,6 +17,8 @@
       { id = "hfjbmagddngcpeloejdejnfgbamkjaeg";}
       # https://chromewebstore.google.com/detail/youtube-ad-accelerator-ea/lmcggcabhocpfkbddekmconplfjmmgmn
       { id = "lmcggcabhocpfkbddekmconplfjmmgmn";}
+      # https://chromewebstore.google.com/detail/wallabagger/gbmgphmejlcoihgedabhgjdkcahacjlj?hl=en
+      {id = "gbmgphmejlcoihgedabhgjdkcahacjlj";}
     ];
     commandLineArgs = [
       "--disable-features=WebRtcAllowInputVolumeAdjustment"
