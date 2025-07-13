@@ -1,8 +1,9 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, userSettings, ... }:
 let
   myAliases = {
     ll = "ls -la";
     ec = "emacsclient";
+    myname = "echo " + userSettings.username;
   };
 in
 {

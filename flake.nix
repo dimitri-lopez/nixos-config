@@ -15,7 +15,14 @@
       userSettings = {
         username = "dimitril";
         name = "Dimitri";
+        email = "dimitrilopez01@gmail.com";
         dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
+        # wm = "hyprland"; # Selected window manager or desktop environment; must select one in both ./user/wm/ and ./system/wm/
+        # editor = "emacsclient -c -a 'emacs'"
+      };
+      systemSettings = {
+        system = "x86_64-linux"; # system arch
+        hostname = "dimitril-hostname";   # hostname
       };
     in {
       nixosConfigurations = {

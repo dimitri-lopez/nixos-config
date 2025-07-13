@@ -3,6 +3,8 @@
 {
   home.packages = with pkgs; [
     (python312.withPackages (python3Packages: with python3Packages; [
+      jupyter
+
       numpy
       sympy
       pandas
@@ -13,6 +15,7 @@
       networkx
       requests
       markdownify
+      discordpy
     ]))
   ];
 }

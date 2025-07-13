@@ -17,6 +17,7 @@
     graphviz
 
     texliveFull
+    xorg.xwininfo # needed for emacs everywhere
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot

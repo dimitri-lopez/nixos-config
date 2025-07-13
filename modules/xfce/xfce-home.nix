@@ -71,7 +71,8 @@
         "commands/custom/<Super>q" = "pkill -USR1 '^redshift$'";
 
         # Emacs Scripts
-        "commands/custom/<Super>Insert" = "/home/dimitril/.emacs.d/bin/everywhere";
+        "commands/custom/<Super>Insert" = "emacsclient --eval \"(emacs-everywhere)\"";
+        "commands/custom/<Super>i" = "emacsclient --eval \"(emacs-everywhere)\"";
         "commands/custom/<Super>BackSpace" = "/home/dimitril/.config/emacs/bin/org-capture";
         "commands/custom/<Alt>Favorites" = "/home/dimitril/.config/emacs/bin/org-capture";
 
