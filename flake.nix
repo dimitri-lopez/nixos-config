@@ -1,12 +1,22 @@
 {
   description = "dimitril's flake";
-
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-25.05";
     home-manager.url = "github:nix-community/home-manager/release-25.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+  
+  
+    hyprland = {
+      url = "github:hyprwm/Hyprland";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+    hyprland-plugins = {
+      url = "github:hyprwm/Hyprland-Plugins";
+      inputs.hyprland.follows = "hyprland";
+    };
+    raise.url = "github:knarkzel/raise";
   };
-
   outputs = { self, nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";

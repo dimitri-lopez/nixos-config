@@ -2,7 +2,9 @@
 
 {
   imports = [
-    ./modules/xfce/xfce-home.nix
+    # ./modules/xfce/xfce-home.nix
+    ./modules/wm/hyprland-minimal.nix
+    # ./modules/hyprland/hyprland-home.nix
     ./modules/python.nix
     ./modules/sh.nix
     ./modules/scripting.nix

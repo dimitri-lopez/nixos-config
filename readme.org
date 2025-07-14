@@ -1,5 +1,6 @@
 #+title: Readme
 
+- [[*Hyprland config][Hyprland config]]
 - [[elisp:(vterm-nixos-config)][Launch terminal for config]]
 -----
 - [[elisp:(org-babel-tangle)][Tangle file]]
@@ -14,6 +15,25 @@
 -----
 - [[*Try out python package][Install python package]]
 * Resources
+** Single command run
+#+begin_src emacs-lisp
+(defun dl/nixos-tangle-update-home-config ()
+  (interactive)
+  (save-excursion
+    (find-file "~/.dotfiles/readme.org")
+    (org-babel-tangle)
+    (dl/nixos-update-user-config)))
+(map!
+ :leader
+ :prefix "d"
+ :desc "Tangle and update home config"
+ "c" #'dl/nixos-tangle-update-home-config)
+
+#+end_src
+
+#+RESULTS:
+: dl/nixos-tangle-update-home-config
+
 ** Garbage collection from cli
 I have this done automatically within my configuration. See
 [[Garbage collection]]
@@ -94,38 +114,6 @@ git config --global user.name "Dimitri Lopez"
 #+RESULTS:
 
 
-* Nixos Terminal
-#+begin_src elisp
-(defun vterm-nixos-config ()
-  "Switch to or create a vterm in ~/.dotfiles/."
-  (interactive)
-  (let ((buffer-name "*nixos-config-vterm*")
-        (dotfiles-dir "~/.dotfiles/"))
-    (if (get-buffer buffer-name)
-        (switch-to-buffer buffer-name)
-      (let ((default-directory (expand-file-name dotfiles-dir)))
-        (vterm buffer-name)
-        ))))
-(vterm-nixos-config)
-#+end_src
-
-#+RESULTS:
-: #<buffer *nixos-config-vterm*>
-#+begin_src emacs-lisp
-(defun dl/nixos-send-string-to-nixos-vterm (str)
-  (vterm-nixos-config)
-  (vterm-send-string str)
-  (vterm-send-return))
-
-(defun dl/nixos-populate-string-nixos-vterm (str)
-  (vterm-nixos-config)
-  (vterm-send-string str))
-#+end_src
-
-#+RESULTS:
-: dl/nixos-update-home-config
-
-
 * Organization
 I am going to keep this fairly basic and then organize it a little more over time. This is all powered through emacs org-mode. Running:
 #+begin_src emacs-lisp
@@ -145,16 +133,11 @@ Within configuration.nix and home.nix I have a set of modules that I can add and
 :PROPERTIES:
 :header-args:nix: :noweb-ref flake.nix
 :END:
+** Flake.nix main
 #+begin_src nix :tangle flake.nix :noweb-ref flake.nix-setup :noweb yes
 {
   description = "dimitril's flake";
-
-  inputs = {
-    nixpkgs.url = "nixpkgs/nixos-25.05";
-    home-manager.url = "github:nix-community/home-manager/release-25.05";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-  };
-
+  <<flake.nix--inputs>>
   outputs = { self, nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
@@ -182,7 +165,27 @@ Within configuration.nix and home.nix I have a set of modules that I can add and
 }
 #+end_src
 
-** userSettings
+** Flake inputs
+#+begin_src nix :noweb-ref flake.nix--inputs
+inputs = {
+  nixpkgs.url = "nixpkgs/nixos-25.05";
+  home-manager.url = "github:nix-community/home-manager/release-25.05";
+  home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+
+  hyprland = {
+    url = "github:hyprwm/Hyprland";
+    inputs.nixpkgs.follows = "nixpkgs";
+    inputs.home-manager.follows = "home-manager";
+  };
+  hyprland-plugins = {
+    url = "github:hyprwm/Hyprland-Plugins";
+    inputs.hyprland.follows = "hyprland";
+  };
+  raise.url = "github:knarkzel/raise";
+};
+#+end_src
+** Flake userSettings
 #+begin_src nix :noweb-ref userSettings
 userSettings = {
   username = "dimitril";
@@ -193,7 +196,7 @@ userSettings = {
   # editor = "emacsclient -c -a 'emacs'"
 };
 #+end_src
-** systemSettings
+** Flake systemSettings
 #+begin_src nix :noweb-ref systemSettings
 systemSettings = {
   system = "x86_64-linux"; # system arch
@@ -235,30 +238,28 @@ networking.networkmanager.enable = true; # Enable networking
 #+begin_src nix
 # Enable sound with pipewire.
 services.pulseaudio.enable = false;
-security.rtkit.enable = true;
-services.pipewire = {
-  enable = true;
-  alsa.enable = true;
-  alsa.support32Bit = true;
-  pulse.enable = true;
-  # If you want to use JACK applications, uncomment this
-  #jack.enable = true;
+# TODO moved to ./system/pipewire.nix
+# security.rtkit.enable = true;
+# services.pipewire = {
+#   enable = true;
+#   alsa.enable = true;
+#   alsa.support32Bit = true;
+#   pulse.enable = true;
+#   # If you want to use JACK applications, uncomment this
+#   #jack.enable = true;
 
-  # use the example session manager (no others are packaged yet so this is enabled by default,
-  # no need to redefine it in your config for now)
-  #media-session.enable = true;
-};
-#+end_src
-** Other
-#+begin_src nix
+#   # use the example session manager (no others are packaged yet so this is enabled by default,
+#   # no need to redefine it in your config for now)
+#   #media-session.enable = true;
+# };
 #+end_src
 ** Fonts
 #+begin_src nix
-fonts.packages = with pkgs; [
-  nerd-fonts.fira-code
-  nerd-fonts.droid-sans-mono
-  nerd-fonts.jetbrains-mono
-];
+# fonts.packages = with pkgs; [
+#   nerd-fonts.fira-code
+#   nerd-fonts.droid-sans-mono
+#   nerd-fonts.jetbrains-mono
+# ];
 #+end_src
 ** Time Zone
 #+begin_src nix
@@ -497,15 +498,18 @@ See [[*home.nix modules][home.nix modules]].
 imports =
   [ # Include the results of the hardware scan.
     ./hardware-configuration.nix
-    ./modules/xfce/xfce.nix
+    # ./modules/xfce/xfce.nix
+    ./system/hyprland.nix
     ./modules/steam.nix
-    ./modules/bluetooth.nix
+    ./system/bluetooth.nix
   ];
 #+end_src
 ** home.nix modules
 #+begin_src nix :noweb-ref home.nix.imports
   imports = [
-    ./modules/xfce/xfce-home.nix
+    # ./modules/xfce/xfce-home.nix
+    ./modules/wm/hyprland-minimal.nix
+    # ./modules/hyprland/hyprland-home.nix
     ./modules/python.nix
     ./modules/sh.nix
     ./modules/scripting.nix
@@ -1037,9 +1041,10 @@ in
   ];
 }
 #+end_src
+* System modules
 ** bluetooth.nix
 - [[*home.nix modules][home.nix modules]]
-#+begin_src nix :tangle ./modules/bluetooth.nix
+#+begin_src nix :tangle ./system/bluetooth.nix
 { config, lib, pkgs, ... }:
 
 {
@@ -1050,5 +1055,555 @@ in
   environment.systemPackages = with pkgs; [
     bluez-tools
   ];
+}
+#+end_src
+
+** wayland.nix
+#+begin_src nix :tangle ./system/wayland.nix
+{ config, pkgs, ... }:
+
+{
+  imports = [ ./pipewire.nix
+              ./dbus.nix
+              ./gnome-keyring.nix
+              ./fonts.nix
+            ];
+
+  environment.systemPackages = with pkgs;
+    [ wayland waydroid
+      # (sddm-chili-theme.override {
+      #   themeConfig = {
+      #     background = config.stylix.image;
+      #     ScreenWidth = 1920;
+      #     ScreenHeight = 1080;
+      #     blur = true;
+      #     recursiveBlurLoops = 3;
+      #     recursiveBlurRadius = 5;
+      #   };})
+    ];
+
+  # Configure xwayland
+  services.xserver = {
+    enable = true;
+    xkb = {
+      layout = "us";
+      variant = "";
+      options = "caps:escape";
+    };
+  };
+}
+#+end_src
+** pipewire.nix
+#+begin_src nix :tangle ./system/pipewire.nix
+{ ... }:
+
+{
+  # Pipewire
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    # jack.enable = true;
+  };
+}
+#+end_src
+** dbus.nix
+#+begin_src nix :tangle ./system/dbus.nix
+{ pkgs, ... }:
+
+{
+  services.dbus = {
+    enable = true;
+    packages = [ pkgs.dconf ];
+  };
+
+  programs.dconf = {
+    enable = true;
+  };
+}
+#+end_src
+** fonts.nix
+[[*Fonts][Fonts]]
+#+begin_src nix :tangle ./system/fonts.nix
+{ config, pkgs, ... }:
+{
+  fonts.packages = with pkgs; [
+    nerd-fonts.fira-code
+    nerd-fonts.droid-sans-mono
+    nerd-fonts.jetbrains-mono
+  ];
+}
+#+end_src
+** gnome-keyring.nix
+#+begin_src nix :tangle ./system/gnome-keyring.nix
+{ ... }:
+
+{
+  services.gnome = {
+    gnome-keyring.enable = true;
+  };
+}
+#+end_src
+* Home Hyprland
+** hyprland.nix
+We want this to be imported within configuration.nix modules:
+- [[*configuration.nix modules][configuration.nix nodules]]
+#+begin_src nix :tangle ./system/hyprland.nix
+{ config, lib, pkgs, ... }:
+
+{
+  # Import wayland config
+  imports = [ ./wayland.nix
+              ./pipewire.nix
+              ./dbus.nix
+            ];
+
+  # Security
+  security = {
+    pam.services.login.enableGnomeKeyring = true;
+  };
+
+  services.gnome.gnome-keyring.enable = true;
+  services.xserver.displayManager.sddm.enable = true; #This line enables sddm
+  services.xserver.enable = true; # Might need this for Xwayland
+
+
+  programs.hyprland = {
+      enable = true;
+      xwayland.enable = true;
+      withUWSM = true; # Enable UWSM (Universal Wayland Session Manager)
+    };
+
+  # services.xserver.excludePackages = [ pkgs.xterm ];
+
+  # services.xserver = {
+  #   enable = true;
+  #   displayManager = {
+  #     sddm = {
+  #       enable = true;
+  #       # theme = sddm-chili-theme.override {
+  #       #   themeConfig = {
+  #       #     background = config.stylix.image;
+  #       #     ScreenWidth = 1920;
+  #       #     ScreenHeight = 1080;
+  #       #     blur = true;
+  #       #     recursiveBlurLoops = 3;
+  #       #     recursiveBlurRadius = 5;
+  #       #   };
+  #       # };
+  #     };
+  #   };
+  #   desktopManager.hyprland.enable = true;
+  #   windowManager.hyprland.enable = true;
+  # };
+}
+#+end_src
+
+
+** hyprland minimal
+We want this to be enabled within the homemanager imports:
+[[*home.nix modules][home.nix modules]]
+#+begin_src nix :tangle ./modules/wm/hyprland-minimal.nix :noweb yes
+{ pkgs, lib, ... }:
+
+{
+  imports = [
+    ./alacritty.nix
+    ./kitty.nix
+  ];
+  wayland.windowManager.hyprland = {
+    enable = true;
+  #   # package = pkgs-hyprland.hyprland-minimal;
+  #   # plugins = [ ];
+  #   # settings = { };
+    extraConfig = ''
+<<hyprlandExtraConfig>>
+    '';
+  #   xwayland.enable = true;
+  #   # systemd.enable = true;
+  };
+
+
+  home.packages = with pkgs; [
+    alacritty
+    kitty
+    waybar # bar, switch to eww later
+    dunst # notifications
+    libnotify
+    swww # wallpaper manager
+    rofi-wayland # application launcher
+  ];
+}
+
+#+end_src
+*** Hyprland config
+:PROPERTIES:
+:header-args:conf: :noweb-ref hyprlandExtraConfig
+:END:
+**** Information
+#+begin_src conf
+autogenerated = 0 # remove this line to remove the warning
+
+# This is an example Hyprland config file.
+# Refer to the wiki for more information.
+# https://wiki.hyprland.org/Configuring/
+
+# Please note not all available settings / options are set here.
+# For a full list, see the wiki
+
+# You can split this configuration into multiple files
+# Create your files separately and then link them to this file like this:
+# source = ~/.config/hypr/myColors.conf
+#+end_src
+
+**** Monitors
+#+begin_src conf
+# See https://wiki.hyprland.org/Configuring/Monitors/
+monitor=,preferred,auto,auto
+#+end_src
+**** My Programs
+
+#+begin_src conf
+# See https://wiki.hyprland.org/Configuring/Keywords/
+
+# Set programs that you use
+$terminal = kitty
+$fileManager = thunar
+$menu = wofi --show drun
+#+end_src
+**** Autostart
+
+#+begin_src conf
+# Autostart necessary processes (like notifications daemons, status bars, etc.)
+# Or execute your favorite apps at launch like this:
+
+# exec-once = $terminal
+# exec-once = nm-applet &
+# exec-once = waybar & hyprpaper & firefox
+#+end_src
+**** Environment variables
+
+#+begin_src conf
+# See https://wiki.hyprland.org/Configuring/Environment-variables/
+
+env = XCURSOR_SIZE,24
+env = HYPRCURSOR_SIZE,24
+#+end_src
+**** Permissions
+
+#+begin_src conf
+# See https://wiki.hyprland.org/Configuring/Permissions/
+# Please note permission changes here require a Hyprland restart and are not applied on-the-fly
+# for security reasons
+
+# ecosystem {
+#   enforce_permissions = 1
+# }
+
+# permission = /usr/(bin|local/bin)/grim, screencopy, allow
+# permission = /usr/(lib|libexec|lib64)/xdg-desktop-portal-hyprland, screencopy, allow
+# permission = /usr/(bin|local/bin)/hyprpm, plugin, allow
+#+end_src
+**** Look and Feel
+
+#+begin_src conf
+# Refer to https://wiki.hyprland.org/Configuring/Variables/
+
+# https://wiki.hyprland.org/Configuring/Variables/#general
+general {
+    gaps_in = 5
+    gaps_out = 20
+
+    border_size = 2
+
+    # https://wiki.hyprland.org/Configuring/Variables/#variable-types for info about colors
+    col.active_border = rgba(33ccffee) rgba(00ff99ee) 45deg
+    col.inactive_border = rgba(595959aa)
+
+    # Set to true enable resizing windows by clicking and dragging on borders and gaps
+    resize_on_border = false
+
+    # Please see https://wiki.hyprland.org/Configuring/Tearing/ before you turn this on
+    allow_tearing = false
+
+    layout = dwindle
+}
+#+end_src
+***** Decoration
+
+#+begin_src conf
+# https://wiki.hyprland.org/Configuring/Variables/#decoration
+decoration {
+    rounding = 10
+    rounding_power = 2
+
+    # Change transparency of focused and unfocused windows
+    active_opacity = 1.0
+    inactive_opacity = 1.0
+
+    shadow {
+        enabled = true
+        range = 4
+        render_power = 3
+        color = rgba(1a1a1aee)
+    }
+
+    # https://wiki.hyprland.org/Configuring/Variables/#blur
+    blur {
+        enabled = true
+        size = 3
+        passes = 1
+
+        vibrancy = 0.1696
+    }
+}
+#+end_src
+***** Animation
+
+#+begin_src conf
+# https://wiki.hyprland.org/Configuring/Variables/#animations
+animations {
+    enabled = yes, please :)
+
+    # Default animations, see https://wiki.hyprland.org/Configuring/Animations/ for more
+
+    bezier = easeOutQuint,0.23,1,0.32,1
+    bezier = easeInOutCubic,0.65,0.05,0.36,1
+    bezier = linear,0,0,1,1
+    bezier = almostLinear,0.5,0.5,0.75,1.0
+    bezier = quick,0.15,0,0.1,1
+
+    animation = global, 1, 10, default
+    animation = border, 1, 5.39, easeOutQuint
+    animation = windows, 1, 4.79, easeOutQuint
+    animation = windowsIn, 1, 4.1, easeOutQuint, popin 87%
+    animation = windowsOut, 1, 1.49, linear, popin 87%
+    animation = fadeIn, 1, 1.73, almostLinear
+    animation = fadeOut, 1, 1.46, almostLinear
+    animation = fade, 1, 3.03, quick
+    animation = layers, 1, 3.81, easeOutQuint
+    animation = layersIn, 1, 4, easeOutQuint, fade
+    animation = layersOut, 1, 1.5, linear, fade
+    animation = fadeLayersIn, 1, 1.79, almostLinear
+    animation = fadeLayersOut, 1, 1.39, almostLinear
+    animation = workspaces, 1, 1.94, almostLinear, fade
+    animation = workspacesIn, 1, 1.21, almostLinear, fade
+    animation = workspacesOut, 1, 1.94, almostLinear, fade
+}
+
+# Ref https://wiki.hyprland.org/Configuring/Workspace-Rules/
+# "Smart gaps" / "No gaps when only"
+# uncomment all if you wish to use that.
+# workspace = w[tv1], gapsout:0, gapsin:0
+# workspace = f[1], gapsout:0, gapsin:0
+# windowrule = bordersize 0, floating:0, onworkspace:w[tv1]
+# windowrule = rounding 0, floating:0, onworkspace:w[tv1]
+# windowrule = bordersize 0, floating:0, onworkspace:f[1]
+# windowrule = rounding 0, floating:0, onworkspace:f[1]
+#+end_src
+**** Dwindle
+
+#+begin_src conf
+# See https://wiki.hyprland.org/Configuring/Dwindle-Layout/ for more
+dwindle {
+    pseudotile = true # Master switch for pseudotiling. Enabling is bound to mainMod + P in the keybinds section below
+    preserve_split = true # You probably want this
+}
+#+end_src
+**** Master layout
+
+#+begin_src conf
+# See https://wiki.hyprland.org/Configuring/Master-Layout/ for more
+master {
+    new_status = master
+}
+#+end_src
+**** Variables / Misc
+
+#+begin_src conf
+# https://wiki.hyprland.org/Configuring/Variables/#misc
+misc {
+    force_default_wallpaper = -1 # Set to 0 or 1 to disable the anime mascot wallpapers
+    disable_hyprland_logo = false # If true disables the random hyprland logo / anime girl background. :(
+}
+#+end_src
+**** Input
+
+#+begin_src conf
+# https://wiki.hyprland.org/Configuring/Variables/#input
+input {
+    kb_layout = us
+    kb_variant =
+    kb_model =
+    kb_options =
+    kb_rules =
+
+    follow_mouse = 0
+    kb_options = ctrl:nocaps
+
+    sensitivity = 0 # -1.0 - 1.0, 0 means no modification.
+
+    touchpad {
+        natural_scroll = false
+    }
+    repeat_delay = 185
+    repeat_rate = 75
+}
+#+end_src
+**** Gestures
+
+#+begin_src conf
+# https://wiki.hyprland.org/Configuring/Variables/#gestures
+gestures {
+    workspace_swipe = false
+}
+#+end_src
+**** Per-device config
+
+#+begin_src conf
+# Example per-device config
+# See https://wiki.hyprland.org/Configuring/Keywords/#per-device-input-configs for more
+device {
+    name = epic-mouse-v1
+    sensitivity = -0.5
+}
+#+end_src
+**** Keybindings
+#+begin_src conf
+# See https://wiki.hyprland.org/Configuring/Keywords/
+$mainMod = SUPER # Sets "Super" key as main modifier
+#+end_src
+***** Launch Applications
+#+begin_src conf
+bind = ALT, W, fullscreen
+# Example binds, see https://wiki.hyprland.org/Configuring/Binds/ for more
+bind = $mainMod, Q, exec, $terminal
+bind = ALT, E, exec, emacs
+bind = $mainMod, E, exec, emacs
+bind = $mainMod, C, exec, brave
+bind = $mainMod, X, killactive,
+bind = $mainMod, M, exit,
+bind = $mainMod, E, exec, $fileManager
+bind = $mainMod, V, togglefloating,
+bind = $mainMod, R, exec, $menu
+bind = $mainMod, P, pseudo, # dwindle
+bind = $mainMod, J, togglesplit, # dwindle
+#+end_src
+***** Keybindings 1
+
+#+begin_src conf
+# Move focus with mainMod + arrow keys
+bind = $mainMod, left, movefocus, l
+bind = $mainMod, right, movefocus, r
+bind = $mainMod, up, movefocus, u
+bind = $mainMod, down, movefocus, d
+#+end_src
+***** Keybindings 2
+
+#+begin_src conf
+# Switch workspaces with mainMod + [0-9]
+bind = $mainMod, 1, workspace, 1
+bind = $mainMod, 2, workspace, 2
+bind = $mainMod, 3, workspace, 3
+bind = $mainMod, 4, workspace, 4
+bind = $mainMod, 5, workspace, 5
+bind = $mainMod, 6, workspace, 6
+bind = $mainMod, 7, workspace, 7
+bind = $mainMod, 8, workspace, 8
+bind = $mainMod, 9, workspace, 9
+bind = $mainMod, 0, workspace, 10
+#+end_src
+***** Keybindings 3
+
+#+begin_src conf
+# Move active window to a workspace with mainMod + SHIFT + [0-9]
+bind = $mainMod SHIFT, 1, movetoworkspace, 1
+bind = $mainMod SHIFT, 2, movetoworkspace, 2
+bind = $mainMod SHIFT, 3, movetoworkspace, 3
+bind = $mainMod SHIFT, 4, movetoworkspace, 4
+bind = $mainMod SHIFT, 5, movetoworkspace, 5
+bind = $mainMod SHIFT, 6, movetoworkspace, 6
+bind = $mainMod SHIFT, 7, movetoworkspace, 7
+bind = $mainMod SHIFT, 8, movetoworkspace, 8
+bind = $mainMod SHIFT, 9, movetoworkspace, 9
+bind = $mainMod SHIFT, 0, movetoworkspace, 10
+#+end_src
+***** Keybinidngs 4
+
+#+begin_src conf
+# Example special workspace (scratchpad)
+bind = $mainMod, S, togglespecialworkspace, magic
+bind = $mainMod SHIFT, S, movetoworkspace, special:magic
+
+# Scroll through existing workspaces with mainMod + scroll
+bind = $mainMod, mouse_down, workspace, e+1
+bind = $mainMod, mouse_up, workspace, e-1
+
+# Move/resize windows with mainMod + LMB/RMB and dragging
+bindm = $mainMod, mouse:272, movewindow
+bindm = $mainMod, mouse:273, resizewindow
+
+# Laptop multimedia keys for volume and LCD brightness
+bindel = ,XF86AudioRaiseVolume, exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+
+bindel = ,XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+bindel = ,XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+bindel = ,XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
+bindel = ,XF86MonBrightnessUp, exec, brightnessctl -e4 -n2 set 5%+
+bindel = ,XF86MonBrightnessDown, exec, brightnessctl -e4 -n2 set 5%-
+
+# Requires playerctl
+bindl = , XF86AudioNext, exec, playerctl next
+bindl = , XF86AudioPause, exec, playerctl play-pause
+bindl = , XF86AudioPlay, exec, playerctl play-pause
+bindl = , XF86AudioPrev, exec, playerctl previous
+#+end_src
+**** Windows and workspaces
+
+#+begin_src conf
+# See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
+# See https://wiki.hyprland.org/Configuring/Workspace-Rules/ for workspace rules
+
+# Example windowrule
+# windowrule = float,class:^(kitty)$,title:^(kitty)$
+
+# Ignore maximize requests from apps. You'll probably like this.
+windowrule = suppressevent maximize, class:.*
+
+# Fix some dragging issues with XWayland
+windowrule = nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0
+#+end_src
+
+
+** Alacritty
+#+begin_src nix :tangle ./modules/wm/alacritty.nix
+{ pkgs, lib, ... }:
+
+{
+  home.packages = with pkgs; [
+    alacritty
+  ];
+  programs.alacritty.enable = true;
+  programs.alacritty.settings = {
+    window.opacity = lib.mkForce 0.85;
+  };
+
+}
+
+#+end_src
+** kitty
+#+begin_src nix :tangle ./modules/wm/kitty.nix
+{ pkgs, lib, ... }:
+
+{
+  home.packages = with pkgs; [
+    kitty
+  ];
+  programs.kitty.enable = true;
+  programs.kitty.settings = {
+    background_opacity = lib.mkForce "0.85";
+    modify_font = "cell_width 90%";
+  };
 }
 #+end_src
