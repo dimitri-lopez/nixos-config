@@ -7,8 +7,8 @@
       # ./modules/xfce/xfce.nix
       ./system/hyprland.nix
       ./modules/steam.nix
-      ./system/bluetooth.nix
-      ./system/pipewire.nix
+      # ./system/bluetooth.nix
+      # ./system/pipewire.nix
     ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;

@@ -15,7 +15,7 @@
   #   };
   # };
 
-  services.pulseaudio.enable = false;
+  # services.pulseaudio.enable = false;
   # Pipewire
   security.rtkit.enable = true;
   services.pipewire = {
