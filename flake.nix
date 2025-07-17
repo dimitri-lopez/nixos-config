@@ -5,7 +5,6 @@
     home-manager.url = "github:nix-community/home-manager/release-25.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   
-  
     hyprland = {
       url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -17,7 +16,7 @@
     };
     raise.url = "github:knarkzel/raise";
   };
-  outputs = { self, nixpkgs, home-manager, ... }:
+  outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
       lib = nixpkgs.lib;
@@ -47,6 +46,7 @@
           modules = [ ./home.nix ];
           extraSpecialArgs = {
             inherit userSettings;
+            inherit inputs;
           };
         };
       };

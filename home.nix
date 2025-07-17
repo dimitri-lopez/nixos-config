@@ -15,6 +15,8 @@
   # manage.
   home.username = "dimitril";
   home.homeDirectory = "/home/dimitril";
+
+  nixpkgs.config.allowUnfree = true;
   # sessionPath = ["/home/dimitril/.config/emacs"];
 
   # This value determines the Home Manager release that your configuration is

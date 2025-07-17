@@ -33,7 +33,6 @@
 
 #+RESULTS:
 : dl/nixos-tangle-update-home-config
-
 ** Garbage collection from cli
 I have this done automatically within my configuration. See
 [[Garbage collection]]
@@ -138,7 +137,7 @@ Within configuration.nix and home.nix I have a set of modules that I can add and
 {
   description = "dimitril's flake";
   <<flake.nix--inputs>>
-  outputs = { self, nixpkgs, home-manager, ... }:
+  outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
       lib = nixpkgs.lib;
@@ -158,6 +157,7 @@ Within configuration.nix and home.nix I have a set of modules that I can add and
           modules = [ ./home.nix ];
           extraSpecialArgs = {
             inherit userSettings;
+            inherit inputs;
           };
         };
       };
@@ -171,7 +171,6 @@ inputs = {
   nixpkgs.url = "nixpkgs/nixos-25.05";
   home-manager.url = "github:nix-community/home-manager/release-25.05";
   home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
 
   hyprland = {
     url = "github:hyprwm/Hyprland";
@@ -237,7 +236,7 @@ networking.networkmanager.enable = true; # Enable networking
 ** Sound
 #+begin_src nix
 # Enable sound with pipewire.
-services.pulseaudio.enable = false;
+# services.pulseaudio.enable = false;
 # TODO moved to ./system/pipewire.nix
 # security.rtkit.enable = true;
 # services.pipewire = {
@@ -306,10 +305,10 @@ i18n.extraLocaleSettings = {
 ** X11 Keymap
 #+begin_src nix
 # Configure keymap in X11
-services.xserver.xkb = {
-  layout = "us";
-  variant = "";
-};
+# services.xserver.xkb = {
+#   layout = "us";
+#   variant = "";
+# };
 
 #+end_src
 ** CUPS printing
@@ -411,6 +410,8 @@ See [[*home.nix modules][home.nix modules]].
   # manage.
   home.username = "dimitril";
   home.homeDirectory = "/home/dimitril";
+
+  nixpkgs.config.allowUnfree = true;
   # sessionPath = ["/home/dimitril/.config/emacs"];
 
   # This value determines the Home Manager release that your configuration is
@@ -502,6 +503,7 @@ imports =
     ./system/hyprland.nix
     ./modules/steam.nix
     ./system/bluetooth.nix
+    ./system/pipewire.nix
   ];
 #+end_src
 ** home.nix modules
@@ -585,6 +587,43 @@ imports =
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot
+    (pkgs.writeScriptBin "restart-emacs-daemon" ''
+#!/usr/bin/env bash
+
+EMACSRUNNING="t"
+EMACSSTATE=$(emacsclient -a false -e 't')
+if [ "$EMACSRUNNING" = "$EMACSSTATE" ]; then
+    # echo "Emacs daemon is running"
+    notify-send 'Emacs Daemon' 'Restarting Emacs Daemon' -i ~/bin/BWEmacsIcon.png -t 3000
+    emacsclient -e "(kill-emacs)"
+else
+    # echo "Emacs daemon is not running"
+    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/bin/BWEmacsIcon.png -t 3000
+fi
+
+emacs --daemon
+notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/bin/EmacsIcon.png -t 3000
+    '')
+    (pkgs.writeScriptBin "jumpapp-emacs" ''
+#!/usr/bin/env bash
+
+EMACSRUNNING="t"
+EMACSSTATE=$(emacsclient -a false -e 't')
+if [ "$EMACSRUNNING" != "$EMACSSTATE" ]; then
+    # echo "Emacs daemon is not running"
+    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/bin/BWEmacsIcon.png -t 3000
+    emacs --daemon
+fi
+
+VAR1=$(jumpapp -m emacs --daemon 2>&1 >/dev/null)
+VAR2="Error: found running process for 'emacs', but found no window to jump to"
+if [ "$VAR1" = "$VAR2" ]; then
+    # emacs client is not open
+    emacsclient -c -a 'emacs'
+else
+    python /home/dimitril/bin/move-windows-to-workspace.py
+fi
+    '')
   ];
 }
 
@@ -651,8 +690,23 @@ imports =
     jumpapp
     libnotify # forr sending notifcations
     wmctrl #for window management
+    (pkgs.writeScriptBin "simulate-keystrokes" ''
+#!/bin/sh
+notify-send 'Simulate Keystrokes' 'Will type out current clipboard contents' -i ~/bin/KeyboardIconW.png -t 3500
+notify-send 'Simulate Keystrokes' 'Will type in: 3' -t 1000
+sleep 1
+notify-send 'Simulate Keystrokes' 'Will type in: 2' -t 1000
+sleep 1
+notify-send 'Simulate Keystrokes' 'Will type in: 1' -t 1000
+sleep 1
+xdotool type -- "$(xsel -bo | tr \\n \\r | sed s/\\r*\$//)"
+'')
+
   ];
 }
+#+end_src
+
+#+begin_src bash
 #+end_src
 ** sh.nix
 #+begin_src nix :tangle ./modules/sh.nix
@@ -1041,6 +1095,7 @@ in
   ];
 }
 #+end_src
+** TO
 * System modules
 ** bluetooth.nix
 - [[*home.nix modules][home.nix modules]]
@@ -1098,6 +1153,21 @@ in
 { ... }:
 
 {
+
+  # services = {
+  #   blueman.enable = true;
+  #   # gnome.gnome-keyring.enable = true;
+  #   pipewire = { # multimedia framework
+  #     enable = true;
+  #     alsa = {
+  #       enable = true;
+  #       support32Bit = true;
+  #     };
+  #     pulse.enable = true;
+  #   };
+  # };
+
+  services.pulseaudio.enable = false;
   # Pipewire
   security.rtkit.enable = true;
   services.pipewire = {
@@ -1146,7 +1216,7 @@ in
   };
 }
 #+end_src
-* Home Hyprland
+* Hyprland
 ** hyprland.nix
 We want this to be imported within configuration.nix modules:
 - [[*configuration.nix modules][configuration.nix nodules]]
@@ -1166,7 +1236,8 @@ We want this to be imported within configuration.nix modules:
   };
 
   services.gnome.gnome-keyring.enable = true;
-  services.xserver.displayManager.sddm.enable = true; #This line enables sddm
+  # services.xserver.displayManager.sddm.enable = true; # Replaced by below
+  services.displayManager.sddm.enable = true; # This line enables sddm
   services.xserver.enable = true; # Might need this for Xwayland
 
 
@@ -1206,7 +1277,7 @@ We want this to be imported within configuration.nix modules:
 We want this to be enabled within the homemanager imports:
 [[*home.nix modules][home.nix modules]]
 #+begin_src nix :tangle ./modules/wm/hyprland-minimal.nix :noweb yes
-{ pkgs, lib, ... }:
+{ pkgs, lib, inputs, ... }:
 
 {
   imports = [
@@ -1215,26 +1286,61 @@ We want this to be enabled within the homemanager imports:
   ];
   wayland.windowManager.hyprland = {
     enable = true;
-  #   # package = pkgs-hyprland.hyprland-minimal;
-  #   # plugins = [ ];
-  #   # settings = { };
+    #   # package = pkgs-hyprland.hyprland-minimal;
+    #   # plugins = [ ];
+    #   # settings = { };
     extraConfig = ''
 <<hyprlandExtraConfig>>
     '';
-  #   xwayland.enable = true;
-  #   # systemd.enable = true;
+    #   xwayland.enable = true;
+    #   # systemd.enable = true;
   };
 
-
+#+end_src
+** hyprland packages
+#+begin_src nix :tangle ./modules/wm/hyprland-minimal.nix :noweb yes
   home.packages = with pkgs; [
-    alacritty
-    kitty
+    alacritty # fancy terminal
+    kitty # default terminal
     waybar # bar, switch to eww later
     dunst # notifications
-    libnotify
+    libnotify # dunst dependency
     swww # wallpaper manager
+
+    nwg-launchers # app launcher
     rofi-wayland # application launcher
-  ];
+    nwg-displays # display manager
+    hyprlock # lock manager
+    playerctl # for audio controls
+
+    hyprsunset # bluelight filter
+    # redshift # blue light filter
+    # geoclue2 # red shift dependency
+    vim  # basic text editor
+    dropbox # syncing files
+    blueman # bluetooth
+
+    # cli tools
+    hyprpicker # color picker
+    wl-clipboard # clipboard manager
+
+    tesseract4 # ocr
+    slurp # screenshot
+    grim # used to grab images?
+    wev # used to find keybindings
+    (pkgs.writeScriptBin "screenshot-ocr" ''
+      #!/bin/sh
+      imgname="/tmp/screenshot-ocr-$(date +%Y%m%d%H%M%S).png"
+      txtname="/tmp/screenshot-ocr-$(date +%Y%m%d%H%M%S)"
+      txtfname=$txtname.txt
+      grim -g "$(slurp)" $imgname;
+      tesseract $imgname $txtname;
+      wl-copy -n < $txtfname
+    '')
+
+
+  ] ++ [ inputs.raise.defaultPackage.x86_64-linux ];
+  <<hyprland-home-files>>
 }
 
 #+end_src
@@ -1242,6 +1348,149 @@ We want this to be enabled within the homemanager imports:
 :PROPERTIES:
 :header-args:conf: :noweb-ref hyprlandExtraConfig
 :END:
+**** Hyprland packages
+#+transclude: [[*hyprland packages][hyprland packages]]
+
+**** Wishlist
+***** Size of text on browser
+***** sound
+:LOGBOOK:
+CLOCK: [2025-07-17 Thu 00:54]
+CLOCK: [2025-07-16 Wed 20:22]--[2025-07-16 Wed 20:26] =>  0:04
+:END:
+***** Qutebrowser
+[[file:~/example-nixos-configs/libre-pheonix-nixos-config/user/app/browser/qutebrowser.nix::<meta name="viewport" content="width=device-width, initial-scale=1">]]
+
+***** from librepheonix
+1. =bind=SUPERSHIFT,T,exec,screenshot-ocr=:
+   * *Command:* =screenshot-ocr= - Takes a screenshot and performs Optical Character Recognition (OCR) to extract text from the image, likely copying the text to your clipboard.
+   * *Trigger:* SUPERSHIFT + T
+
+2. =bind=SUPER,W,exec,nwg-dock-wrapper=:
+   * *Command:* =nwg-dock-wrapper= - likely launches or shows/hides a dock (application launcher/taskbar)
+   * *Trigger:* SUPER + W
+
+****** pass
+3. =bind = SUPER,R,pass,^(com\.obsproject\.Studio)$=:
+   * *Command:* =pass,^(com\.obsproject\.Studio)$= - Passes the SUPER+R key combination to OBS Studio when it is focused.
+   * *Trigger:* SUPER + R (when OBS Studio is focused)
+
+4. =bind = SUPERSHIFT,R,pass,^(com\.obsproject\.Studio)$=:
+   * *Command:* =pass,^(com\.obsproject\.Studio)$= - Passes the SUPERSHIFT+R key combination to OBS Studio when it is focused.
+   * *Trigger:* SUPERSHIFT + R (when OBS Studio is focused)
+
+
+****** notifications
+1. =bind=SUPER,X,exec,fnottctl dismiss=:
+   * **Command:** =fnottctl dismiss= - Dismisses the current notification.  =fnottctl= is likely a notification manager.
+   * **Trigger:** SUPER + X
+
+2. =bind=SUPERSHIFT,X,exec,fnottctl dismiss all=:
+   * **Command:** =fnottctl dismiss all= - Dismisses all notifications.
+   * **Trigger:** SUPERSHIFT + X
+
+****** system commands
+3. =bind=,code:255,exec,airplane-mode=:
+   * **Command:** =airplane-mode= - Toggles airplane mode.
+   * **Trigger:** =code:255= (Likely a dedicated airplane mode key or function key combination on your keyboard).
+
+4. =bind=SUPERSHIFT,S,exec,systemctl suspend=:
+   * **Command:** =systemctl suspend= - Suspends your system (puts it to sleep).
+   * **Trigger:** SUPERSHIFT + S
+5. =bindl=,switch:on:Lid Switch,exec,loginctl lock-session=:
+   * **Command:** =loginctl lock-session= - Locks the current session (screen lock).
+   * **Trigger:** Closing the laptop lid.  The =bindl= means it's a "bind-lid".
+
+6. =bind=SUPERCTRL,L,exec,loginctl lock-session=:
+   * **Command:** =loginctl lock-session= - Locks the current session (screen lock).
+   * **Trigger:** SUPERCTRL + L
+
+****** jump to special workspace
+7. =bind=SUPER,Z,exec,if hyprctl clients | grep scratch_term; then echo "scratch_term respawn not needed"; else alacritty --class scratch_term; fi=
+   =bind=SUPER,Z,togglespecialworkspace,scratch_term=
+   * **Command:** Checks if a terminal window with the class =scratch_term= exists. If not, it launches =alacritty= with that class. Then it toggles the visibility of the special workspace named =scratch_term=.
+   * **Trigger:** SUPER + Z
+
+8. =bind=SUPER,F,exec,if hyprctl clients | grep scratch_ranger; then echo "scratch_ranger respawn not needed"; else kitty --class scratch_ranger -e ranger; fi=
+   =bind=SUPER,F,togglespecialworkspace,scratch_ranger=
+   * **Command:** Checks if a =kitty= terminal running =ranger= file manager with the class =scratch_ranger= exists. If not, it launches it. Then it toggles the visibility of the special workspace named =scratch_ranger=.
+   * **Trigger:** SUPER + F
+
+9. =bind=SUPER,N,exec,if hyprctl clients | grep scratch_numbat; then echo "scratch_ranger respawn not needed"; else alacritty --class scratch_numbat -e numbat; fi=
+   =bind=SUPER,N,togglespecialworkspace,scratch_numbat=
+   * **Command:** Checks if a terminal running =numbat= unit converter with the class =scratch_numbat= exists. If not, it launches it. Then it toggles the visibility of the special workspace named =scratch_numbat=.
+10. **Trigger:** SUPER + N
+
+11. =bind=SUPER,M,exec,if hyprctl clients | grep lollypop; then echo "scratch_ranger respawn not needed"; else lollypop; fi=
+    =bind=SUPER,M,togglespecialworkspace,scratch_music=
+    * **Command:** Checks if =lollypop= music player exists. If not, it launches it. Then it toggles the visibility of the special workspace named =scratch_music=.
+    * **Trigger:** SUPER + M
+
+12. =bind=SUPER,B,exec,if hyprctl clients | grep scratch_btm; then echo "scratch_ranger respawn not needed"; else alacritty --class scratch_btm -e btm; fi=
+    =bind=SUPER,B,togglespecialworkspace,scratch_btm=
+    * **Command:** Checks if a terminal running =btm= system monitor with the class =scratch_btm= exists. If not, it launches it. Then it toggles the visibility of the special workspace named =scratch_btm=.
+    * **Trigger:** SUPER + B
+
+13. =bind=SUPER,D,exec,if hyprctl clients | grep Element; then echo "scratch_ranger respawn not needed"; else element-desktop; fi=
+    =bind=SUPER,D,togglespecialworkspace,scratch_element=
+    * **Command:** Checks if =element-desktop= (Element Matrix client) exists. If not, it launches it. Then it toggles the visibility of the special workspace named =scratch_element=.
+    * **Trigger:** SUPER + D
+
+14. =bind=SUPER,code:172,exec,togglespecialworkspace,scratch_pavucontrol=
+    =bind=SUPER,code:172,exec,if hyprctl clients | grep pavucontrol; then echo "scratch_ranger respawn not needed"; else pavucontrol; fi=
+    * **Command:** Checks if =pavucontrol= (PulseAudio Volume Control) exists. If not, it launches it. Then it toggles the visibility of the special workspace named =scratch_pavucontrol=.
+    * **Trigger:** SUPER + =code:172= (Likely a multimedia key for volume control)
+
+****** Netowrk manager, menus, password manager, hyprprofile-dmenu
+15. =bind=SUPER,I,exec,networkmanager_dmenu=:
+    * **Command:** =networkmanager_dmenu= - Opens a menu to manage network connections, likely using =dmenu=.
+    * **Trigger:** SUPER + I
+
+16. =bind=SUPER,P,exec,keepmenu=:
+    * **Command:** =keepmenu= - likely launches or shows/hides a password manager menu.
+    * **Trigger:** SUPER + P
+
+17. =bind=SUPERSHIFT,P,exec,hyprprofile-dmenu=:
+    * **Command:** =hyprprofile-dmenu= - Opens a menu to switch between Hyprland profiles, likely using =dmenu=.
+    * **Trigger:** SUPERSHIFT + P
+
+18. =bind=SUPERCTRL,R,exec,phoenix refresh=:
+    * **Command:** =phoenix refresh= - Refreshes the phoenix compositor.
+    * **Trigger:** SUPERCTRL + R
+***** Don't understand still
+1. =bind=SUPER,code:66,exec,nwggrid-wrapper=:
+   * *Command:* =nwggrid-wrapper= - likely opens a grid-based application launcher or workspace selector.
+   * *Trigger:* SUPER + =code:66= (This is likely the "Enter" key.)
+2. =bind=SUPERCTRL,S,exec,container-open # qutebrowser only=:
+   * *Command:* =container-open= - Likely a qutebrowser command to open the selected element into a new container.
+   * *Trigger:* SUPERCTRL + S (Likely only works when Qutebrowser is running.)
+3. =bind=SUPERCTRL,P,pin=:
+   * *Command:* =pin= - Likely pins the focused window, possibly making it stay on top of other windows or on all workspaces.
+   * *Trigger:* SUPERCTRL + P
+4. =bind=SUPERCTRL,P,pin=:
+   * *Command:* =pin= - Likely pins the focused window, possibly making it stay on top of other windows or on all workspaces.
+   * *Trigger:* SUPERCTRL + P
+5. =bind=SUPER,code:47,exec,fuzzel=:
+   * *Command:* =fuzzel= - Opens a fuzzy application launcher (like dmenu or rofi).
+   * *Trigger:* SUPER + =code:47= (Likely the "=" or "~" key)
+
+6. =bind=SUPERCTRL,right,exec,hyprnome=:
+   * **Command:** =hyprnome= - Likely moves the focus to the next window in the workspace.
+   * **Trigger:** SUPERCTRL + Right Arrow
+
+7. =bind=SUPERCTRL,left,exec,hyprnome --previous=:
+   * **Command:** =hyprnome --previous= - Likely moves the focus to the previous window in the workspace.
+   * **Trigger:** SUPERCTRL + Left Arrow
+
+8. =bind=SUPERSHIFT,right,exec,hyprnome --move=:
+   * **Command:** =hyprnome --move= - Likely moves the focused window to the next workspace.
+   * **Trigger:** SUPERSHIFT + Right Arrow
+
+9. =bind=SUPERSHIFT,left,exec,hyprnome --previous --move=:
+   * **Command:** =hyprnome --previous --move= - Likely moves the focused window to the previous workspace.
+   * **Trigger:** SUPERSHIFT + Left Arrow
+**** Hyprland Packages
+
 **** Information
 #+begin_src conf
 autogenerated = 0 # remove this line to remove the warning
@@ -1257,11 +1506,15 @@ autogenerated = 0 # remove this line to remove the warning
 # Create your files separately and then link them to this file like this:
 # source = ~/.config/hypr/myColors.conf
 #+end_src
-
 **** Monitors
 #+begin_src conf
 # See https://wiki.hyprland.org/Configuring/Monitors/
+# default onitor seeing
 monitor=,preferred,auto,auto
+# # thinkpad monitor
+# monitor = desc: AU Optronics 0x573D,
+# # dell monitor
+# monitor = desc: Dell Inc. DELL P3421W,
 #+end_src
 **** My Programs
 
@@ -1274,11 +1527,12 @@ $fileManager = thunar
 $menu = wofi --show drun
 #+end_src
 **** Autostart
-
 #+begin_src conf
 # Autostart necessary processes (like notifications daemons, status bars, etc.)
 # Or execute your favorite apps at launch like this:
-
+exec-once = dropbox
+exec-once = hyprsunset
+exec-once = restart-emacs-daemon
 # exec-once = $terminal
 # exec-once = nm-applet &
 # exec-once = waybar & hyprpaper & firefox
@@ -1475,34 +1729,118 @@ device {
 # See https://wiki.hyprland.org/Configuring/Keywords/
 $mainMod = SUPER # Sets "Super" key as main modifier
 #+end_src
+***** Temporary
+#+begin_src conf
+bindm = SUPER, mouse:274, togglefloating
+bind = SUPER_L&ALT_L, mouse:272, exec, hyprctl keyword cursor:zoom_factor "$(hyprctl getoption cursor:zoom_factor | grep float | awk '{print $2 + 0.1}')"
+bind = SUPER_L&ALT_L, mouse:273, exec, hyprctl keyword cursor:zoom_factor "$(hyprctl getoption cursor:zoom_factor | grep float | awk '{print $2 - 0.1}')"
+bind = SUPER, F, fullscreen, 1
+# bind = SUPERSHIFT, F, fullscreen, 0
+bind = SUPER, B, togglefloating
+bind=SUPER,Y,workspaceopt,allfloat
+#+end_src
 ***** Launch Applications
 #+begin_src conf
 bind = ALT, W, fullscreen
+bind = ,W&L, fullscreen
 # Example binds, see https://wiki.hyprland.org/Configuring/Binds/ for more
-bind = $mainMod, Q, exec, $terminal
-bind = ALT, E, exec, emacs
-bind = $mainMod, E, exec, emacs
-bind = $mainMod, C, exec, brave
+bind = SUPER, SPACE, exec, nwggrid
+bind = SUPER, D, exec, nwggrid
+# bind = SUPER, T, exec, $terminal
+
+# brave
+bind = SUPER, C, exec, raise --class "Brave-browser" --launch "brave"
+bind = ,J&B, exec, raise --class "Brave-browser" --launch "brave"
+# bind = SUPER_SHIFT, C, exec, brave
+# bind = SUPER, C, exec, brave
+
+bind = SUPER, T, exec, raise --class "Alacritty" --launch "alacritty"
+bind = SUPER_SHIFT, T, exec, alacritty
+
 bind = $mainMod, X, killactive,
-bind = $mainMod, M, exit,
-bind = $mainMod, E, exec, $fileManager
 bind = $mainMod, V, togglefloating,
-bind = $mainMod, R, exec, $menu
 bind = $mainMod, P, pseudo, # dwindle
-bind = $mainMod, J, togglesplit, # dwindle
+# bind = $mainMod, J, togglesplit, # dwindle
 #+end_src
-***** Keybindings 1
-
+***** Screenshots
 #+begin_src conf
-# Move focus with mainMod + arrow keys
-bind = $mainMod, left, movefocus, l
-bind = $mainMod, right, movefocus, r
-bind = $mainMod, up, movefocus, u
-bind = $mainMod, down, movefocus, d
+bind=SUPER,S,exec,grim -g "$(slurp)" - | wl-copy
+# bind=,code:107,exec,grim -g "$(slurp)"
+# bind=SHIFT,code:107,exec,grim -g "$(slurp -o)"
+# bind=SUPER,code:107,exec,grim
+# bind=CTRL,code:107,exec,grim -g "$(slurp)" - | wl-copy
+# bind=SHIFTCTRL,code:107,exec,grim -g "$(slurp -o)" - | wl-copy
+# bind=SUPERCTRL,code:107,exec,grim - | wl-copy
 #+end_src
-***** Keybindings 2
-
+***** Emacs
 #+begin_src conf
+# emacs
+bind = ALT, E, exec, raise --class "Emacs" --launch "emacsclient --create-frame"
+bind = ,J&E, exec, raise --class "Emacs" --launch "emacsclient --create-frame"
+bind = SUPER, E, exec, raise --class "Emacs" --launch "emacsclient --create-frame"
+bind = SUPER_SHIFT, E, exec, emacsclient --create-frame
+bind = SUPER, I, exec, emacsclient --eval "(emacs-everywhere)" # TODO
+bind = SUPER, BackSpace, exec, /home/dimitril/.config/emacs/bin/org-capture
+# bind = ALT, E, exec, emacsclient -c
+# bind = SUPER, E, exec, emacsclient -c
+# restart emacs daemon
+bind = SUPER, 0, exec, restart-emacs-daemon
+#+end_src
+***** Scripts
+#+begin_src conf
+bind = SUPER_SHIFT, C, exec, wl-copy $(hyprpicker)
+bind = SUPERALT, T, exec, screenshot-ocr
+#+end_src
+***** Moving windows
+#+begin_src conf
+# Move/resize windows with mainMod + LMB/RMB and dragging
+bindm = $mainMod, mouse:272, movewindow
+bindm = $mainMod, mouse:273, resizewindow
+
+# alt tab
+bind=ALT,TAB,cyclenext
+bind=ALT,TAB,bringactivetotop
+bind=ALTSHIFT,TAB,cyclenext,prev
+bind=ALTSHIFT,TAB,bringactivetotop
+
+# Move focus with arrow keys
+bind = SUPER, left, movefocus, l
+bind = SUPER, right, movefocus, r
+bind = SUPER, up, movefocus, u
+bind = SUPER, down, movefocus, d
+
+# Move focus with vim keybindings as well
+bind=SUPER,H,movefocus,l
+bind=SUPER,J,movefocus,d
+bind=SUPER,K,movefocus,u
+bind=SUPER,L,movefocus,r
+bind=SUPER,H,alterzorder,top
+bind=SUPER,L,alterzorder,top
+bind=SUPER,K,alterzorder,top
+bind=SUPER,J,alterzorder,top
+
+# Move where windows are
+bind=SUPERSHIFT,H,movewindow,l
+bind=SUPERSHIFT,J,movewindow,d
+bind=SUPERSHIFT,K,movewindow,u
+bind=SUPERSHIFT,L,movewindow,r
+
+# Move where windows are
+bind=SUPER&ALT,H,movewindow,l
+bind=SUPER&ALT,J,movewindow,d
+bind=SUPER&ALT,K,movewindow,u
+bind=SUPER&ALT,L,movewindow,r
+
+# Kill window while on vim keybindings
+bind=SUPER,ESCAPE,killactive,
+#+end_src
+***** Workspace commmands
+#+begin_src conf
+
+# Scroll through existing workspaces with mainMod + scroll
+# bind = $mainMod, mouse_down, workspace, e+1
+# bind = $mainMod, mouse_up, workspace, e-1
+
 # Switch workspaces with mainMod + [0-9]
 bind = $mainMod, 1, workspace, 1
 bind = $mainMod, 2, workspace, 2
@@ -1513,11 +1851,7 @@ bind = $mainMod, 6, workspace, 6
 bind = $mainMod, 7, workspace, 7
 bind = $mainMod, 8, workspace, 8
 bind = $mainMod, 9, workspace, 9
-bind = $mainMod, 0, workspace, 10
-#+end_src
-***** Keybindings 3
 
-#+begin_src conf
 # Move active window to a workspace with mainMod + SHIFT + [0-9]
 bind = $mainMod SHIFT, 1, movetoworkspace, 1
 bind = $mainMod SHIFT, 2, movetoworkspace, 2
@@ -1528,22 +1862,15 @@ bind = $mainMod SHIFT, 6, movetoworkspace, 6
 bind = $mainMod SHIFT, 7, movetoworkspace, 7
 bind = $mainMod SHIFT, 8, movetoworkspace, 8
 bind = $mainMod SHIFT, 9, movetoworkspace, 9
-bind = $mainMod SHIFT, 0, movetoworkspace, 10
 #+end_src
-***** Keybinidngs 4
+***** Keybindings 4
 
 #+begin_src conf
 # Example special workspace (scratchpad)
-bind = $mainMod, S, togglespecialworkspace, magic
-bind = $mainMod SHIFT, S, movetoworkspace, special:magic
+# bind = $mainMod, S, togglespecialworkspace, magic
+# bind = $mainMod SHIFT, S, movetoworkspace, special:magic
 
-# Scroll through existing workspaces with mainMod + scroll
-bind = $mainMod, mouse_down, workspace, e+1
-bind = $mainMod, mouse_up, workspace, e-1
 
-# Move/resize windows with mainMod + LMB/RMB and dragging
-bindm = $mainMod, mouse:272, movewindow
-bindm = $mainMod, mouse:273, resizewindow
 
 # Laptop multimedia keys for volume and LCD brightness
 bindel = ,XF86AudioRaiseVolume, exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+
@@ -1568,12 +1895,105 @@ bindl = , XF86AudioPrev, exec, playerctl previous
 # Example windowrule
 # windowrule = float,class:^(kitty)$,title:^(kitty)$
 
+# Have windows be floating by default
+windowrulev2 = float, class:.*
+# Have the following windows be tiled by default
+windowrulev2 = tile, class:^(Emacs) # TODO
+windowrulev2 = float, title:^(doom-capture) # TODO
+windowrulev2 = tile, class:^(Brave-browser) # TODO
+windowrulev2 = tile, class:^(Alacritty)
+windowrulev2 = float,class:^(steam)
+
 # Ignore maximize requests from apps. You'll probably like this.
 windowrule = suppressevent maximize, class:.*
 
 # Fix some dragging issues with XWayland
 windowrule = nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0
 #+end_src
+** hyprland home files
+#+begin_src nix :noweb-ref hyprland-home-files :noweb yes
+
+home.file.".config/hypr/hyprlock.conf".text = ''
+<<hyprlock>>
+'';
+
+
+#+end_src
+*** hyprlock
+#+begin_src conf :noweb-ref hyprlock
+background {
+monitor =
+path = screenshot
+blur_passes = 4
+blur_size = 5
+noise = 0.0117
+contrast = 0.8916
+brightness = 0.8172
+vibrancy = 0.1696
+vibrancy_darkness = 0.0
+}
+image {
+monitor =
+path = /home/dimitril/Dropbox/images/Truchas_LopezRanch_MW.jpg
+size = 150 # lesser side if not 1:1 ratio
+rounding = -1 # negative values mean circle
+border_size = 0
+rotate = 0 # degrees, counter-clockwise
+
+position = 0, 200
+halign = center
+valign = center
+}
+
+input-field {
+monitor =
+size = 200, 50
+outline_thickness = 3
+dots_size = 0.33 # Scale of input-field height, 0.2 - 0.8
+dots_spacing = 0.15 # Scale of dots' absolute size, 0.0 - 1.0
+dots_center = false
+dots_rounding = -1 # -1 default circle, -2 follow input-field rounding
+fade_on_empty = true
+fade_timeout = 1000 # Milliseconds before fade_on_empty is triggered.
+placeholder_text = <i>Input Password...</i> # Text rendered in the input box when it's empty.
+hide_input = false
+rounding = -1 # -1 means complete rounding (circle/oval)
+fail_text = <i>$FAIL <b>($ATTEMPTS)</b></i> # can be set to empty
+fail_transition = 300 # transition time in ms between normal outer_color and fail_color
+capslock_color = -1
+numlock_color = -1
+bothlock_color = -1 # when both locks are active. -1 means don't change outer color (same for above)
+invert_numlock = false # change color if numlock is off
+swap_font_color = false # see below
+
+position = 0, -20
+halign = center
+valign = center
+}
+
+label {
+monitor =
+text = Hello, dimitril
+rotate = 0 # degrees, counter-clockwise
+
+position = 0, 160
+halign = center
+valign = center
+}
+
+label {
+monitor =
+text = $TIME
+rotate = 0 # degrees, counter-clockwise
+
+position = 0, 80
+halign = center
+valign = center
+}
+
+
+#+end_src
+
 
 
 ** Alacritty

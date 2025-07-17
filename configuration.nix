@@ -8,6 +8,7 @@
       ./system/hyprland.nix
       ./modules/steam.nix
       ./system/bluetooth.nix
+      ./system/pipewire.nix
     ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -21,7 +22,7 @@
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   # Enable sound with pipewire.
-  services.pulseaudio.enable = false;
+  # services.pulseaudio.enable = false;
   # TODO moved to ./system/pipewire.nix
   # security.rtkit.enable = true;
   # services.pipewire = {
@@ -75,10 +76,10 @@
   # services.xserver.desktopManager.xfce.enable = true;
   
   # Configure keymap in X11
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
-  };
+  # services.xserver.xkb = {
+  #   layout = "us";
+  #   variant = "";
+  # };
   
   # Enable CUPS to print documents.
   services.printing.enable = true;
