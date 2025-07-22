@@ -5,6 +5,7 @@
   imports = [ ./wayland.nix
               ./pipewire.nix
               ./dbus.nix
+              ./bluetooth.nix
             ];
 
   # Security
@@ -16,6 +17,7 @@
   # services.xserver.displayManager.sddm.enable = true; # Replaced by below
   services.displayManager.sddm.enable = true; # This line enables sddm
   services.xserver.enable = true; # Might need this for Xwayland
+  services.blueman.enable = true;
 
 
   programs.hyprland = {
