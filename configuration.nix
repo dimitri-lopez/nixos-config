@@ -21,6 +21,9 @@
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+  services.devmon.enable = true;
+  services.gvfs.enable = true; # needed for emacs tramp
+  services.udisks2.enable = true;
   # Enable sound with pipewire.
   # services.pulseaudio.enable = false;
   # TODO moved to ./system/pipewire.nix
@@ -87,7 +90,7 @@
   users.users.dimitril = {
     isNormalUser = true;
     description = "Dimitri Lopez";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" ];
     packages = with pkgs; [
     #  thunderbird
     ];

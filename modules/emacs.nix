@@ -14,10 +14,15 @@
     gnumake
     libtool
 
-    graphviz
+    graphviz # for org-roam
 
     texliveFull
     xorg.xwininfo # needed for emacs everywhere
+
+    mu
+    ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    isync
+    offlineimap
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot

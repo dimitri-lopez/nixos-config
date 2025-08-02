@@ -39,9 +39,16 @@ $fileManager = thunar
 $menu = wofi --show drun
 # Autostart necessary processes (like notifications daemons, status bars, etc.)
 # Or execute your favorite apps at launch like this:
+exec-once = systemctl --user restart gvfs-daemon # needed for tramp emacs
 exec-once = dropbox
+# exec-once = blueman-applet # TODO Need to double check if this is needed
+
 exec-once = hyprsunset
-exec-once = restart-emacs-daemon
+exec-once = hyprpaper
+exec-once = hypridle
+# exec-once = waybar
+
+exec-once = sleep 1 && restart-emacs-daemon
 # exec-once = $terminal
 # exec-once = nm-applet &
 # exec-once = waybar & hyprpaper & firefox
@@ -156,8 +163,8 @@ master {
 }
 # https://wiki.hyprland.org/Configuring/Variables/#misc
 misc {
-    force_default_wallpaper = -1 # Set to 0 or 1 to disable the anime mascot wallpapers
-    disable_hyprland_logo = false # If true disables the random hyprland logo / anime girl background. :(
+    force_default_wallpaper = 0 # Set to 0 or 1 to disable the anime mascot wallpapers
+    disable_hyprland_logo = true # If true disables the random hyprland logo / anime girl background. :(
 }
 # https://wiki.hyprland.org/Configuring/Variables/#input
 input {
@@ -335,6 +342,7 @@ windowrulev2 = tile, class:^(Emacs) # TODO
 windowrulev2 = float, title:^(doom-capture) # TODO
 windowrulev2 = tile, class:^(Brave-browser) # TODO
 windowrulev2 = tile, class:^(Alacritty)
+windowrulev2 = tile, class:^(thunar)
 windowrulev2 = float,class:^(steam)
 
 # Ignore maximize requests from apps. You'll probably like this.
@@ -358,15 +366,19 @@ windowrule = nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned
     nwg-launchers # app launcher
     rofi-wayland # application launcher
     nwg-displays # display manager
-    hyprlock # lock manager
     playerctl # for audio controls
 
+    hyprlock # lock manager
+    brightnessctl # used for dimming brightness
     hyprsunset # bluelight filter
+    hyprpaper # wallpaper
     # redshift # blue light filter
     # geoclue2 # red shift dependency
     vim  # basic text editor
     dropbox # syncing files
     blueman # bluetooth
+    xfce.xfce4-taskmanager
+    xfce.thunar
 
     # cli tools
     hyprpicker # color picker
@@ -388,6 +400,11 @@ windowrule = nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned
 
 
   ] ++ [ inputs.raise.defaultPackage.x86_64-linux ];
+  
+  home.file.".config/hypr/hyprpaper.conf".text = ''
+  preload = /home/dimitril/Dropbox/images/Truchas_LopezRanch_MW.jpg
+  wallpaper = monitor, /home/dimitril/Dropbox/images/Truchas_LopezRanch_MW.jpg
+  '';
   
   home.file.".config/hypr/hyprlock.conf".text = ''
   background {
@@ -463,5 +480,60 @@ windowrule = nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned
   
   '';
   
+  home.file.".config/hypr/hypridle.conf".text = ''
+  general {
+    lock_cmd = pidof hyprlock || hyprlock
+    before_sleep_cmd = loginctl lock-session    # lock before suspend.
+    after_sleep_cmd = hyprctl dispatch dpms on  # to avoid having to press a key twice to turn on the display.
+    ignore_dbus_inhibit = false
+  }
+  
+  # Reduce brightness
+  listener {
+      timeout = 150                                # 2.5min.
+      on-timeout = brightnessctl -s set 5          # set monitor backlight to minimum, avoid 0 on OLED monitor.
+      on-resume = brightnessctl -r                 # monitor backlight restore.
+  }
+  
+  # Turn off keyboard backlight
+  listener {
+      timeout = 150                                              # 2.5min.
+      on-timeout = brightnessctl -sd tpacpi::kbd_backlight set 0 # turn off keyboard backlight.
+      on-resume = brightnessctl -rd tpacpi::kbd_backlight        # turn on keyboard backlight.
+  }
+  
+  # FIXME memory leak fries computer inbetween dpms off and suspend
+  #listener {
+  #  timeout = 150 # in seconds
+  #  on-timeout = hyprctl dispatch dpms off
+  #  on-resume = hyprctl dispatch dpms on
+  #}
+  listener {
+    timeout = 165 # in seconds
+    on-timeout = loginctl lock-session
+  }
+  listener {
+    timeout = 180 # in seconds
+    #timeout = 5400 # in seconds
+    on-timeout = systemctl suspend
+    on-resume = hyprctl dispatch dpms on
+  }
+  
+  listener {
+      timeout = 300                                 # 5min
+      on-timeout = loginctl lock-session            # lock screen when timeout has passed
+  }
+  
+  listener {
+      timeout = 330                                                     # 5.5min
+      on-timeout = hyprctl dispatch dpms off                            # screen off when timeout has passed
+      on-resume = hyprctl dispatch dpms on && brightnessctl -r          # screen on when activity is detected after timeout has fired.
+  }
+  
+  listener {
+      timeout = 400                                # 30min
+      on-timeout = systemctl suspend                # suspend pc
+  }
+  '';
   
 }

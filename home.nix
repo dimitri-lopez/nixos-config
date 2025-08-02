@@ -10,6 +10,8 @@
     ./modules/scripting.nix
     ./modules/emacs.nix
     ./modules/brave.nix
+    ./modules/minecraft.nix
+    ./modules/watchy.nix
   ];
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
