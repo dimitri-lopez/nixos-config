@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 
 {
-
+  # services.gvfs.enable = true; # needed for emacs tramp
   home.packages = with pkgs; [
     emacs    # Emacs 27.2
     ripgrep
@@ -13,6 +13,7 @@
     cmake
     gnumake
     libtool
+    mlocate
 
     graphviz # for org-roam
 
@@ -20,13 +21,13 @@
     xorg.xwininfo # needed for emacs everywhere
 
     mu
-    ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
     isync
     offlineimap
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot
-    (pkgs.writeScriptBin "restart-emacs-daemon" ''
+    (pkgs.writeScriptBin "dl-restart-emacs-daemon" ''
 #!/usr/bin/env bash
 
 EMACSRUNNING="t"
@@ -43,7 +44,7 @@ fi
 emacs --daemon
 notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/bin/EmacsIcon.png -t 3000
     '')
-    (pkgs.writeScriptBin "jumpapp-emacs" ''
+    (pkgs.writeScriptBin "dl-jumpapp-emacs" ''
 #!/usr/bin/env bash
 
 EMACSRUNNING="t"

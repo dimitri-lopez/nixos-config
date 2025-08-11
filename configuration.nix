@@ -4,8 +4,8 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      # ./modules/xfce/xfce.nix
-      ./system/hyprland.nix
+      ./modules/xfce/xfce.nix
+      # ./system/hyprland.nix
       ./modules/steam.nix
       ./system/bluetooth.nix
       ./system/pipewire.nix
@@ -90,7 +90,8 @@
   users.users.dimitril = {
     isNormalUser = true;
     description = "Dimitri Lopez";
-    extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" ];
+    # adding mlocate to use find file within doom emacs
+    extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" "mlocate"];
     packages = with pkgs; [
     #  thunderbird
     ];

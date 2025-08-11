@@ -9,6 +9,7 @@
       dropbox
       blueman
       vim
+      git
       firefox
       font-manager
       # file-roller # broken

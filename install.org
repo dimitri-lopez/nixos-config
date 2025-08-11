@@ -1,0 +1,97 @@
+#+title: Install Instructions
+
+Some brief instructions for when I need to boot things onto a new computer.
+
+* NixOS Setup
+1. Boot into a mountable NixOS media
+2. Login to a wifi network
+3. Walk through install, setting up partitions and username / password
+   1. Setup partitions in the following manner:
+   2. 1gb for /boot with boot flag
+   3. 32gbs for linuxswap
+   4. Everything else mounted on /
+
+Start by booting into a mountable NixOS media and logging into a wifi network.
+** Automatic setup
+For an automatic setup try:
+#+begin_src bash
+nix run github:dimitri-lopez/nixos-config
+#+end_src
+
+There are some additional setups steps under [[*XFCE Setup]].
+* Next steps
+Vim should be installed and should be enough to get you off the ground until you get your full Doom Emacs setup running.
+
+Start by running the following:
+
+#+begin_src bash
+dl-xfce-autostart
+#+end_src
+
+This will launch Dropbox, redshift, emacs, and switch caps locks to control.
+
+** XFCE Setup
+These are some config commands that I have not been able to work into my NixOS config.
+*** Autostart sessions
+Add the following:
+
+#+begin_src bash
+dl-xfce-autostart
+#+end_src
+*** Wallpaper
+This should work properly once Dropbox has synced over all the files.
+
+** Brave
+1. Login to Google
+2. Login to Bitwarden (will need this for pulling down personal emacs config)
+3. Launch and login to Dropbox
+4. Sync Brave with phone
+5. Bookmarks are under ~/.dotfiles/modules/brave-bookmarks.html
+** Dropbox
+Launch from the CLI (SUPER + T):
+#+begin_src bash
+dropbox &
+#+end_src
+
+When prompted login to the web browser. I have found that syncing over all of my files can take a couple of hours. Throw it on in the background and it should be fine.
+
+After adding the autostart script, this won't be needed
+** Doom Emacs
+#+begin_src bash
+git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
+~/.config/emacs/bin/doom install
+#+end_src
+
+https://github.com/doomemacs/doomemacs?tab=readme-ov-file#install
+
+I found that I would still boot into vanilla emacs. I had to move ~/.emacs.d to ~/.config/emacs
+#+begin_src bash
+mv ~/.emacs.d ~/.config/emacs
+#+end_src
+
+
+Then finally pull down my personal doom config repo. My personal access token can be found within Bitwarden.
+#+begin_src bash
+rm -rf ~/.config/doom
+git clone https://github.com/dimitri-lopez/.doom.d.git ~/.config/doom
+cd ~/.config/doom
+~/.config/emacs/bin/doom sync
+~/.config/emacs/bin/doom doctor
+echo "Check out ~/.dotfiles/install.org"
+#+end_src
+
+Then there are a couple of other things to run within emacs:
+#+begin_src emacs-lisp
+(nerd-icons-install-fonts)
+(vterm-module-compile)
+(copilot-install-server)
+(copilot-login)
+#+end_src
+
+** Online accounts to login to
+- Google
+- Bitwarden
+- Dropbox
+- Slack
+- Outlook
+- Discord

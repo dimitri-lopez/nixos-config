@@ -1,5 +1,7 @@
 #+title: Readme
 
+See my [[install.org]] for installation instructions.
+
 - [[*Hyprland config][Hyprland config]]
 - [[elisp:(vterm-nixos-config)][Launch terminal for config]]
 -----
@@ -15,22 +17,7 @@
 -----
 - [[*Try out python package][Install python package]]
 * TODO List
-** DONE gvfs throwing error messages
-I added it to emacs.nix to see if that would fix it. On the next reboot, I should be able to see if it is working
-
-** DONE Custom wallpaper
-Looks like I want to use stylix. I think that would be my best option. I will steal from here:
-[[file:~/example-nixos-configs/libre-pheonix-nixos-config/user/style/stylix.nix]]
-
-This looks wayyyy too complicated for what I want to do right now. I will try and dig into it another day. Let me just user hyprpaper at the moment.
-** DONE Pretty lock screen
-** TODO Waybar
-** TODO Alt-tab window selection?
-** TODO stylix
 ** TODO mu4e
-:LOGBOOK:
-CLOCK: [2025-07-26 Sat 19:23]
-:END:
 * Resources
 ** Single command run
 #+begin_src emacs-lisp
@@ -347,7 +334,8 @@ services.printing.enable = true;
 users.users.dimitril = {
   isNormalUser = true;
   description = "Dimitri Lopez";
-  extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" ];
+  # adding mlocate to use find file within doom emacs
+  extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" "mlocate"];
   packages = with pkgs; [
   #  thunderbird
   ];
@@ -524,8 +512,8 @@ See [[*home.nix modules][home.nix modules]].
 imports =
   [ # Include the results of the hardware scan.
     ./hardware-configuration.nix
-    # ./modules/xfce/xfce.nix
-    ./system/hyprland.nix
+    ./modules/xfce/xfce.nix
+    # ./system/hyprland.nix
     ./modules/steam.nix
     ./system/bluetooth.nix
     ./system/pipewire.nix
@@ -534,8 +522,8 @@ imports =
 ** home.nix modules
 #+begin_src nix :noweb-ref home.nix.imports
   imports = [
-    # ./modules/xfce/xfce-home.nix
-    ./modules/wm/hyprland-minimal.nix
+    ./modules/xfce/xfce-home.nix
+    # ./modules/wm/hyprland-minimal.nix
     # ./modules/hyprland/hyprland-home.nix
     ./modules/python.nix
     ./modules/sh.nix
@@ -547,7 +535,9 @@ imports =
   ];
 #+end_src
 ** brave.nix
+https://github.com/sg-qwt/nixos/blob/1f44e8c1ffa5abdc407040e7035897ee48b5e6dd/modules/profiles/desktop-apps.nix#L28
 
+Bookmarks can be found at: [[./modules/brave-bookmarks.html]]
 #+begin_src nix :tangle ./modules/brave.nix
 { config, lib, pkgs, ... }:
 # https://stackoverflow.com/questions/8946325/chrome-extension-id-how-to-find-it
@@ -565,22 +555,38 @@ imports =
       # https://chromewebstore.google.com/detail/grammarly-ai-writing-and/kbfnbcaeplbcioakkpcpgfkobkghlhen
       { id = "kbfnbcaeplbcioakkpcpgfkobkghlhen"; }
       # https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
-      { id = "hfjbmagddngcpeloejdejnfgbamkjaeg";}
+      { id = "hfjbmagddngcpeloejdejnfgbamkjaeg"; }
       # https://chromewebstore.google.com/detail/youtube-ad-accelerator-ea/lmcggcabhocpfkbddekmconplfjmmgmn
-      { id = "lmcggcabhocpfkbddekmconplfjmmgmn";}
+      { id = "lmcggcabhocpfkbddekmconplfjmmgmn"; }
       # https://chromewebstore.google.com/detail/wallabagger/gbmgphmejlcoihgedabhgjdkcahacjlj?hl=en
-      {id = "gbmgphmejlcoihgedabhgjdkcahacjlj";}
+      { id = "gbmgphmejlcoihgedabhgjdkcahacjlj"; }
+      # https://chromewebstore.google.com/detail/everforest-chrome-theme/dlcadbmcfambdjhecipbnolmjchgnode
+      { id = "dlcadbmcfambdjhecipbnolmjchgnode"; }
+
     ];
+    # extraOpts = {
+    #   BraveRewardsDisabled = true;
+    #   BraveWalletDisabled = true;
+    #   BraveVPNDisabled = true;
+    #   BraveAIChatEnabled = false;
+    #   TorDisabled = true;
+
+    #   PasswordManagerEnabled = false;
+    #   PasswordSharingEnabled = false;
+    #   PasswordLeakDetectionEnabled = false;
+
+    #   MetricsReportingEnabled = false;
+    # };
     commandLineArgs = [
       "--disable-features=WebRtcAllowInputVolumeAdjustment"
     ];
   };
   xdg.mimeApps.defaultApplications = {
-  "text/html" = "brave-browser.desktop";
-  "x-scheme-handler/http" = "brave-browser.desktop";
-  "x-scheme-handler/https" = "brave-browser.desktop";
-  "x-scheme-handler/about" = "brave-browser.desktop";
-  "x-scheme-handler/unknown" = "brave-browser.desktop";
+    "text/html" = "brave-browser.desktop";
+    "x-scheme-handler/http" = "brave-browser.desktop";
+    "x-scheme-handler/https" = "brave-browser.desktop";
+    "x-scheme-handler/about" = "brave-browser.desktop";
+    "x-scheme-handler/unknown" = "brave-browser.desktop";
   };
 
   home.sessionVariables = {
@@ -606,6 +612,7 @@ imports =
     cmake
     gnumake
     libtool
+    mlocate
 
     graphviz # for org-roam
 
@@ -613,13 +620,13 @@ imports =
     xorg.xwininfo # needed for emacs everywhere
 
     mu
-    ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
     isync
     offlineimap
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot
-    (pkgs.writeScriptBin "restart-emacs-daemon" ''
+    (pkgs.writeScriptBin "dl-restart-emacs-daemon" ''
 #!/usr/bin/env bash
 
 EMACSRUNNING="t"
@@ -636,7 +643,7 @@ fi
 emacs --daemon
 notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/bin/EmacsIcon.png -t 3000
     '')
-    (pkgs.writeScriptBin "jumpapp-emacs" ''
+    (pkgs.writeScriptBin "dl-jumpapp-emacs" ''
 #!/usr/bin/env bash
 
 EMACSRUNNING="t"
@@ -722,7 +729,15 @@ fi
     jumpapp
     libnotify # forr sending notifcations
     wmctrl #for window management
-    (pkgs.writeScriptBin "simulate-keystrokes" ''
+    (pkgs.writeScriptBin "dl-caps-lock-to-control" ''
+setxkbmap -option caps:none && setxkbmap -option ctrl:nocaps && setxkbmap -option caps:ctrl && setxkbmap -option "shift:both_capslock"
+'')
+
+    (pkgs.writeScriptBin "dl-restart-wifi" ''
+nmcli networking off
+nmcli networking on
+'')
+    (pkgs.writeScriptBin "dl-simulate-keystrokes" ''
 #!/bin/sh
 notify-send 'Simulate Keystrokes' 'Will type out current clipboard contents' -i ~/bin/KeyboardIconW.png -t 3500
 notify-send 'Simulate Keystrokes' 'Will type in: 3' -t 1000
@@ -773,6 +788,9 @@ in
     shellAliases = myAliases;
   };
 
+  home.sessionPath = [
+    "~/.config/emacs/bin"
+  ];
   home.packages = with pkgs; [
     # disfetch lolcat cowsay onefetch
     # gnugrep gnused
@@ -812,6 +830,7 @@ in
       dropbox
       blueman
       vim
+      git
       firefox
       font-manager
       # file-roller # broken
@@ -909,7 +928,19 @@ in
 { config, pkgs, lib, ... }:
 
 {
+  home.packages = with pkgs; [
+    (pkgs.writeScriptBin "dl-xfce-autostart" ''
+#!/usr/bin/env bash
+dl-switch-caps-lock-to-control &
+dropbox &
+dl-restart-emacs &
+redshift -l 42.361145:-71.057083 &
+    '')
+
+    ];
 <<xfce-home>>
+
+
 }
 #+end_src
 
@@ -966,21 +997,25 @@ in
 **** Panel settings
 #+begin_src nix
       xfce4-panel = {
-        "panels/" = [1];
-        "panels/darkmode" = true;
-        "panels/panel-1/autohide-behavior" = 2;
-        "panels/panel-1/plugin-ids" = [11 2 3 4 5 6 7 8 9 10];
+        "panels" = [1];
         "panels/panel-1/position" = "p=2;x=3420;y=720";
         "panels/panel-1/size" = 40;
+        "panels/panel-1/autohide-behavior" = 2;
+        "panels/panel-1/icon-size" = 0;
         "panels/panel-1/length" = 100.0;
+        "panels/panel-1/mode" = 1;
+        "panels/panel-1/plugin-ids" = [13 2 1 4 6 5 8 9 10];
+        "panels/panel-1/position-locked" = false;
+        "panels/panel-1/length-adjust" = true;
+        "panels/panel-1/background-style" = 0;
+        "panels/darkmode" = true;
 #+end_src
 **** Plugin settings
 #+begin_src nix
-        "plugins/plugin2" = "tasklist";
-        "plugins/plugin2/grouping" = 1;
+
         "plugins/plugin3" = "separator";
         "plugins/plugin3/expand" = true;
-        "plugins/plugin3/style" = 0;
+        "plugins/plugin3/style" = 1;
         "plugins/plugin4" = "pager";
         "plugins/plugin5" = "separator";
         "plugins/plugin5/style" = 0;
@@ -992,9 +1027,67 @@ in
         "plugins/plugin8/mode" = 2;
         "plugins/plugin9" = "separator";
         "plugins/plugin9/style" = 0;
-        "plugins/plugin10" = "actions";
-        "plugins/plugin11" = "whiskermenu";
+        "plugins/plugin-4" = "pager";
+        "plugins/plugin-4/rows" = 1;
+        "plugins/plugin-4/miniature-view" = true;
+        "plugins/plugin-4/wrap-workspaces" = true;
+        "plugins/plugin-6" = "systray";
+        "plugins/plugin-6/square-icons" = true;
+        "plugins/plugin-6/mode" = 2;
+        "plugins/plugin-6/hide-new-items" = false;
+        "plugins/plugin-6/single-row" = true;
+        "plugins/plugin-6/icon-size" = 24;
+        "plugins/plugin-6/menu-is-primary" = false;
+        "plugins/plugin-6/symbolic-icons" = false;
+        "plugins/plugin-8/mode" = 2;
+        "plugins/plugin-8/show-week-numbers" = true;
+        "plugins/plugin-8/digital-layout" = 1;
+        "plugins/plugin-8/digital-date-font" = "Sans 10";
+        "plugins/plugin-8/digital-time-format" = "%l:%M:%S %P";
+        "plugins/plugin-8/digital-time-font" = "Sans 10";
+        "plugins/plugin-8/digital-date-format" = "%m/%d/%Y";
+        "plugins/plugin-13" = "whiskermenu";
+        "plugins/plugin-13/view-mode" = 1;
+        "plugins/plugin-13/launcher-icon-size" = 3;
+        "plugins/plugin-13/category-icon-size" = 2;
+        "plugins/plugin-13/position-categories-horizontal" = false;
+        "plugins/plugin-13/position-categories-alternate" = true;
+        "plugins/plugin-13/button-icon" = "org.xfce.panel.showdesktop";
+        "plugins/plugin-13/position-profile-alternate" = true;
+        "plugins/plugin-13/position-search-alternate" = true;
+        "plugins/plugin-13/position-commands-alternate" = false;
+        "plugins/plugin-13/default-category" = 2;
+        "plugins/plugin-13/menu-width" = 750;
+        "plugins/plugin-2" = "tasklist";
+        "plugins/plugin-2/show-labels" = false;
+        "plugins/plugin-2/show-handle" = true;
+        "plugins/plugin-2/flat-buttons" = false;
+        "plugins/plugin-2/show-tooltips" = true;
+        "plugins/plugin-2/sort-order" = 0;
+        "plugins/plugin-2/middle-click" = 1;
+        "plugins/plugin-2/grouping" = true;
+        "plugins/plugin-2/switch-workspace-on-unminimize" = true;
+        "plugins/plugin-10" = "actions";
+        "plugins/plugin-10/appearance" = 1;
+        "plugins/plugin-10/button-title" = 1;
+        "plugins/plugin-10/items" = ["+lock-screen" "+switch-user" "+separator" "+suspend" "+hibernate" "-hybrid-sleep" "-separator" "+shutdown" "+restart" "+separator" "+logout" "-logout-dialog"];
+        "plugins/plugin-1/expand" = true;
+        "plugins/plugin-3/expand" = true;
+        "plugins/plugin-5" = "pulseaudio";
+        "plugins/plugin-5/enable-keyboard-shortcuts" = true;
+        "plugins/plugin-5/rec-indicator-persistent" = true;
+        "plugins/plugin-9" = "xfce4-clipman-plugin";
       };
+#+end_src
+**** Desktop settings
+#+begin_src nix
+      xfce4-desktop = {
+        "backdrop/screen0/monitoreDP-1/workspace0/last-image" =
+          "/home/dimitril/Dropbox/images/Tranquil_Solitude_social.jpg";
+        "desktop-icons/style" = 0;
+
+      };
+
 #+end_src
 **** Keyboard shortcuts
 ***** Setup
@@ -1006,7 +1099,7 @@ in
 ***** Run scripts
 #+begin_src nix
         # Scripts
-        "commands/custom/<Super>Print" = "/home/dimitril/bin/simulate-keystrokes";
+        "commands/custom/<Super>Print" = "dl-simulate-keystrokes";
         "commands/custom/<Primary><Alt>c" = "xdotool mousemove 1750 60 click 1";
         "commands/custom/<Super>q" = "pkill -USR1 '^redshift$'";
 
@@ -1023,13 +1116,13 @@ in
 ***** Launch apps
 #+begin_src nix
         # Launching apps
-        "commands/custom/<Super>space" = "xfce4-popup-whiskermenu";
-        "commands/custom/<Alt>0" = "/home/dimitril/bin/restart-emacs-daemon";
-        "commands/custom/<Alt>e" = "/home/dimitril/bin/jumpapp-emacs";
+        "commands/custom/<Super>space" = "xfce4-appfinder";
+        "commands/custom/<Alt>0" = "dl-restart-emacs-daemon";
+        "commands/custom/<Alt>e" = "dl-jumpapp-emacs";
         "commands/custom/<Super>Tab" = "jumpapp -m thunar";
         "commands/custom/<Super>b" = "jumpapp -m blueman-manager";
         "commands/custom/<Super>c" = "jumpapp -m brave";
-        "commands/custom/<Super>e" = "/home/dimitril/bin/jumpapp-emacs";
+        "commands/custom/<Super>e" = "jumpapp-emacs";
         "commands/custom/<Super>t" = "jumpapp xfce4-terminal";
         "commands/custom/<Primary><Alt>Delete" = "xfce4-session-logout";
         "commands/custom/<Primary><Shift>Escape" = "xfce4-taskmanager";
@@ -1092,6 +1185,14 @@ in
 ***** Teardown
 #+begin_src nix
       };
+#+end_src
+**** xsettings
+#+begin_src nix
+     xsettings = {
+       "Gtk/FontName" = "Sans 14";
+       "ThemeName" = "Everforest-Dark-Soft";
+       "IconThemeName" = "elementary-Xfce-dark";
+     };
 #+end_src
 **** XFWM4 Theme
 #+begin_src nix

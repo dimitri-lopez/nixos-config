@@ -14,22 +14,38 @@
       # https://chromewebstore.google.com/detail/grammarly-ai-writing-and/kbfnbcaeplbcioakkpcpgfkobkghlhen
       { id = "kbfnbcaeplbcioakkpcpgfkobkghlhen"; }
       # https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
-      { id = "hfjbmagddngcpeloejdejnfgbamkjaeg";}
+      { id = "hfjbmagddngcpeloejdejnfgbamkjaeg"; }
       # https://chromewebstore.google.com/detail/youtube-ad-accelerator-ea/lmcggcabhocpfkbddekmconplfjmmgmn
-      { id = "lmcggcabhocpfkbddekmconplfjmmgmn";}
+      { id = "lmcggcabhocpfkbddekmconplfjmmgmn"; }
       # https://chromewebstore.google.com/detail/wallabagger/gbmgphmejlcoihgedabhgjdkcahacjlj?hl=en
-      {id = "gbmgphmejlcoihgedabhgjdkcahacjlj";}
+      { id = "gbmgphmejlcoihgedabhgjdkcahacjlj"; }
+      # https://chromewebstore.google.com/detail/everforest-chrome-theme/dlcadbmcfambdjhecipbnolmjchgnode
+      { id = "dlcadbmcfambdjhecipbnolmjchgnode"; }
+
     ];
+    # extraOpts = {
+    #   BraveRewardsDisabled = true;
+    #   BraveWalletDisabled = true;
+    #   BraveVPNDisabled = true;
+    #   BraveAIChatEnabled = false;
+    #   TorDisabled = true;
+
+    #   PasswordManagerEnabled = false;
+    #   PasswordSharingEnabled = false;
+    #   PasswordLeakDetectionEnabled = false;
+
+    #   MetricsReportingEnabled = false;
+    # };
     commandLineArgs = [
       "--disable-features=WebRtcAllowInputVolumeAdjustment"
     ];
   };
   xdg.mimeApps.defaultApplications = {
-  "text/html" = "brave-browser.desktop";
-  "x-scheme-handler/http" = "brave-browser.desktop";
-  "x-scheme-handler/https" = "brave-browser.desktop";
-  "x-scheme-handler/about" = "brave-browser.desktop";
-  "x-scheme-handler/unknown" = "brave-browser.desktop";
+    "text/html" = "brave-browser.desktop";
+    "x-scheme-handler/http" = "brave-browser.desktop";
+    "x-scheme-handler/https" = "brave-browser.desktop";
+    "x-scheme-handler/about" = "brave-browser.desktop";
+    "x-scheme-handler/unknown" = "brave-browser.desktop";
   };
 
   home.sessionVariables = {
