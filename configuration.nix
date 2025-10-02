@@ -9,6 +9,7 @@
       ./modules/steam.nix
       ./system/bluetooth.nix
       ./system/pipewire.nix
+      ./system/syncthing.nix
     ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -16,6 +17,13 @@
   
   networking.hostName = "nixos"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking
+  
+  # Syncthing ports: 8384 for remote access to GUI
+  # 22000 TCP and/or UDP for sync traffic
+  # 21027/UDP for discovery
+  # source: https://docs.syncthing.net/users/firewall.html
+  networking.firewall.allowedTCPPorts = [ 8384 22000 ];
+  networking.firewall.allowedUDPPorts = [ 22000 21027 ];
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   
   # Configure network proxy if necessary
@@ -24,6 +32,7 @@
   services.devmon.enable = true;
   services.gvfs.enable = true; # needed for emacs tramp
   services.udisks2.enable = true;
+  services.syncthing.enable = true;
   # Enable sound with pipewire.
   # services.pulseaudio.enable = false;
   # TODO moved to ./system/pipewire.nix
@@ -91,7 +100,7 @@
     isNormalUser = true;
     description = "Dimitri Lopez";
     # adding mlocate to use find file within doom emacs
-    extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" "mlocate"];
+    extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" "mlocate" "docker"];
     packages = with pkgs; [
     #  thunderbird
     ];
@@ -105,6 +114,7 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    syncthing
   
   ];
   system.autoUpgrade.enable = true;

@@ -5,5 +5,9 @@
     esptool
     platformio
     arduino
+
+    vscode-fhs
+    docker
+    docker-buildx
   ];
 }

@@ -1,6 +1,24 @@
 { config, lib, pkgs, ... }:
 
+let
+  title2bib = import ./python-packages/title2bib.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  doi2bib = import ./python-packages/doi2bib.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+in
 {
+
+  home.sessionPath = [
+    "~/.config/emacs/bin"
+    "~/.dotfiles/tools/with-emacs.sh"
+  ];
+
   # services.gvfs.enable = true; # needed for emacs tramp
   home.packages = with pkgs; [
     emacs    # Emacs 27.2
@@ -16,17 +34,42 @@
     mlocate
 
     graphviz # for org-roam
+    ispell # for spell checking
 
     texliveFull
     xorg.xwininfo # needed for emacs everywhere
+    unzip # for dired
+    clang-tools # for clangd for emacs development
+    pandoc
+    poppler-utils # for pdftotext-mode
 
     mu
     # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
     isync
     offlineimap
+    tesseract # image to text
+    yt-dlp # for getting youtube subs
+    title2bib # for grabbing doi information
+    doi2bib # for grabbing doi information
+
+    pdf2svg # for inline pdfs
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot
+    (pkgs.writeScriptBin "doom-git-clone-doom-repo-and-install" ''
+#!/usr/bin/env bash
+rm -rf ~/.config/emacs
+git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
+~/.config/emacs/bin/doom install
+'')
+
+    (pkgs.writeScriptBin "doom-git-clone-personal-repo-and-install"
+      ''
+rm -rf ~/.config/doom
+git clone https://github.com/dimitri-lopez/.doom.d.git ~/.config/doom
+~/.config/emacs/bin/doom sync
+~/.config/emacs/bin/doom doctor
+echo "Check out ~/.dotfiles/install.org" '')
     (pkgs.writeScriptBin "dl-restart-emacs-daemon" ''
 #!/usr/bin/env bash
 

@@ -42,6 +42,7 @@
       xfce.xfce4-xkb-plugin
       xfce.xfdashboard
       xorg.xev
+      xorg.xf86inputsynaptics
       xorg.xkill
       xsel
       xwinmosaic

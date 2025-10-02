@@ -58,6 +58,7 @@ When prompted login to the web browser. I have found that syncing over all of my
 After adding the autostart script, this won't be needed
 ** Doom Emacs
 #+begin_src bash
+# or run doom-git-clone-doom-repo-and-install
 git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
 ~/.config/emacs/bin/doom install
 #+end_src
@@ -72,6 +73,7 @@ mv ~/.emacs.d ~/.config/emacs
 
 Then finally pull down my personal doom config repo. My personal access token can be found within Bitwarden.
 #+begin_src bash
+# doom-git-clone-personal-repo-and-install
 rm -rf ~/.config/doom
 git clone https://github.com/dimitri-lopez/.doom.d.git ~/.config/doom
 cd ~/.config/doom
@@ -86,7 +88,10 @@ Then there are a couple of other things to run within emacs:
 (vterm-module-compile)
 (copilot-install-server)
 (copilot-login)
+(pdf-tools-install)
 #+end_src
+
+
 
 ** Online accounts to login to
 - Google

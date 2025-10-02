@@ -4,9 +4,10 @@
   home.packages = with pkgs; [
     (pkgs.writeScriptBin "dl-xfce-autostart" ''
 #!/usr/bin/env bash
-dl-switch-caps-lock-to-control &
+dl-caps-lock-to-control &
+dl-restart-emacs-daemon &
+syncthing --no-browser &
 dropbox &
-dl-restart-emacs &
 redshift -l 42.361145:-71.057083 &
     '')
 
@@ -53,7 +54,7 @@ redshift -l 42.361145:-71.057083 &
         "panels/panel-1/icon-size" = 0;
         "panels/panel-1/length" = 100.0;
         "panels/panel-1/mode" = 1;
-        "panels/panel-1/plugin-ids" = [13 2 1 4 6 5 8 9 10];
+        "panels/panel-1/plugin-ids" = [13 2 1 4 3 6 5 8 9 10];
         "panels/panel-1/position-locked" = false;
         "panels/panel-1/length-adjust" = true;
         "panels/panel-1/background-style" = 0;
@@ -123,6 +124,7 @@ redshift -l 42.361145:-71.057083 &
         "plugins/plugin-5/enable-keyboard-shortcuts" = true;
         "plugins/plugin-5/rec-indicator-persistent" = true;
         "plugins/plugin-9" = "xfce4-clipman-plugin";
+        "plugins/plugin-3" = "power-manager-plugin";
       };
       xfce4-desktop = {
         "backdrop/screen0/monitoreDP-1/workspace0/last-image" =
@@ -152,7 +154,8 @@ redshift -l 42.361145:-71.057083 &
         "commands/custom/<Super>Tab" = "jumpapp -m thunar";
         "commands/custom/<Super>b" = "jumpapp -m blueman-manager";
         "commands/custom/<Super>c" = "jumpapp -m brave";
-        "commands/custom/<Super>e" = "jumpapp-emacs";
+        "commands/custom/<Super>e" = "dl-jumpapp-emacs";
+        "commands/custom/<Super>d" = "cycle_windows_key";
         "commands/custom/<Super>t" = "jumpapp xfce4-terminal";
         "commands/custom/<Primary><Alt>Delete" = "xfce4-session-logout";
         "commands/custom/<Primary><Shift>Escape" = "xfce4-taskmanager";
@@ -186,8 +189,8 @@ redshift -l 42.361145:-71.057083 &
         "xfwm4/custom/<Super>f" = "fullscreen_key";
 
         # Tile windows
-        "xfwm4/custom/<Super>h" = "tile_left_key";
         "xfwm4/custom/<Super>l" = "tile_right_key";
+        "xfwm4/custom/<Super>h" = "tile_left_key";
         # "xfwm4/custom/<Shift><Super>h" = "tile_up_left_key";
         # "xfwm4/custom/<Shift><Super>j" = "tile_down_left_key";
         # "xfwm4/custom/<Shift><Super>k" = "tile_down_right_key";
@@ -203,6 +206,7 @@ redshift -l 42.361145:-71.057083 &
      };
       xfwm4 = {
         "general/theme" = "Everforest-Dark-Soft";
+        "general/cycle_workspaces" = "true"; # cycle through all windows on alt-tab
       };
     };
   };

@@ -6,9 +6,9 @@ See my [[install.org]] for installation instructions.
 - [[elisp:(vterm-nixos-config)][Launch terminal for config]]
 -----
 - [[elisp:(org-babel-tangle)][Tangle file]]
-- [[elisp:(dl/nixos-update-all-config)][Update all config]]
 - [[elisp:(dl/nixos-update-user-config)][Update home config]]
 - [[elisp:(dl/nixos-update-system-config)][Update system config]]
+- [[elisp:(dl/nixos-update-all-config)][Update all config]]
 -------
 - [[elisp:(dl/nixos-try-package)][Try package]]
 - [[*System Packages][configuration.nix packages]]
@@ -18,6 +18,7 @@ See my [[install.org]] for installation instructions.
 - [[*Try out python package][Install python package]]
 * TODO List
 ** TODO mu4e
+** TODO Fix brave nixos extraOpt
 * Resources
 ** Single command run
 #+begin_src emacs-lisp
@@ -231,6 +232,13 @@ boot.loader.efi.canTouchEfiVariables = true;
 
 networking.hostName = "nixos"; # Define your hostname.
 networking.networkmanager.enable = true; # Enable networking
+
+# Syncthing ports: 8384 for remote access to GUI
+# 22000 TCP and/or UDP for sync traffic
+# 21027/UDP for discovery
+# source: https://docs.syncthing.net/users/firewall.html
+networking.firewall.allowedTCPPorts = [ 8384 22000 ];
+networking.firewall.allowedUDPPorts = [ 22000 21027 ];
 # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
 # Configure network proxy if necessary
@@ -243,6 +251,7 @@ networking.networkmanager.enable = true; # Enable networking
 services.devmon.enable = true;
 services.gvfs.enable = true; # needed for emacs tramp
 services.udisks2.enable = true;
+services.syncthing.enable = true;
 #+end_src
 
 ** Sound
@@ -335,7 +344,7 @@ users.users.dimitril = {
   isNormalUser = true;
   description = "Dimitri Lopez";
   # adding mlocate to use find file within doom emacs
-  extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" "mlocate"];
+  extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" "mlocate" "docker"];
   packages = with pkgs; [
   #  thunderbird
   ];
@@ -353,6 +362,7 @@ nixpkgs.config.allowUnfree = true;
 # List packages installed in system profile. To search, run:
 # $ nix search wget
 environment.systemPackages = with pkgs; [
+  syncthing
 
 ];
 #+end_src
@@ -517,12 +527,14 @@ imports =
     ./modules/steam.nix
     ./system/bluetooth.nix
     ./system/pipewire.nix
+    ./system/syncthing.nix
   ];
 #+end_src
 ** home.nix modules
 #+begin_src nix :noweb-ref home.nix.imports
   imports = [
     ./modules/xfce/xfce-home.nix
+    ./modules/git.nix
     # ./modules/wm/hyprland-minimal.nix
     # ./modules/hyprland/hyprland-home.nix
     ./modules/python.nix
@@ -599,7 +611,25 @@ Bookmarks can be found at: [[./modules/brave-bookmarks.html]]
 #+begin_src nix :tangle ./modules/emacs.nix
 { config, lib, pkgs, ... }:
 
+let
+  title2bib = import ./python-packages/title2bib.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  doi2bib = import ./python-packages/doi2bib.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+in
 {
+
+  home.sessionPath = [
+    "~/.config/emacs/bin"
+    "~/.dotfiles/tools/with-emacs.sh"
+  ];
+
   # services.gvfs.enable = true; # needed for emacs tramp
   home.packages = with pkgs; [
     emacs    # Emacs 27.2
@@ -615,17 +645,42 @@ Bookmarks can be found at: [[./modules/brave-bookmarks.html]]
     mlocate
 
     graphviz # for org-roam
+    ispell # for spell checking
 
     texliveFull
     xorg.xwininfo # needed for emacs everywhere
+    unzip # for dired
+    clang-tools # for clangd for emacs development
+    pandoc
+    poppler-utils # for pdftotext-mode
 
     mu
     # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
     isync
     offlineimap
+    tesseract # image to text
+    yt-dlp # for getting youtube subs
+    title2bib # for grabbing doi information
+    doi2bib # for grabbing doi information
+
+    pdf2svg # for inline pdfs
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot
+    (pkgs.writeScriptBin "doom-git-clone-doom-repo-and-install" ''
+#!/usr/bin/env bash
+rm -rf ~/.config/emacs
+git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
+~/.config/emacs/bin/doom install
+'')
+
+    (pkgs.writeScriptBin "doom-git-clone-personal-repo-and-install"
+      ''
+rm -rf ~/.config/doom
+git clone https://github.com/dimitri-lopez/.doom.d.git ~/.config/doom
+~/.config/emacs/bin/doom sync
+~/.config/emacs/bin/doom doctor
+echo "Check out ~/.dotfiles/install.org" '')
     (pkgs.writeScriptBin "dl-restart-emacs-daemon" ''
 #!/usr/bin/env bash
 
@@ -667,6 +722,150 @@ fi
 }
 
 #+end_src
+*** title2bib.nix
+
+I used nix-init to create these files and a little help from gptel. Wasn't too bad to figure out thankfully.
+#+begin_src nix :tangle ./modules/python-packages/title2bib.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+
+let
+  arxivcheck = import ./arxivcheck.nix { inherit lib python3 fetchFromGitHub; };
+  doi2bib = import ./doi2bib.nix { inherit lib python3 fetchFromGitHub; };
+in
+python3.pkgs.buildPythonApplication rec {
+  pname = "title2bib";
+  version = "0.4.1";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "bibcure";
+    repo = "title2bib";
+    rev = version;
+    hash = "sha256-2Zf+M4SBebt81E5Wly5IomCBxrpUvAGohO4kNCsmMAg=";
+  };
+
+  build-system = [
+    python3.pkgs.setuptools
+    python3.pkgs.wheel
+  ];
+
+  propagatedBuildInputs = with python3.pkgs; [
+    requests
+    future
+    doi2bib
+    arxivcheck
+    unidecode
+  ];
+
+  pythonImportsCheck = [
+    "title2bib"
+  ];
+
+  meta = {
+    description = "Given a title returns the bibtex";
+    homepage = "https://github.com/bibcure/title2bib";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "title2bib";
+  };
+}
+#+end_src
+
+#+begin_src nix :tangle ./modules/python-packages/doi2bib.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+
+python3.pkgs.buildPythonApplication rec {
+  pname = "doi2bib";
+  version = "0.4.0";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "bibcure";
+    repo = "doi2bib";
+    rev = version;
+    hash = "sha256-KECMtr4QOfqWwVeycak9srgO9lecJknnwD8hYxxWd7E=";
+  };
+
+  build-system = [
+    python3.pkgs.setuptools
+    python3.pkgs.wheel
+  ];
+
+  dependencies = with python3.pkgs; [
+    requests
+    bibtexparser
+    future
+  ];
+
+  pythonImportsCheck = [
+    "doi2bib"
+  ];
+
+  meta = {
+    description = "Get the bibtex string given a doi";
+    homepage = "https://github.com/bibcure/doi2bib";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "doi2bib";
+  };
+}
+#+end_src
+#+begin_src nix :tangle ./modules/python-packages/arxivcheck.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+
+let
+  doi2bib = import ./doi2bib.nix { inherit lib python3 fetchFromGitHub; };
+in
+python3.pkgs.buildPythonApplication rec {
+  pname = "arxivcheck";
+  version = "0.3.1";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "bibcure";
+    repo = "arxivcheck";
+    rev = version;
+    hash = "sha256-GHoQMdUi3M6IF02Km0VzAF51xj0oulOZJYyyRdLt8Nc=";
+  };
+
+  build-system = [
+    python3.pkgs.setuptools
+    python3.pkgs.wheel
+  ];
+
+  propagatedBuildInputs = with python3.pkgs; [
+    future
+    unidecode
+    feedparser
+    bibtexparser
+    doi2bib
+  ];
+
+  pythonImportsCheck = [
+    "arxivcheck"
+  ];
+
+  meta = {
+    description = "Given an arixiv id or title, check if has been published, and then returns the updated bib";
+    homepage = "https://github.com/bibcure/arxivcheck";
+    license = lib.licenses.agpl3Only;
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "arxivcheck";
+  };
+}
+#+end_src
 ** git.nix
 #+begin_src nix :tangle ./modules/git.nix
 { config, pkgs, userSettings, ... }:
@@ -675,6 +874,7 @@ fi
   home.packages = [
     pkgs.git
     pkgs.git-credential-manager
+    pkgs.gh
                   ];
   programs.git.enable = true;
   programs.git.userName = userSettings.name;
@@ -690,11 +890,18 @@ fi
 #+begin_src nix :tangle ./modules/python.nix
 { config, lib, pkgs, ... }:
 
+let
+  pytrends = import ./python-packages/pytrends.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+in
 {
   home.packages = with pkgs; [
     (python312.withPackages (python3Packages: with python3Packages; [
       jupyter
-
+      conda
       numpy
       sympy
       pandas
@@ -706,9 +913,129 @@ fi
       requests
       markdownify
       discordpy
+      folium
+      fastparquet
+      pyarrow
+      qrcode
+
+      # nXGF dependencies
+      jax
+      optax
+      blackjax
+      tqdm
+
+      pytrends
     ]))
   ];
 }
+#+end_src
+*** py5.nix
+#+begin_src nix :tangle no
+# ./modules/python-packages/py5.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+
+python3.pkgs.buildPythonApplication rec {
+  pname = "py5";
+  version = "5-1306-0027-0.10.7a0";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "py5coding";
+    repo = "py5";
+    rev = "py${version}";
+    hash = "sha256-m8w6rbPXrGBMBwDyt7YMYYhEHz3qgia0g9cuqGm6zig=";
+  };
+
+  build-system = [
+    python3.pkgs.hatchling
+  ];
+
+  dependencies = with python3.pkgs; [
+    autopep8
+    jpype1
+    line-profiler
+    numpy
+    pillow
+    # pyobjc
+    pywin32
+    requests
+    stackprinter
+  ];
+
+  optional-dependencies = with python3.pkgs; {
+    extras = [
+      colour
+      matplotlib
+      py5jupyter
+      shapely
+      trimesh
+    ];
+    jupyter = [
+      py5jupyter
+    ];
+  };
+
+  pythonImportsCheck = [
+    "py5"
+  ];
+
+  meta = {
+    description = "A Python library that makes Processing available to the CPython interpreter using JPype";
+    homepage = "https://github.com/py5coding/py5";
+    license = lib.licenses.lgpl21Only;
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "py5";
+  };
+}
+#+end_src
+*** pytrends.nix
+#+begin_src nix :tangle ./modules/python-packages/pytrends.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+
+python3.pkgs.buildPythonApplication rec {
+  pname = "pytrends";
+  version = "4.9.1";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "GeneralMills";
+    repo = "pytrends";
+    rev = "v${version}";
+    hash = "sha256-Y+rNdGQ9pLJH6U/zt9ftrmzU2ENOXwFJ/9BbPlr0kNQ=";
+  };
+
+  build-system = [
+    python3.pkgs.setuptools
+    python3.pkgs.setuptools-scm
+  ];
+
+  dependencies = with python3.pkgs; [
+    lxml
+    pandas
+    requests
+  ];
+
+  pythonImportsCheck = [
+    "pytrends"
+  ];
+
+  meta = {
+    description = "Pseudo API for Google Trends";
+    homepage = "https://github.com/GeneralMills/pytrends";
+    license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "pytrends";
+  };
+}
+
 #+end_src
 *** Try out python package
 #+begin_src emacs-lisp
@@ -718,7 +1045,6 @@ fi
 #+end_src
 
 #+RESULTS:
-
 ** scripting.nix
 #+begin_src nix :tangle ./modules/scripting.nix
 { config, lib, pkgs, ... }:
@@ -753,8 +1079,6 @@ xdotool type -- "$(xsel -bo | tr \\n \\r | sed s/\\r*\$//)"
 }
 #+end_src
 
-#+begin_src bash
-#+end_src
 ** sh.nix
 #+begin_src nix :tangle ./modules/sh.nix
 { config, lib, pkgs, userSettings, ... }:
@@ -863,6 +1187,7 @@ in
       xfce.xfce4-xkb-plugin
       xfce.xfdashboard
       xorg.xev
+      xorg.xf86inputsynaptics
       xorg.xkill
       xsel
       xwinmosaic
@@ -931,9 +1256,10 @@ in
   home.packages = with pkgs; [
     (pkgs.writeScriptBin "dl-xfce-autostart" ''
 #!/usr/bin/env bash
-dl-switch-caps-lock-to-control &
+dl-caps-lock-to-control &
+dl-restart-emacs-daemon &
+syncthing --no-browser &
 dropbox &
-dl-restart-emacs &
 redshift -l 42.361145:-71.057083 &
     '')
 
@@ -1004,7 +1330,7 @@ redshift -l 42.361145:-71.057083 &
         "panels/panel-1/icon-size" = 0;
         "panels/panel-1/length" = 100.0;
         "panels/panel-1/mode" = 1;
-        "panels/panel-1/plugin-ids" = [13 2 1 4 6 5 8 9 10];
+        "panels/panel-1/plugin-ids" = [13 2 1 4 3 6 5 8 9 10];
         "panels/panel-1/position-locked" = false;
         "panels/panel-1/length-adjust" = true;
         "panels/panel-1/background-style" = 0;
@@ -1077,6 +1403,7 @@ redshift -l 42.361145:-71.057083 &
         "plugins/plugin-5/enable-keyboard-shortcuts" = true;
         "plugins/plugin-5/rec-indicator-persistent" = true;
         "plugins/plugin-9" = "xfce4-clipman-plugin";
+        "plugins/plugin-3" = "power-manager-plugin";
       };
 #+end_src
 **** Desktop settings
@@ -1122,7 +1449,8 @@ redshift -l 42.361145:-71.057083 &
         "commands/custom/<Super>Tab" = "jumpapp -m thunar";
         "commands/custom/<Super>b" = "jumpapp -m blueman-manager";
         "commands/custom/<Super>c" = "jumpapp -m brave";
-        "commands/custom/<Super>e" = "jumpapp-emacs";
+        "commands/custom/<Super>e" = "dl-jumpapp-emacs";
+        "commands/custom/<Super>d" = "cycle_windows_key";
         "commands/custom/<Super>t" = "jumpapp xfce4-terminal";
         "commands/custom/<Primary><Alt>Delete" = "xfce4-session-logout";
         "commands/custom/<Primary><Shift>Escape" = "xfce4-taskmanager";
@@ -1172,8 +1500,8 @@ redshift -l 42.361145:-71.057083 &
 ****** Tile windows
 #+begin_src nix
         # Tile windows
-        "xfwm4/custom/<Super>h" = "tile_left_key";
         "xfwm4/custom/<Super>l" = "tile_right_key";
+        "xfwm4/custom/<Super>h" = "tile_left_key";
         # "xfwm4/custom/<Shift><Super>h" = "tile_up_left_key";
         # "xfwm4/custom/<Shift><Super>j" = "tile_down_left_key";
         # "xfwm4/custom/<Shift><Super>k" = "tile_down_right_key";
@@ -1198,6 +1526,7 @@ redshift -l 42.361145:-71.057083 &
 #+begin_src nix
       xfwm4 = {
         "general/theme" = "Everforest-Dark-Soft";
+        "general/cycle_workspaces" = "true"; # cycle through all windows on alt-tab
       };
 #+end_src
 **** Teardown
@@ -1227,6 +1556,10 @@ redshift -l 42.361145:-71.057083 &
     esptool
     platformio
     arduino
+
+    vscode-fhs
+    docker
+    docker-buildx
   ];
 }
 #+end_src
@@ -1247,7 +1580,44 @@ redshift -l 42.361145:-71.057083 &
   ];
 }
 #+end_src
+** syncthing.nix
+- https://wiki.nixos.org/wiki/Syncthing
+- [ ] [[*configuration.nix modules][configuration.nix modules]]
+- [ ] [[*home.nix modules][home.nix modules]]
+- [ ] [[elisp:(org-babel-tangle)]]
+- [ ] [[git add -A ./modules/syncthing.nix]]
+#+begin_src nix :tangle ./system/syncthing.nix
+{ config, lib, pkgs, ... }:
 
+{
+  services.syncthing = {
+    enable = true;
+    group = "users";
+    user = "dimitril";
+    overrideDevices = true;
+    overrideFolders = true;
+    key = "";
+    cert = "";
+    settings = {
+      gui = {
+        user = "username";
+        password = "password";
+      };
+      devices = {
+        "new-phone" = { id = "5OVC5WF-ZUNOOGO-IKIRYIP-IMIFYVL-6VKXJZT-352QMSM-2QDXBEZ-D2BV7QL"; };
+        "old-phone" = { id = "MK7D4CK-M5CO223-RGFT5B5-M7AJQWE-HIA7GBN-KJHB7P3-6KQMZTF-ODXA5AY"; };
+      };
+      folders = {
+        "org-notes" = {
+          path = "/home/dimitril/sync-temp";
+          devices = [ "new-phone" "old-phone" ];
+          ignorePerms = false;
+        };
+      };
+    };
+  };
+}
+#+end_src
 * System modules
 ** bluetooth.nix
 - [[*home.nix modules][home.nix modules]]

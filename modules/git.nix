@@ -4,6 +4,7 @@
   home.packages = [
     pkgs.git
     pkgs.git-credential-manager
+    pkgs.gh
                   ];
   programs.git.enable = true;
   programs.git.userName = userSettings.name;
