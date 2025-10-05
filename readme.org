@@ -20,6 +20,14 @@ See my [[install.org]] for installation instructions.
 ** TODO mu4e
 ** TODO Fix brave nixos extraOpt
 * Resources
+** Switching flakes on the nix level
+#+begin_src bash
+sudo nixos-rebuild switch --flake .
+#+end_src
+** Conflicting packages
+#+begin_src bash
+nix-env -q
+#+end_src
 ** Single command run
 #+begin_src emacs-lisp
 (defun dl/nixos-tangle-update-home-config ()
@@ -90,16 +98,8 @@ python -c "import sklearn; print(sklearn.__version__)"
 sudo chown root configuration.nix
 sudo chown root hardware-configuration.nix
 #+end_src
-** Switching flakes on the nix level
-#+begin_src bash
-sudo nixos-rebuild switch --flake .
-#+end_src
 ** "File doesn't exist errors"
 Try adding it to the repo and trying again
-** Conflicting packages
-#+begin_src bash
-nix-env -q
-#+end_src
 ** Cleaning up broken packages
 #+begin_src emacs-lisp
 
@@ -110,6 +110,7 @@ nix-env -q
 #+RESULTS:
 : dl/nixos-remove-package
 ** Github
+I fixed most of this with the gh package.
 #+begin_src bash
 git config --global user.email "dimitrilopez01@gmail.com"
 git config --global user.name "Dimitri Lopez"
@@ -1435,6 +1436,8 @@ redshift -l 42.361145:-71.057083 &
 #+begin_src nix
         # Emacs Scripts
         "commands/custom/<Super>Insert" = "emacsclient --eval \"(emacs-everywhere)\"";
+        "commands/custom/<Alt>," = "emacsclient --eval \"(emacs-everywhere)\"";
+        "commands/custom/<Alt>i" = "emacsclient --eval \"(emacs-everywhere)\"";
         "commands/custom/<Super>i" = "emacsclient --eval \"(emacs-everywhere)\"";
         "commands/custom/<Super>BackSpace" = "/home/dimitril/.config/emacs/bin/org-capture";
         "commands/custom/<Alt>Favorites" = "/home/dimitril/.config/emacs/bin/org-capture";
