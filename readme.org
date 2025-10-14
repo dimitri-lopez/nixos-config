@@ -76,6 +76,10 @@ sudo nixos-rebuild switch --flake . --upgrade
 #+begin_src bash
 home-manager switch --flake . && sudo nixos-rebuild switch --flake .
 #+end_src
+
+#+begin_src bash
+home-manager switch --flake . --update && sudo nixos-rebuild switch --flake . --update
+#+end_src
 ** Workflow for testing out new packages
 Use nix-shell where possible.
 
@@ -245,6 +249,10 @@ networking.firewall.allowedUDPPorts = [ 22000 21027 ];
 # Configure network proxy if necessary
 # networking.proxy.default = "http://user:password@proxy:port/";
 # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+#+end_src
+** Power issues
+#+begin_src nix
+# hardware.enableAllFirmware = true;
 #+end_src
 
 ** USB
@@ -536,6 +544,7 @@ imports =
   imports = [
     ./modules/xfce/xfce-home.nix
     ./modules/git.nix
+    ./modules/phd.nix
     # ./modules/wm/hyprland-minimal.nix
     # ./modules/hyprland/hyprland-home.nix
     ./modules/python.nix
@@ -546,6 +555,26 @@ imports =
     ./modules/minecraft.nix
     ./modules/watchy.nix
   ];
+#+end_src
+** phd.nix
+#+begin_src nix :tangle ./modules/phd.nix
+{ config, lib, pkgs, ... }:
+
+{
+  home.packages = with pkgs; [
+    gephi
+    # R and dependencies
+    R
+    zlib
+    libxmlb
+    libxml2
+    # (rWrapper.withPackages (p: with p; [
+    #   tidyverse
+    #   ggplot2
+    #   # Add other R packages here
+    # ]))
+  ];
+}
 #+end_src
 ** brave.nix
 https://github.com/sg-qwt/nixos/blob/1f44e8c1ffa5abdc407040e7035897ee48b5e6dd/modules/profiles/desktop-apps.nix#L28
@@ -633,7 +662,7 @@ in
 
   # services.gvfs.enable = true; # needed for emacs tramp
   home.packages = with pkgs; [
-    emacs    # Emacs 27.2
+    emacs     
     ripgrep
     # optional dependencies
     coreutils # basic GNU utilities
@@ -1436,8 +1465,8 @@ redshift -l 42.361145:-71.057083 &
 #+begin_src nix
         # Emacs Scripts
         "commands/custom/<Super>Insert" = "emacsclient --eval \"(emacs-everywhere)\"";
-        "commands/custom/<Alt>," = "emacsclient --eval \"(emacs-everywhere)\"";
-        "commands/custom/<Alt>i" = "emacsclient --eval \"(emacs-everywhere)\"";
+        # "commands/custom/<Alt>," = "emacsclient --eval \"(emacs-everywhere)\"";
+        # "commands/custom/<Alt>i" = "emacsclient --eval \"(emacs-everywhere)\"";
         "commands/custom/<Super>i" = "emacsclient --eval \"(emacs-everywhere)\"";
         "commands/custom/<Super>BackSpace" = "/home/dimitril/.config/emacs/bin/org-capture";
         "commands/custom/<Alt>Favorites" = "/home/dimitril/.config/emacs/bin/org-capture";

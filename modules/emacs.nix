@@ -21,7 +21,7 @@ in
 
   # services.gvfs.enable = true; # needed for emacs tramp
   home.packages = with pkgs; [
-    emacs    # Emacs 27.2
+    emacs     
     ripgrep
     # optional dependencies
     coreutils # basic GNU utilities

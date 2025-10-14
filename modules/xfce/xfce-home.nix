@@ -143,6 +143,8 @@ redshift -l 42.361145:-71.057083 &
 
         # Emacs Scripts
         "commands/custom/<Super>Insert" = "emacsclient --eval \"(emacs-everywhere)\"";
+        # "commands/custom/<Alt>," = "emacsclient --eval \"(emacs-everywhere)\"";
+        # "commands/custom/<Alt>i" = "emacsclient --eval \"(emacs-everywhere)\"";
         "commands/custom/<Super>i" = "emacsclient --eval \"(emacs-everywhere)\"";
         "commands/custom/<Super>BackSpace" = "/home/dimitril/.config/emacs/bin/org-capture";
         "commands/custom/<Alt>Favorites" = "/home/dimitril/.config/emacs/bin/org-capture";
