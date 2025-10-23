@@ -8,6 +8,7 @@
     zlib
     libxmlb
     libxml2
+    gpick
     # (rWrapper.withPackages (p: with p; [
     #   tidyverse
     #   ggplot2

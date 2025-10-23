@@ -1,19 +1,17 @@
 {
   lib,
   python3,
-  fetchFromGitHub,
+  fetchPypi,
 }:
 
 python3.pkgs.buildPythonApplication rec {
   pname = "pytrends";
-  version = "4.9.1";
+  version = "4.9.2";
   pyproject = true;
 
-  src = fetchFromGitHub {
-    owner = "GeneralMills";
-    repo = "pytrends";
-    rev = "v${version}";
-    hash = "sha256-Y+rNdGQ9pLJH6U/zt9ftrmzU2ENOXwFJ/9BbPlr0kNQ=";
+  src = fetchPypi {
+    inherit pname version;
+    hash = "sha256-aRxuNrGuqkdU82kr260N/0RuUo/7BS7uLn8TmqosaYk=";
   };
 
   build-system = [
@@ -33,7 +31,7 @@ python3.pkgs.buildPythonApplication rec {
 
   meta = {
     description = "Pseudo API for Google Trends";
-    homepage = "https://github.com/GeneralMills/pytrends";
+    homepage = "https://pypi.org/project/pytrends/";
     license = lib.licenses.asl20;
     maintainers = with lib.maintainers; [ ];
     mainProgram = "pytrends";

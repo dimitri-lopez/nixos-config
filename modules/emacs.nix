@@ -54,6 +54,12 @@ in
 
     pdf2svg # for inline pdfs
 
+    bonsai
+
+    nerd-fonts.fira-code
+    nerd-fonts.droid-sans-mono
+    nerd-fonts.jetbrains-mono
+
     stdenv.cc.cc.lib
     nodejs # needed for github copilot
     (pkgs.writeScriptBin "doom-git-clone-doom-repo-and-install" ''

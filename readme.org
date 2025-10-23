@@ -1,21 +1,19 @@
-#+title: Readme
+#+title: dimitril NixOS Configuration
 
 See my [[install.org]] for installation instructions.
 
-- [[*Hyprland config][Hyprland config]]
-- [[elisp:(vterm-nixos-config)][Launch terminal for config]]
------
 - [[elisp:(org-babel-tangle)][Tangle file]]
 - [[elisp:(dl/nixos-update-user-config)][Update home config]]
 - [[elisp:(dl/nixos-update-system-config)][Update system config]]
 - [[elisp:(dl/nixos-update-all-config)][Update all config]]
+- [[elisp:(vterm-nixos-config)][Launch terminal for config]]
 -------
-- [[elisp:(dl/nixos-try-package)][Try package]]
 - [[*System Packages][configuration.nix packages]]
 - [[*home.nix packages inbox][home.nix packages]]
 - [[id:93410304-5af5-429b-ab09-18892f0950bc][Nix tasks]]
 -----
 - [[*Try out python package][Install python package]]
+
 * TODO List
 ** TODO mu4e
 ** TODO Fix brave nixos extraOpt
@@ -568,6 +566,7 @@ imports =
     zlib
     libxmlb
     libxml2
+    gpick
     # (rWrapper.withPackages (p: with p; [
     #   tidyverse
     #   ggplot2
@@ -694,6 +693,12 @@ in
     doi2bib # for grabbing doi information
 
     pdf2svg # for inline pdfs
+
+    bonsai
+
+    nerd-fonts.fira-code
+    nerd-fonts.droid-sans-mono
+    nerd-fonts.jetbrains-mono
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot
@@ -920,15 +925,16 @@ python3.pkgs.buildPythonApplication rec {
 #+begin_src nix :tangle ./modules/python.nix
 { config, lib, pkgs, ... }:
 
-let
-  pytrends = import ./python-packages/pytrends.nix {
-    lib = lib;
-    python3 = pkgs.python312;
-    fetchFromGitHub = pkgs.fetchFromGitHub;
-  };
-in
+# let
+#   pytrends = import ./python-packages/pytrends.nix {
+#     lib = lib;
+#     python3 = pkgs.python312;
+#     fetchFromGitHub = pkgs.fetchFromGitHub;
+#   };
+# in
 {
   home.packages = with pkgs; [
+    uv
     (python312.withPackages (python3Packages: with python3Packages; [
       jupyter
       conda
@@ -953,8 +959,12 @@ in
       optax
       blackjax
       tqdm
+      joblib
 
-      pytrends
+      #netsci 1 project
+      google-genai
+      scikit-learn
+      diskcache
     ]))
   ];
 }
@@ -1023,23 +1033,23 @@ python3.pkgs.buildPythonApplication rec {
 }
 #+end_src
 *** pytrends.nix
-#+begin_src nix :tangle ./modules/python-packages/pytrends.nix
+# #+begin_src nix :tangle ./modules/python-packages/pytrends.nix
+#+begin_src nix :tangle no
+
 {
   lib,
   python3,
-  fetchFromGitHub,
+  fetchPypi,
 }:
 
 python3.pkgs.buildPythonApplication rec {
   pname = "pytrends";
-  version = "4.9.1";
+  version = "4.9.2";
   pyproject = true;
 
-  src = fetchFromGitHub {
-    owner = "GeneralMills";
-    repo = "pytrends";
-    rev = "v${version}";
-    hash = "sha256-Y+rNdGQ9pLJH6U/zt9ftrmzU2ENOXwFJ/9BbPlr0kNQ=";
+  src = fetchPypi {
+    inherit pname version;
+    hash = "sha256-aRxuNrGuqkdU82kr260N/0RuUo/7BS7uLn8TmqosaYk=";
   };
 
   build-system = [
@@ -1059,7 +1069,7 @@ python3.pkgs.buildPythonApplication rec {
 
   meta = {
     description = "Pseudo API for Google Trends";
-    homepage = "https://github.com/GeneralMills/pytrends";
+    homepage = "https://pypi.org/project/pytrends/";
     license = lib.licenses.asl20;
     maintainers = with lib.maintainers; [ ];
     mainProgram = "pytrends";

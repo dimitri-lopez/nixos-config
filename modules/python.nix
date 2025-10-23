@@ -1,14 +1,15 @@
 { config, lib, pkgs, ... }:
 
-let
-  pytrends = import ./python-packages/pytrends.nix {
-    lib = lib;
-    python3 = pkgs.python312;
-    fetchFromGitHub = pkgs.fetchFromGitHub;
-  };
-in
+# let
+#   pytrends = import ./python-packages/pytrends.nix {
+#     lib = lib;
+#     python3 = pkgs.python312;
+#     fetchFromGitHub = pkgs.fetchFromGitHub;
+#   };
+# in
 {
   home.packages = with pkgs; [
+    uv
     (python312.withPackages (python3Packages: with python3Packages; [
       jupyter
       conda
@@ -33,8 +34,12 @@ in
       optax
       blackjax
       tqdm
+      joblib
 
-      pytrends
+      #netsci 1 project
+      google-genai
+      scikit-learn
+      diskcache
     ]))
   ];
 }
