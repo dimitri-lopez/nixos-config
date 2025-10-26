@@ -723,15 +723,15 @@ EMACSRUNNING="t"
 EMACSSTATE=$(emacsclient -a false -e 't')
 if [ "$EMACSRUNNING" = "$EMACSSTATE" ]; then
     # echo "Emacs daemon is running"
-    notify-send 'Emacs Daemon' 'Restarting Emacs Daemon' -i ~/bin/BWEmacsIcon.png -t 3000
+    notify-send 'Emacs Daemon' 'Restarting Emacs Daemon' -i ~/.dotfiles/images/BWEmacsIcon.png -t 3000
     emacsclient -e "(kill-emacs)"
 else
     # echo "Emacs daemon is not running"
-    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/bin/BWEmacsIcon.png -t 3000
+    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/.dotfiles/images/BWEmacsIcon.png -t 3000
 fi
 
 emacs --daemon
-notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/bin/EmacsIcon.png -t 3000
+notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/.dotfiles/images/EmacsIcon.png -t 3000
     '')
     (pkgs.writeScriptBin "dl-jumpapp-emacs" ''
 #!/usr/bin/env bash
@@ -740,7 +740,7 @@ EMACSRUNNING="t"
 EMACSSTATE=$(emacsclient -a false -e 't')
 if [ "$EMACSRUNNING" != "$EMACSSTATE" ]; then
     # echo "Emacs daemon is not running"
-    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/bin/BWEmacsIcon.png -t 3000
+    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/.dotfiles/images/BWEmacsIcon.png -t 3000
     emacs --daemon
 fi
 

@@ -19,6 +19,8 @@ nix run github:dimitri-lopez/nixos-config
 #+end_src
 
 There are some additional setups steps under [[*XFCE Setup]].
+
+I am having some troubles with the above. Not exactly sure what is happening but will figure it out at some point.
 * Next steps
 Vim should be installed and should be enough to get you off the ground until you get your full Doom Emacs setup running.
 
