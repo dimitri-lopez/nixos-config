@@ -12,6 +12,7 @@
     uv
     (python312.withPackages (python3Packages: with python3Packages; [
       jupyter
+      colour # personal
       conda
       numpy
       sympy
@@ -28,6 +29,8 @@
       fastparquet
       pyarrow
       qrcode
+      opencv4
+
 
       # nXGF dependencies
       jax
@@ -40,6 +43,10 @@
       google-genai
       scikit-learn
       diskcache
+      graph-tool
+      geopandas
+      # stats project
+      statsmodels
     ]))
   ];
 }

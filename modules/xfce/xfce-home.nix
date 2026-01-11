@@ -150,6 +150,7 @@ redshift -l 42.361145:-71.057083 &
         "commands/custom/<Alt>Favorites" = "/home/dimitril/.config/emacs/bin/org-capture";
 
         # Launching apps
+        "commands/custom/<Alt>space" = "emenu";
         "commands/custom/<Super>space" = "xfce4-appfinder";
         "commands/custom/<Alt>0" = "dl-restart-emacs-daemon";
         "commands/custom/<Alt>e" = "dl-jumpapp-emacs";

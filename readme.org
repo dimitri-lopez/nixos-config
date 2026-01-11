@@ -555,26 +555,50 @@ imports =
   ];
 #+end_src
 ** phd.nix
+
+#+begin_src bash
+nix-shell --packages 'rWrapper.override{packages = [ rPackages.tidyverse ];}'
+#+end_src
+
 #+begin_src nix :tangle ./modules/phd.nix
 { config, lib, pkgs, ... }:
 
+let
+  rEnv = pkgs.rWrapper.override {
+    packages = with pkgs.rPackages; [
+      ggcorrplot
+      tidyverse
+      ggplot2
+      openintro
+      infer
+      GGally
+      NHANES
+    ];
+  };
+in
 {
   home.packages = with pkgs; [
     gephi
-    # R and dependencies
-    R
+    gpick
+
+    # Include the R environment
+    rEnv
+
+    # Other system packages
     zlib
     libxmlb
     libxml2
-    gpick
-    # (rWrapper.withPackages (p: with p; [
-    #   tidyverse
-    #   ggplot2
-    #   # Add other R packages here
-    # ]))
   ];
+
+  # Ensure R can find its user-installed packages
+  # This might be implicitly handled by rEnv, but explicit is safer
+  # If you encounter issues, you might need to adjust R_LIBS_USER
+  # home.sessionVariables = {
+  #   R_LIBS_USER = "${pkgs.rWrapper}/lib/R/library";
+  # };
 }
 #+end_src
+
 ** brave.nix
 https://github.com/sg-qwt/nixos/blob/1f44e8c1ffa5abdc407040e7035897ee48b5e6dd/modules/profiles/desktop-apps.nix#L28
 
@@ -661,7 +685,15 @@ in
 
   # services.gvfs.enable = true; # needed for emacs tramp
   home.packages = with pkgs; [
-    emacs     
+
+    # agent shell
+    gemini-cli
+    claude-code
+
+
+
+    
+    # emacs     
     ripgrep
     # optional dependencies
     coreutils # basic GNU utilities
@@ -682,9 +714,11 @@ in
     clang-tools # for clangd for emacs development
     pandoc
     poppler-utils # for pdftotext-mode
+    tree # for gptel agent
 
     mu
-    # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.etags ]))
     isync
     offlineimap
     tesseract # image to text
@@ -693,15 +727,26 @@ in
     doi2bib # for grabbing doi information
 
     pdf2svg # for inline pdfs
+    node-glob # for searching for files
 
-    bonsai
+    cbonsai
 
-    nerd-fonts.fira-code
+    cardo
+    eb-garamond
+    libertinus
+    libre-baskerville
     nerd-fonts.droid-sans-mono
+    nerd-fonts.fira-code
     nerd-fonts.jetbrains-mono
+    source-serif
+    texlivePackages.forum
+    
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot
+    (pkgs.writeScriptBin "emenu"''
+emacsclient -c -F '((name . "emenu-drun") (minibuffer . only) (width . 100) (height . 10) (undecorated . t))' -e '(emenu-drun)'
+'')
     (pkgs.writeScriptBin "doom-git-clone-doom-repo-and-install" ''
 #!/usr/bin/env bash
 rm -rf ~/.config/emacs
@@ -937,6 +982,7 @@ python3.pkgs.buildPythonApplication rec {
     uv
     (python312.withPackages (python3Packages: with python3Packages; [
       jupyter
+      colour # personal
       conda
       numpy
       sympy
@@ -953,6 +999,8 @@ python3.pkgs.buildPythonApplication rec {
       fastparquet
       pyarrow
       qrcode
+      opencv4
+
 
       # nXGF dependencies
       jax
@@ -965,6 +1013,10 @@ python3.pkgs.buildPythonApplication rec {
       google-genai
       scikit-learn
       diskcache
+      graph-tool
+      geopandas
+      # stats project
+      statsmodels
     ]))
   ];
 }
@@ -1485,6 +1537,7 @@ redshift -l 42.361145:-71.057083 &
 ***** Launch apps
 #+begin_src nix
         # Launching apps
+        "commands/custom/<Alt>space" = "emenu";
         "commands/custom/<Super>space" = "xfce4-appfinder";
         "commands/custom/<Alt>0" = "dl-restart-emacs-daemon";
         "commands/custom/<Alt>e" = "dl-jumpapp-emacs";
@@ -1760,13 +1813,36 @@ redshift -l 42.361145:-71.057083 &
 #+end_src
 ** fonts.nix
 [[*Fonts][Fonts]]
+
+
+
+- Unavailable:
+  - Antic Didone 
+  - Kaisei Tokumin
+  - Lancelot 
+  - Literata 
+  - Sree Krushnadevaraya 
+- Installed
+  - Cardo cardo
+  - EB Garamond eb-garamond
+  - Forum texlivePackages.forum
+  - Libertinus Math libertinus
+  - Libre Baskerville libre-baskerville
+  - Source Serif 4 source-serif
+
 #+begin_src nix :tangle ./system/fonts.nix
 { config, pkgs, ... }:
 {
   fonts.packages = with pkgs; [
-    nerd-fonts.fira-code
+    cardo
+    eb-garamond
+    libertinus
+    libre-baskerville
     nerd-fonts.droid-sans-mono
+    nerd-fonts.fira-code
     nerd-fonts.jetbrains-mono
+    source-serif
+    texlivePackages.forum
   ];
 }
 #+end_src
