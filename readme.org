@@ -686,12 +686,11 @@ in
   # services.gvfs.enable = true; # needed for emacs tramp
   home.packages = with pkgs; [
 
+    nix-init
+    
     # agent shell
     gemini-cli
     claude-code
-
-
-
     
     # emacs     
     ripgrep
@@ -970,6 +969,18 @@ python3.pkgs.buildPythonApplication rec {
 #+begin_src nix :tangle ./modules/python.nix
 { config, lib, pkgs, ... }:
 
+let
+  epidatpy = import ./python-packages/epidatpy.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  epiweeks = import ./python-packages/epiweeks.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+in
 # let
 #   pytrends = import ./python-packages/pytrends.nix {
 #     lib = lib;
@@ -1001,6 +1012,9 @@ python3.pkgs.buildPythonApplication rec {
       qrcode
       opencv4
 
+      # influenza forecasting
+      epidatpy
+      epiweeks
 
       # nXGF dependencies
       jax
@@ -1129,6 +1143,112 @@ python3.pkgs.buildPythonApplication rec {
 }
 
 #+end_src
+*** epidatpy.nix
+#+begin_src nix :tangle ./modules/python-packages/epidatpy.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+let
+  epiweeks = import ./epiweeks.nix { inherit lib python3 fetchFromGitHub; };
+in
+python3.pkgs.buildPythonPackage rec {
+  pname = "epidatpy";
+  version = "0.1.0";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "cmu-delphi";
+    repo = "epidatpy";
+    rev = "v${version}";
+    hash = "sha256-cQcCgX+pAYeTJ1Nev/VagXn7cCzsIdQqek/9nlVbWe8=";
+  };
+
+  build-system = [
+    python3.pkgs.setuptools
+    python3.pkgs.wheel
+  ];
+
+  propagatedBuildInputs = with python3.pkgs; [
+    appdirs
+    diskcache
+    epiweeks
+    pandas
+    requests
+    tenacity
+  ];
+
+  optional-dependencies = with python3.pkgs; {
+    dev = [
+      ipykernel
+      matplotlib
+      mypy
+      nbsphinx
+      pylint
+      pytest
+      recommonmark
+      ruff
+      sphinx
+      sphinx-autodoc-typehints
+      sphinx-rtd-theme
+      twine
+      types-requests
+    ];
+  };
+
+  pythonImportsCheck = [
+    "epidatpy"
+  ];
+
+  meta = {
+    description = "Delphi Epidata API Python Client";
+    homepage = "https://github.com/cmu-delphi/epidatpy";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ];
+  };
+}
+#+end_src
+
+#+begin_src nix :tangle ./modules/python-packages/epiweeks.nix 
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+
+python3.pkgs.buildPythonPackage rec {
+  pname = "epiweeks";
+  version = "2.4.0";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "dralshehri";
+    repo = "epiweeks";
+    rev = "v${version}";
+    hash = "sha256-ZcNOcyUN0YrJvU6vJ19rZHWfGZ1VHthR4maR8WVQXM0=";
+  };
+
+  build-system = [
+    python3.pkgs.hatch-fancy-pypi-readme
+    python3.pkgs.hatchling
+  ];
+
+  pythonImportsCheck = [
+    "epiweeks"
+  ];
+
+  meta = {
+    description = "Epidemiological weeks calculation based on CDC (MMWR) and ISO week numbering systems";
+    homepage = "https://github.com/dralshehri/epiweeks";
+    changelog = "https://github.com/dralshehri/epiweeks/blob/${src.rev}/CHANGELOG.md";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ];
+  };
+}
+#+end_src
+
+
 *** Try out python package
 #+begin_src emacs-lisp
 (dl/nixos-send-string-to-nixos-vterm "nix-shell -p python312Packages.scikit-learn")

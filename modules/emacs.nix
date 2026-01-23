@@ -22,12 +22,11 @@ in
   # services.gvfs.enable = true; # needed for emacs tramp
   home.packages = with pkgs; [
 
+    nix-init
+    
     # agent shell
     gemini-cli
     claude-code
-
-
-
     
     # emacs     
     ripgrep

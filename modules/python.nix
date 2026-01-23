@@ -1,5 +1,17 @@
 { config, lib, pkgs, ... }:
 
+let
+  epidatpy = import ./python-packages/epidatpy.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  epiweeks = import ./python-packages/epiweeks.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+in
 # let
 #   pytrends = import ./python-packages/pytrends.nix {
 #     lib = lib;
@@ -31,6 +43,9 @@
       qrcode
       opencv4
 
+      # influenza forecasting
+      epidatpy
+      epiweeks
 
       # nXGF dependencies
       jax
