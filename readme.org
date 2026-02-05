@@ -675,6 +675,11 @@ let
     python3 = pkgs.python312;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
+  claude-code-acp = import ./npm-packages/claude-code-acp.nix {
+    lib = lib;
+    buildNpmPackage = pkgs.buildNpmPackage;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
 in
 {
 
@@ -687,10 +692,16 @@ in
   home.packages = with pkgs; [
 
     nix-init
+
+    signal-cli
+    signal-desktop
+    imagemagick
     
     # agent shell
     gemini-cli
     claude-code
+    claude-code-acp
+    opencode
     
     # emacs     
     ripgrep
@@ -945,6 +956,38 @@ python3.pkgs.buildPythonApplication rec {
   };
 }
 #+end_src
+*** claude-code-acp.nix
+#+begin_src nix :tangle ./modules/npm-packages/claude-code-acp.nix
+{
+  lib,
+  buildNpmPackage,
+  fetchFromGitHub,
+}:
+
+buildNpmPackage rec {
+  pname = "claude-code-acp";
+  version = "0.14.0";
+
+  src = fetchFromGitHub {
+    owner = "zed-industries";
+    repo = "claude-code-acp";
+    rev = "v${version}";
+    hash = "sha256-6z0929OquI1s6EtQFjxel1p5dF/ep2hnVGLgKjudj88=";
+  };
+
+  npmDepsHash = "sha256-6DS1e9KxM+E6dj49xucxwXJnXbw2ILLe3fNLQyDpt0w=";
+
+  meta = {
+    description = "Use Claude Code from any ACP client such as Zed";
+    homepage = "https://github.com/zed-industries/claude-code-acp";
+    license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "claude-code-acp";
+  };
+}
+#+end_src
+
+
 ** git.nix
 #+begin_src nix :tangle ./modules/git.nix
 { config, pkgs, userSettings, ... }:
@@ -980,6 +1023,17 @@ let
     python3 = pkgs.python312;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
+  tailestim = import ./python-packages/tailestim.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  powerlaw = import ./python-packages/powerlaw.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  
 in
 # let
 #   pytrends = import ./python-packages/pytrends.nix {
@@ -1011,10 +1065,14 @@ in
       pyarrow
       qrcode
       opencv4
+      # brazil
+      geojson
 
       # influenza forecasting
+      python-dotenv
       epidatpy
       epiweeks
+      us
 
       # nXGF dependencies
       jax
@@ -1031,6 +1089,9 @@ in
       geopandas
       # stats project
       statsmodels
+      # network science 2 class
+      powerlaw
+      tailestim
     ]))
   ];
 }
@@ -1247,7 +1308,103 @@ python3.pkgs.buildPythonPackage rec {
   };
 }
 #+end_src
+*** tailestim.nix
+#+begin_src nix :tangle ./modules/python-packages/tailestim.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
 
+python3.pkgs.buildPythonApplication rec {
+  pname = "tailestim";
+  version = "0.6.0";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "mu373";
+    repo = "tailestim";
+    rev = "v${version}";
+    hash = "sha256-mPHM0ch/vFt+HuLTr9NDBSZ/bydOPYU+6W0+IIoztNA=";
+  };
+
+  build-system = [
+    python3.pkgs.hatchling
+  ];
+
+  dependencies = with python3.pkgs; [
+    matplotlib
+    numpy
+  ];
+
+  pythonImportsCheck = [
+    "tailestim"
+  ];
+
+  meta = {
+    description = "Estimate tail parameters of heavy-tailed distributions (including power law exponent gamma) in Python";
+    homepage = "https://github.com/mu373/tailestim";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "tailestim";
+  };
+}
+#+end_src
+*** powerlaw.nix
+#+begin_src nix :tangle ./modules/python-packages/powerlaw.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+
+python3.pkgs.buildPythonApplication rec {
+  pname = "powerlaw";
+  version = "2.0.0";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "jeffalstott";
+    repo = "powerlaw";
+    rev = "v${version}";
+    hash = "sha256-ZLpO1x8Uq+Yh6tD8v8xtjMT9Oq3njUc/7oaxisIp6Jw=";
+  };
+
+  build-system = [
+    python3.pkgs.setuptools
+    python3.pkgs.setuptools-scm
+    python3.pkgs.wheel
+  ];
+
+  dependencies = with python3.pkgs; [
+    matplotlib
+    mpmath
+    numpy
+    scipy
+    tqdm
+  ];
+
+  optional-dependencies = with python3.pkgs; {
+    docs = [
+      furo
+      numpydoc
+      sphinx-subfigure
+    ];
+  };
+
+  pythonImportsCheck = [
+    "powerlaw"
+  ];
+
+  meta = {
+    description = "";
+    homepage = "https://github.com/jeffalstott/powerlaw";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "powerlaw";
+  };
+}
+#+end_src
 
 *** Try out python package
 #+begin_src emacs-lisp

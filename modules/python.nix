@@ -11,6 +11,17 @@ let
     python3 = pkgs.python312;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
+  tailestim = import ./python-packages/tailestim.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  powerlaw = import ./python-packages/powerlaw.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  
 in
 # let
 #   pytrends = import ./python-packages/pytrends.nix {
@@ -42,10 +53,14 @@ in
       pyarrow
       qrcode
       opencv4
+      # brazil
+      geojson
 
       # influenza forecasting
+      python-dotenv
       epidatpy
       epiweeks
+      us
 
       # nXGF dependencies
       jax
@@ -62,6 +77,9 @@ in
       geopandas
       # stats project
       statsmodels
+      # network science 2 class
+      powerlaw
+      tailestim
     ]))
   ];
 }

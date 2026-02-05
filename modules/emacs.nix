@@ -11,6 +11,11 @@ let
     python3 = pkgs.python312;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
+  claude-code-acp = import ./npm-packages/claude-code-acp.nix {
+    lib = lib;
+    buildNpmPackage = pkgs.buildNpmPackage;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
 in
 {
 
@@ -23,10 +28,16 @@ in
   home.packages = with pkgs; [
 
     nix-init
+
+    signal-cli
+    signal-desktop
+    imagemagick
     
     # agent shell
     gemini-cli
     claude-code
+    claude-code-acp
+    opencode
     
     # emacs     
     ripgrep
