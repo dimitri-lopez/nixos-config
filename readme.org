@@ -675,7 +675,7 @@ let
     python3 = pkgs.python312;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
-  claude-code-acp = import ./npm-packages/claude-code-acp.nix {
+  claude-agent-acp = import ./npm-packages/claude-agent-acp.nix {
     lib = lib;
     buildNpmPackage = pkgs.buildNpmPackage;
     fetchFromGitHub = pkgs.fetchFromGitHub;
@@ -692,6 +692,7 @@ in
   home.packages = with pkgs; [
 
     nix-init
+    zip
 
     signal-cli
     signal-desktop
@@ -700,7 +701,7 @@ in
     # agent shell
     gemini-cli
     claude-code
-    claude-code-acp
+    claude-agent-acp
     opencode
     
     # emacs     
@@ -956,8 +957,8 @@ python3.pkgs.buildPythonApplication rec {
   };
 }
 #+end_src
-*** claude-code-acp.nix
-#+begin_src nix :tangle ./modules/npm-packages/claude-code-acp.nix
+*** claude-agent-acp.nix
+#+begin_src nix :tangle ./modules/npm-packages/claude-agent-acp.nix
 {
   lib,
   buildNpmPackage,
@@ -965,24 +966,29 @@ python3.pkgs.buildPythonApplication rec {
 }:
 
 buildNpmPackage rec {
-  pname = "claude-code-acp";
+  pname = "claude-agent-acp";
   version = "0.14.0";
+  
 
   src = fetchFromGitHub {
     owner = "zed-industries";
-    repo = "claude-code-acp";
+    repo = "claude-agent-acp";
     rev = "v${version}";
-    hash = "sha256-6z0929OquI1s6EtQFjxel1p5dF/ep2hnVGLgKjudj88=";
+    hash = "sha256-6z0929OquI1s6EtQFjxel1p5dF/ep2hnVGLgKjudj88="; # UPDATE ME
   };
+  
+  postInstall = ''
+    mv $out/bin/claude-code-acp $out/bin/claude-agent-acp
+  '';
 
-  npmDepsHash = "sha256-6DS1e9KxM+E6dj49xucxwXJnXbw2ILLe3fNLQyDpt0w=";
+  npmDepsHash = "sha256-6DS1e9KxM+E6dj49xucxwXJnXbw2ILLe3fNLQyDpt0w="; # UPDATE ME
 
   meta = {
     description = "Use Claude Code from any ACP client such as Zed";
-    homepage = "https://github.com/zed-industries/claude-code-acp";
+    homepage = "https://github.com/zed-industries/claude-agent-acp";
     license = lib.licenses.asl20;
     maintainers = with lib.maintainers; [ ];
-    mainProgram = "claude-code-acp";
+    mainProgram = "claude-agent-acp";
   };
 }
 #+end_src
@@ -1089,6 +1095,7 @@ in
       geopandas
       # stats project
       statsmodels
+      
       # network science 2 class
       powerlaw
       tailestim

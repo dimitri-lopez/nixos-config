@@ -11,7 +11,7 @@ let
     python3 = pkgs.python312;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
-  claude-code-acp = import ./npm-packages/claude-code-acp.nix {
+  claude-agent-acp = import ./npm-packages/claude-agent-acp.nix {
     lib = lib;
     buildNpmPackage = pkgs.buildNpmPackage;
     fetchFromGitHub = pkgs.fetchFromGitHub;
@@ -28,6 +28,7 @@ in
   home.packages = with pkgs; [
 
     nix-init
+    zip
 
     signal-cli
     signal-desktop
@@ -36,7 +37,7 @@ in
     # agent shell
     gemini-cli
     claude-code
-    claude-code-acp
+    claude-agent-acp
     opencode
     
     # emacs     
