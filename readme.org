@@ -697,6 +697,7 @@ in
     signal-cli
     signal-desktop
     imagemagick
+    ffmpeg
     
     # agent shell
     gemini-cli
