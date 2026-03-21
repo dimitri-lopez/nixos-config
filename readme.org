@@ -684,8 +684,8 @@ in
 {
 
   home.sessionPath = [
-    "~/.config/emacs/bin"
-    "~/.dotfiles/tools/with-emacs.sh"
+    "${config.home.homeDirectory}/.local/bin"
+    "${config.home.homeDirectory}/.config/emacs/bin"
   ];
 
   # services.gvfs.enable = true; # needed for emacs tramp
