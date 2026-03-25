@@ -575,6 +575,61 @@ let
       NHANES
     ];
   };
+
+  # GLEAMviz - Global epidemic and mobility simulation tool
+  # Downloaded from: https://www.gleamviz.org/download/
+  # Direct link: https://www.gleamviz.org/simul/bin/GLEAMviz-7.2-linux-x64-installer.run
+  #
+  # This creates a simple wrapper script that downloads and installs GLEAMviz on first run
+  gleamviz = pkgs.writeShellScriptBin "gleamviz" ''
+    INSTALL_DIR="$HOME/.local/share/gleamviz"
+    INSTALLER_URL="https://www.gleamviz.org/simul/bin/GLEAMviz-7.2-linux-x64-installer.run"
+    
+    # Check if GLEAMviz is already installed
+    if [ ! -f "$INSTALL_DIR/gleamviz.sh" ]; then
+      echo "GLEAMviz not found. Installing to $INSTALL_DIR..."
+      mkdir -p "$INSTALL_DIR"
+      
+      # Download the installer to home directory (accessible to steam-run)
+      TEMP_INSTALLER="$HOME/.cache/gleamviz-installer.run"
+      mkdir -p "$HOME/.cache"
+      
+      if [ ! -f "$TEMP_INSTALLER" ]; then
+        echo "Downloading GLEAMviz installer..."
+        ${pkgs.curl}/bin/curl -L -o "$TEMP_INSTALLER" "$INSTALLER_URL"
+        chmod +x "$TEMP_INSTALLER"
+      else
+        echo "Using cached installer..."
+      fi
+      
+      # Run the installer in unattended mode
+      echo "Running installer..."
+      ${pkgs.steam-run}/bin/steam-run "$TEMP_INSTALLER" --mode unattended --prefix "$INSTALL_DIR"
+      EXIT_CODE=$?
+      
+      if [ $EXIT_CODE -ne 0 ] || [ ! -f "$INSTALL_DIR/gleamviz.sh" ]; then
+        echo ""
+        echo "Automatic installation failed or unsupported."
+        echo "Running interactive installer - please click through to install to:"
+        echo "  $INSTALL_DIR"
+        echo ""
+        ${pkgs.steam-run}/bin/steam-run "$TEMP_INSTALLER" --prefix "$INSTALL_DIR"
+      fi
+      
+      if [ -f "$INSTALL_DIR/gleamviz.sh" ]; then
+        echo "Installation complete!"
+        # Clean up installer after successful installation
+        rm -f "$TEMP_INSTALLER"
+      else
+        echo "Error: Installation failed. GLEAMviz not found at $INSTALL_DIR/gleamviz.sh"
+        echo "Installer has been saved to: $TEMP_INSTALLER"
+        exit 1
+      fi
+    fi
+    
+    # Launch GLEAMviz
+    exec ${pkgs.steam-run}/bin/steam-run "$INSTALL_DIR/gleamviz.sh" "$@"
+  '';
 in
 {
   home.packages = with pkgs; [
@@ -584,11 +639,26 @@ in
     # Include the R environment
     rEnv
 
+    # GLEAMviz epidemic simulator
+    gleamviz
+
     # Other system packages
     zlib
     libxmlb
     libxml2
   ];
+
+  # Desktop entry for GLEAMviz
+  # Note: Icon will only appear after first run when GLEAMviz is installed
+  xdg.desktopEntries.gleamviz = {
+    name = "GLEAMviz";
+    genericName = "Epidemic Simulator";
+    comment = "Global epidemic and mobility model visualization";
+    exec = "gleamviz";
+    icon = "${config.home.homeDirectory}/.local/share/gleamviz/GLEAMviz64.png";
+    terminal = false;
+    categories = [ "Science" "Education" ];
+  };
 
   # Ensure R can find its user-installed packages
   # This might be implicitly handled by rEnv, but explicit is safer
@@ -680,6 +750,11 @@ let
     buildNpmPackage = pkgs.buildNpmPackage;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
+  free-coding-models = import ./npm-packages/free-coding-models.nix {
+    lib = lib;
+    buildNpmPackage = pkgs.buildNpmPackage;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
 in
 {
 
@@ -703,7 +778,27 @@ in
     gemini-cli
     claude-code
     claude-agent-acp
-    opencode
+    free-coding-models
+    inputs.opencode.packages.${pkgs.system}.default
+    
+    (pkgs.writeScriptBin "update-npm-tools" ''
+#!/usr/bin/env bash
+# usage: update-npm-tools free-coding-models 0.3.26
+TOOL=$1
+VERSION=$2
+TARGET="$HOME/.dotfiles/modules/npm-packages/$TOOL.nix"
+
+if [ -z "$TOOL" ] || [ -z "$VERSION" ]; then
+    echo "Usage: update-npm-tools <tool-name> <version>"
+    exit 1
+fi
+
+sed -i "s/version = \".*\";/version = \"$VERSION\";/" "$TARGET"
+sed -i "s/hash = \".*\";/hash = \"sha256-0000000000000000000000000000000000000000000=\";/" "$TARGET"
+sed -i "s/npmDepsHash = \".*\";/npmDepsHash = \"sha256-0000000000000000000000000000000000000000000=\";/" "$TARGET"
+
+echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new hashes."
+'')
     
     # emacs     
     ripgrep
@@ -727,6 +822,8 @@ in
     pandoc
     poppler-utils # for pdftotext-mode
     tree # for gptel agent
+    playwright-driver.browsers # for visual testing keybinding-visualizer
+    playwright-test # CLI for running playwright tests
 
     mu
     ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
@@ -739,6 +836,7 @@ in
     doi2bib # for grabbing doi information
 
     pdf2svg # for inline pdfs
+    inkscape # for svg to pdf conversion (needed by org-mode latex export)
     node-glob # for searching for files
 
     cbonsai
@@ -810,10 +908,50 @@ else
     python /home/dimitril/bin/move-windows-to-workspace.py
 fi
     '')
+    (pkgs.writeScriptBin "org-tangle-tools" ''
+#!/usr/bin/env bash
+# Tangle org-subtree-tools to generate CLI tools
+emacsclient --eval "(progn (find-file \"~/.config/doom/llm-tools/org-subtree-tools.org\") (org-babel-tangle) (kill-buffer))" 2>/dev/null || \
+emacs --batch --eval "(progn (find-file \"~/.config/doom/llm-tools/org-subtree-tools.org\") (org-babel-tangle))"
+    '')
   ];
 }
 
 #+end_src
+*** free-coding-models.nix
+:PROPERTIES:
+:ID:       525044de-91ab-4a78-aa6d-22dd28bff07c
+:END:
+#+begin_src nix :tangle ./modules/npm-packages/free-coding-models.nix
+{
+  lib,
+  buildNpmPackage,
+  fetchFromGitHub,
+}:
+
+buildNpmPackage rec {
+  pname = "free-coding-models";
+  version = "0.3.25";
+
+  src = fetchFromGitHub {
+    owner = "vava-nessa";
+    repo = "free-coding-models";
+    rev = "v${version}";
+    hash = "sha256-1wrvyx5qzs79d0fc1a27qbv1lcch0h16kajhy2khl9igxqbv5ra0";
+  };
+
+  npmDepsHash = "sha256-0000000000000000000000000000000000000000000="; # Update after tangle/build
+
+  meta = {
+    description = "CLI tool to find and use free AI coding models";
+    homepage = "https://github.com/vava-nessa/free-coding-models";
+    license = lib.licenses.mit;
+    mainProgram = "free-coding-models";
+  };
+}
+#+end_src
+
+
 *** title2bib.nix
 
 I used nix-init to create these files and a little help from gptel. Wasn't too bad to figure out thankfully.
@@ -1015,6 +1153,7 @@ buildNpmPackage rec {
   # };
 }
 #+end_src
+
 ** python.nix
 #+begin_src nix :tangle ./modules/python.nix
 { config, lib, pkgs, ... }:
@@ -1527,9 +1666,6 @@ in
     shellAliases = myAliases;
   };
 
-  home.sessionPath = [
-    "~/.config/emacs/bin"
-  ];
   home.packages = with pkgs; [
     # disfetch lolcat cowsay onefetch
     # gnugrep gnused
@@ -1883,6 +2019,16 @@ redshift -l 42.361145:-71.057083 &
         "commands/custom/<Alt>Print" = "xfce4-screenshooter -w";
         "commands/custom/Print" = "xfce4-screenshooter";
         "commands/custom/<Shift>Print" = "xfce4-screenshooter -r";
+
+#+end_src
+***** Power Management
+#+begin_src nix
+        # Power management
+        "commands/custom/<Primary><Alt>l" = "xflock4";  # Lock screen
+        "commands/custom/<Primary><Alt>s" = "systemctl suspend";  # Suspend/sleep
+        "commands/custom/<Primary><Alt>h" = "systemctl hibernate";  # Hibernate
+        "commands/custom/<Primary><Alt>r" = "systemctl reboot";  # Restart
+        "commands/custom/<Primary><Alt>p" = "systemctl poweroff";  # Power off
 
 #+end_src
 ***** XFWM4 Keybindings / Window Manager Keybindings

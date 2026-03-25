@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 let
   title2bib = import ./python-packages/title2bib.nix {
@@ -16,12 +16,17 @@ let
     buildNpmPackage = pkgs.buildNpmPackage;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
+  free-coding-models = import ./npm-packages/free-coding-models.nix {
+    lib = lib;
+    buildNpmPackage = pkgs.buildNpmPackage;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
 in
 {
 
   home.sessionPath = [
-    "~/.config/emacs/bin"
-    "~/.dotfiles/tools/with-emacs.sh"
+    "${config.home.homeDirectory}/.local/bin"
+    "${config.home.homeDirectory}/.config/emacs/bin"
   ];
 
   # services.gvfs.enable = true; # needed for emacs tramp
@@ -33,12 +38,33 @@ in
     signal-cli
     signal-desktop
     imagemagick
+    ffmpeg
     
     # agent shell
     gemini-cli
     claude-code
     claude-agent-acp
-    opencode
+    free-coding-models
+    inputs.opencode.packages.${pkgs.system}.default
+    
+    (pkgs.writeScriptBin "update-npm-tools" ''
+#!/usr/bin/env bash
+# usage: update-npm-tools free-coding-models 0.3.26
+TOOL=$1
+VERSION=$2
+TARGET="$HOME/.dotfiles/modules/npm-packages/$TOOL.nix"
+
+if [ -z "$TOOL" ] || [ -z "$VERSION" ]; then
+    echo "Usage: update-npm-tools <tool-name> <version>"
+    exit 1
+fi
+
+sed -i "s/version = \".*\";/version = \"$VERSION\";/" "$TARGET"
+sed -i "s/hash = \".*\";/hash = \"sha256-0000000000000000000000000000000000000000000=\";/" "$TARGET"
+sed -i "s/npmDepsHash = \".*\";/npmDepsHash = \"sha256-0000000000000000000000000000000000000000000=\";/" "$TARGET"
+
+echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new hashes."
+'')
     
     # emacs     
     ripgrep
@@ -62,6 +88,8 @@ in
     pandoc
     poppler-utils # for pdftotext-mode
     tree # for gptel agent
+    playwright-driver.browsers # for visual testing keybinding-visualizer
+    playwright-test # CLI for running playwright tests
 
     mu
     ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
@@ -74,6 +102,7 @@ in
     doi2bib # for grabbing doi information
 
     pdf2svg # for inline pdfs
+    inkscape # for svg to pdf conversion (needed by org-mode latex export)
     node-glob # for searching for files
 
     cbonsai
@@ -144,6 +173,12 @@ if [ "$VAR1" = "$VAR2" ]; then
 else
     python /home/dimitril/bin/move-windows-to-workspace.py
 fi
+    '')
+    (pkgs.writeScriptBin "org-tangle-tools" ''
+#!/usr/bin/env bash
+# Tangle org-subtree-tools to generate CLI tools
+emacsclient --eval "(progn (find-file \"~/.config/doom/llm-tools/org-subtree-tools.org\") (org-babel-tangle) (kill-buffer))" 2>/dev/null || \
+emacs --batch --eval "(progn (find-file \"~/.config/doom/llm-tools/org-subtree-tools.org\") (org-babel-tangle))"
     '')
   ];
 }
