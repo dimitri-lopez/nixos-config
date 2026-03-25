@@ -17,6 +17,8 @@ buildNpmPackage rec {
 
   npmDepsHash = "sha256-9yQLGKitdMDVCWncYHvvj8fb1FCS5KtQ9+OKcViGApM=";
 
+  dontNpmBuild = true;
+
   meta = {
     description = "CLI tool to find and use free AI coding models";
     homepage = "https://github.com/vava-nessa/free-coding-models";

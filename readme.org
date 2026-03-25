@@ -190,6 +190,7 @@ inputs = {
     inputs.hyprland.follows = "hyprland";
   };
   raise.url = "github:knarkzel/raise";
+  opencode.url = "github:AodhanHayter/opencode-flake";
 };
 #+end_src
 ** Flake userSettings
@@ -363,8 +364,24 @@ users.users.dimitril = {
 # Install firefox.
 programs.firefox.enable = true;
 
+# Enable nix-ld for dynamically linked executables
+programs.nix-ld.enable = true;
+programs.nix-ld.libraries = with pkgs; [
+  stdenv.cc.cc
+  zlib
+  fuse3
+  icu
+  nss
+  openssl
+  curl
+  expat
+];
+
 # Allow unfree packages
 nixpkgs.config.allowUnfree = true;
+nixpkgs.config.permittedInsecurePackages = [
+  "python3.12-ecdsa-0.19.1"
+];
 
 # List packages installed in system profile. To search, run:
 # $ nix search wget
@@ -442,6 +459,9 @@ See [[*home.nix modules][home.nix modules]].
   home.homeDirectory = "/home/dimitril";
 
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.permittedInsecurePackages = [
+    "python3.12-ecdsa-0.19.1"
+  ];
   # sessionPath = ["/home/dimitril/.config/emacs"];
 
   # This value determines the Home Manager release that your configuration is
@@ -732,7 +752,7 @@ Bookmarks can be found at: [[./modules/brave-bookmarks.html]]
 ** emacs.nix
 
 #+begin_src nix :tangle ./modules/emacs.nix
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 let
   title2bib = import ./python-packages/title2bib.nix {
@@ -779,7 +799,8 @@ in
     claude-code
     claude-agent-acp
     free-coding-models
-    inputs.opencode.packages.${pkgs.system}.default
+    # inputs.opencode.packages.${pkgs.system}.default
+    (pkgs.writeScriptBin "opencode" "npx opencode-ai \"$@\"")
     
     (pkgs.writeScriptBin "update-npm-tools" ''
 #!/usr/bin/env bash
@@ -937,10 +958,12 @@ buildNpmPackage rec {
     owner = "vava-nessa";
     repo = "free-coding-models";
     rev = "v${version}";
-    hash = "sha256-1wrvyx5qzs79d0fc1a27qbv1lcch0h16kajhy2khl9igxqbv5ra0";
+    hash = "sha256-QOWyF+4vJgqn8FCqaQIEkDEa9sJHqMAcaOnoj0v3O/M=";
   };
 
-  npmDepsHash = "sha256-0000000000000000000000000000000000000000000="; # Update after tangle/build
+  npmDepsHash = "sha256-9yQLGKitdMDVCWncYHvvj8fb1FCS5KtQ9+OKcViGApM=";
+
+  dontNpmBuild = true;
 
   meta = {
     description = "CLI tool to find and use free AI coding models";

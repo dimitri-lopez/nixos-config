@@ -45,7 +45,8 @@ in
     claude-code
     claude-agent-acp
     free-coding-models
-    inputs.opencode.packages.${pkgs.system}.default
+    # inputs.opencode.packages.${pkgs.system}.default
+    (pkgs.writeScriptBin "opencode" "npx opencode-ai \"$@\"")
     
     (pkgs.writeScriptBin "update-npm-tools" ''
 #!/usr/bin/env bash

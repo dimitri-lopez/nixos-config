@@ -23,6 +23,16 @@
       fsType = "vfat";
       options = [ "fmask=0077" "dmask=0077" ];
     };
+  
+  fileSystems."/mnt/data" = {
+    device = "/dev/disk/by-uuid/892faac5-767f-4bcf-9a64-9e694d5f3074";
+    fsType = "ext4";
+    options = [ "defaults" "nofail" ];
+  };
+  
+  systemd.tmpfiles.rules = [
+    "d /mnt/data 0755 dimitril users -"
+  ];
 
   swapDevices =
     [ { device = "/dev/disk/by-uuid/75bde775-be2a-4135-a34d-c18cd526f54e"; }

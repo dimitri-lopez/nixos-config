@@ -26,5 +26,43 @@ sleep 1
 xdotool type -- "$(xsel -bo | tr \\n \\r | sed s/\\r*\$//)"
 '')
 
+    (pkgs.writeScriptBin "dl-toggle-dev-workspace" ''
+#!/usr/bin/env bash
+# Toggle between current workspace and workspace 9 (dev/test workspace)
+
+CURRENT=$(${pkgs.wmctrl}/bin/wmctrl -d | grep '\*' | cut -d' ' -f1)
+DEV_WORKSPACE=8  # 0-indexed, so 8 = workspace 9
+
+if [ "$CURRENT" = "$DEV_WORKSPACE" ]; then
+    # Return to previous workspace (stored in file)
+    PREV=$(cat /tmp/prev-workspace 2>/dev/null || echo 0)
+    ${pkgs.wmctrl}/bin/wmctrl -s "$PREV"
+else
+    # Save current and switch to dev
+    echo "$CURRENT" > /tmp/prev-workspace
+    ${pkgs.wmctrl}/bin/wmctrl -s "$DEV_WORKSPACE"
+fi
+'')
+
+    (pkgs.writeScriptBin "dl-visual-test-setup" ''
+#!/usr/bin/env bash
+# Set up isolated visual testing environment
+
+# Switch to dev workspace
+${pkgs.wmctrl}/bin/wmctrl -s 8
+
+# Start test daemon if not running
+if ! emacsclient -s visual-test --eval 't' 2>/dev/null; then
+    doom emacs --daemon=visual-test
+    sleep 2
+fi
+
+# Create frame in dev workspace
+emacsclient -s visual-test -c &
+
+echo "Visual test environment ready on workspace 9"
+echo "Use: emacsclient -s visual-test --eval '...'"
+'')
+
   ];
 }
