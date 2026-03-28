@@ -22,6 +22,11 @@
   home.homeDirectory = "/home/dimitril";
 
   nixpkgs.config.allowUnfree = true;
+  
+  # Add this line to permit the insecure package
+  nixpkgs.config.permittedInsecurePackages = [
+    "python3.12-ecdsa-0.19.1"
+  ];
   # sessionPath = ["/home/dimitril/.config/emacs"];
 
   # This value determines the Home Manager release that your configuration is

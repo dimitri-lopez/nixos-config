@@ -21,6 +21,7 @@ in
 
   # services.gvfs.enable = true; # needed for emacs tramp
   home.packages = with pkgs; [
+    unzip
     emacs     
     ripgrep
     # optional dependencies
