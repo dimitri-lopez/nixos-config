@@ -5,6 +5,7 @@
     ./modules/xfce/xfce-home.nix
     ./modules/git.nix
     ./modules/phd.nix
+    ./modules/itch.nix
     # ./modules/wm/hyprland-minimal.nix
     # ./modules/hyprland/hyprland-home.nix
     ./modules/python.nix

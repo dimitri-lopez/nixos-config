@@ -17,7 +17,23 @@ See my [[install.org]] for installation instructions.
 * TODO List
 ** TODO mu4e
 ** TODO Fix brave nixos extraOpt
+
+* itch.nix
+- [ ] [[*home.nix modules][home.nix modules]]
+- [ ] [[elisp:(org-babel-tangle)]]
+- [ ] [[git add -A ./modules/itch.nix]]
+#+begin_src nix :tangle ./modules/itch.nix
+{ config, lib, pkgs, ... }:
+
+{
+  home.packages = with pkgs; [
+    itch
+  ];
+}
+#+end_src
+
 * Resources
+
 ** Switching flakes on the nix level
 #+begin_src bash
 sudo nixos-rebuild switch --flake .
@@ -543,6 +559,7 @@ imports =
     ./modules/xfce/xfce-home.nix
     ./modules/git.nix
     ./modules/phd.nix
+    ./modules/itch.nix
     # ./modules/wm/hyprland-minimal.nix
     # ./modules/hyprland/hyprland-home.nix
     ./modules/python.nix
