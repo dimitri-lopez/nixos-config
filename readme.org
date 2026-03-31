@@ -206,6 +206,7 @@ inputs = {
     inputs.hyprland.follows = "hyprland";
   };
   raise.url = "github:knarkzel/raise";
+  opencode.url = "github:AodhanHayter/opencode-flake";
 };
 #+end_src
 ** Flake userSettings
@@ -379,8 +380,24 @@ users.users.dimitril = {
 # Install firefox.
 programs.firefox.enable = true;
 
+# Enable nix-ld for dynamically linked executables
+programs.nix-ld.enable = true;
+programs.nix-ld.libraries = with pkgs; [
+  stdenv.cc.cc
+  zlib
+  fuse3
+  icu
+  nss
+  openssl
+  curl
+  expat
+];
+
 # Allow unfree packages
 nixpkgs.config.allowUnfree = true;
+nixpkgs.config.permittedInsecurePackages = [
+  "python3.12-ecdsa-0.19.1"
+];
 
 # List packages installed in system profile. To search, run:
 # $ nix search wget
@@ -458,6 +475,9 @@ See [[*home.nix modules][home.nix modules]].
   home.homeDirectory = "/home/dimitril";
 
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.permittedInsecurePackages = [
+    "python3.12-ecdsa-0.19.1"
+  ];
   # sessionPath = ["/home/dimitril/.config/emacs"];
 
   # This value determines the Home Manager release that your configuration is
@@ -592,6 +612,61 @@ let
       NHANES
     ];
   };
+
+  # GLEAMviz - Global epidemic and mobility simulation tool
+  # Downloaded from: https://www.gleamviz.org/download/
+  # Direct link: https://www.gleamviz.org/simul/bin/GLEAMviz-7.2-linux-x64-installer.run
+  #
+  # This creates a simple wrapper script that downloads and installs GLEAMviz on first run
+  gleamviz = pkgs.writeShellScriptBin "gleamviz" ''
+    INSTALL_DIR="$HOME/.local/share/gleamviz"
+    INSTALLER_URL="https://www.gleamviz.org/simul/bin/GLEAMviz-7.2-linux-x64-installer.run"
+    
+    # Check if GLEAMviz is already installed
+    if [ ! -f "$INSTALL_DIR/gleamviz.sh" ]; then
+      echo "GLEAMviz not found. Installing to $INSTALL_DIR..."
+      mkdir -p "$INSTALL_DIR"
+      
+      # Download the installer to home directory (accessible to steam-run)
+      TEMP_INSTALLER="$HOME/.cache/gleamviz-installer.run"
+      mkdir -p "$HOME/.cache"
+      
+      if [ ! -f "$TEMP_INSTALLER" ]; then
+        echo "Downloading GLEAMviz installer..."
+        ${pkgs.curl}/bin/curl -L -o "$TEMP_INSTALLER" "$INSTALLER_URL"
+        chmod +x "$TEMP_INSTALLER"
+      else
+        echo "Using cached installer..."
+      fi
+      
+      # Run the installer in unattended mode
+      echo "Running installer..."
+      ${pkgs.steam-run}/bin/steam-run "$TEMP_INSTALLER" --mode unattended --prefix "$INSTALL_DIR"
+      EXIT_CODE=$?
+      
+      if [ $EXIT_CODE -ne 0 ] || [ ! -f "$INSTALL_DIR/gleamviz.sh" ]; then
+        echo ""
+        echo "Automatic installation failed or unsupported."
+        echo "Running interactive installer - please click through to install to:"
+        echo "  $INSTALL_DIR"
+        echo ""
+        ${pkgs.steam-run}/bin/steam-run "$TEMP_INSTALLER" --prefix "$INSTALL_DIR"
+      fi
+      
+      if [ -f "$INSTALL_DIR/gleamviz.sh" ]; then
+        echo "Installation complete!"
+        # Clean up installer after successful installation
+        rm -f "$TEMP_INSTALLER"
+      else
+        echo "Error: Installation failed. GLEAMviz not found at $INSTALL_DIR/gleamviz.sh"
+        echo "Installer has been saved to: $TEMP_INSTALLER"
+        exit 1
+      fi
+    fi
+    
+    # Launch GLEAMviz
+    exec ${pkgs.steam-run}/bin/steam-run "$INSTALL_DIR/gleamviz.sh" "$@"
+  '';
 in
 {
   home.packages = with pkgs; [
@@ -601,11 +676,26 @@ in
     # Include the R environment
     rEnv
 
+    # GLEAMviz epidemic simulator
+    gleamviz
+
     # Other system packages
     zlib
     libxmlb
     libxml2
   ];
+
+  # Desktop entry for GLEAMviz
+  # Note: Icon will only appear after first run when GLEAMviz is installed
+  xdg.desktopEntries.gleamviz = {
+    name = "GLEAMviz";
+    genericName = "Epidemic Simulator";
+    comment = "Global epidemic and mobility model visualization";
+    exec = "gleamviz";
+    icon = "${config.home.homeDirectory}/.local/share/gleamviz/GLEAMviz64.png";
+    terminal = false;
+    categories = [ "Science" "Education" ];
+  };
 
   # Ensure R can find its user-installed packages
   # This might be implicitly handled by rEnv, but explicit is safer
@@ -679,7 +769,7 @@ Bookmarks can be found at: [[./modules/brave-bookmarks.html]]
 ** emacs.nix
 
 #+begin_src nix :tangle ./modules/emacs.nix
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 let
   title2bib = import ./python-packages/title2bib.nix {
@@ -692,7 +782,12 @@ let
     python3 = pkgs.python312;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
-  claude-code-acp = import ./npm-packages/claude-code-acp.nix {
+  claude-agent-acp = import ./npm-packages/claude-agent-acp.nix {
+    lib = lib;
+    buildNpmPackage = pkgs.buildNpmPackage;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  free-coding-models = import ./npm-packages/free-coding-models.nix {
     lib = lib;
     buildNpmPackage = pkgs.buildNpmPackage;
     fetchFromGitHub = pkgs.fetchFromGitHub;
@@ -701,24 +796,50 @@ in
 {
 
   home.sessionPath = [
-    "~/.config/emacs/bin"
-    "~/.dotfiles/tools/with-emacs.sh"
+    "${config.home.homeDirectory}/.local/bin"
+    "${config.home.homeDirectory}/.config/emacs/bin"
   ];
 
   # services.gvfs.enable = true; # needed for emacs tramp
   home.packages = with pkgs; [
 
     nix-init
+    zip
 
     signal-cli
     signal-desktop
     imagemagick
+    ffmpeg
     
     # agent shell
     gemini-cli
     claude-code
-    claude-code-acp
-    opencode
+    claude-agent-acp
+    free-coding-models
+    # inputs.opencode.packages.${pkgs.system}.default
+    (pkgs.writeScriptBin "opencode" "npx opencode-ai \"$@\"")
+    
+    # inputs.opencode.packages.${pkgs.system}.default
+    gnuplot
+    
+    (pkgs.writeScriptBin "update-npm-tools" ''
+#!/usr/bin/env bash
+# usage: update-npm-tools free-coding-models 0.3.26
+TOOL=$1
+VERSION=$2
+TARGET="$HOME/.dotfiles/modules/npm-packages/$TOOL.nix"
+
+if [ -z "$TOOL" ] || [ -z "$VERSION" ]; then
+    echo "Usage: update-npm-tools <tool-name> <version>"
+    exit 1
+fi
+
+sed -i "s/version = \".*\";/version = \"$VERSION\";/" "$TARGET"
+sed -i "s/hash = \".*\";/hash = \"sha256-0000000000000000000000000000000000000000000=\";/" "$TARGET"
+sed -i "s/npmDepsHash = \".*\";/npmDepsHash = \"sha256-0000000000000000000000000000000000000000000=\";/" "$TARGET"
+
+echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new hashes."
+'')
     
     # emacs     
     ripgrep
@@ -742,6 +863,8 @@ in
     pandoc
     poppler-utils # for pdftotext-mode
     tree # for gptel agent
+    playwright-driver.browsers # for visual testing keybinding-visualizer
+    playwright-test # CLI for running playwright tests
 
     mu
     ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
@@ -754,6 +877,7 @@ in
     doi2bib # for grabbing doi information
 
     pdf2svg # for inline pdfs
+    inkscape # for svg to pdf conversion (needed by org-mode latex export)
     node-glob # for searching for files
 
     cbonsai
@@ -825,10 +949,52 @@ else
     python /home/dimitril/bin/move-windows-to-workspace.py
 fi
     '')
+    (pkgs.writeScriptBin "org-tangle-tools" ''
+#!/usr/bin/env bash
+# Tangle org-subtree-tools to generate CLI tools
+emacsclient --eval "(progn (find-file \"~/.config/doom/llm-tools/org-subtree-tools.org\") (org-babel-tangle) (kill-buffer))" 2>/dev/null || \
+emacs --batch --eval "(progn (find-file \"~/.config/doom/llm-tools/org-subtree-tools.org\") (org-babel-tangle))"
+    '')
   ];
 }
 
 #+end_src
+*** free-coding-models.nix
+:PROPERTIES:
+:ID:       525044de-91ab-4a78-aa6d-22dd28bff07c
+:END:
+#+begin_src nix :tangle ./modules/npm-packages/free-coding-models.nix
+{
+  lib,
+  buildNpmPackage,
+  fetchFromGitHub,
+}:
+
+buildNpmPackage rec {
+  pname = "free-coding-models";
+  version = "0.3.25";
+
+  src = fetchFromGitHub {
+    owner = "vava-nessa";
+    repo = "free-coding-models";
+    rev = "v${version}";
+    hash = "sha256-QOWyF+4vJgqn8FCqaQIEkDEa9sJHqMAcaOnoj0v3O/M=";
+  };
+
+  npmDepsHash = "sha256-9yQLGKitdMDVCWncYHvvj8fb1FCS5KtQ9+OKcViGApM=";
+
+  dontNpmBuild = true;
+
+  meta = {
+    description = "CLI tool to find and use free AI coding models";
+    homepage = "https://github.com/vava-nessa/free-coding-models";
+    license = lib.licenses.mit;
+    mainProgram = "free-coding-models";
+  };
+}
+#+end_src
+
+
 *** title2bib.nix
 
 I used nix-init to create these files and a little help from gptel. Wasn't too bad to figure out thankfully.
@@ -973,8 +1139,8 @@ python3.pkgs.buildPythonApplication rec {
   };
 }
 #+end_src
-*** claude-code-acp.nix
-#+begin_src nix :tangle ./modules/npm-packages/claude-code-acp.nix
+*** claude-agent-acp.nix
+#+begin_src nix :tangle ./modules/npm-packages/claude-agent-acp.nix
 {
   lib,
   buildNpmPackage,
@@ -982,24 +1148,29 @@ python3.pkgs.buildPythonApplication rec {
 }:
 
 buildNpmPackage rec {
-  pname = "claude-code-acp";
+  pname = "claude-agent-acp";
   version = "0.14.0";
+  
 
   src = fetchFromGitHub {
     owner = "zed-industries";
-    repo = "claude-code-acp";
+    repo = "claude-agent-acp";
     rev = "v${version}";
-    hash = "sha256-6z0929OquI1s6EtQFjxel1p5dF/ep2hnVGLgKjudj88=";
+    hash = "sha256-6z0929OquI1s6EtQFjxel1p5dF/ep2hnVGLgKjudj88="; # UPDATE ME
   };
+  
+  postInstall = ''
+    mv $out/bin/claude-code-acp $out/bin/claude-agent-acp
+  '';
 
-  npmDepsHash = "sha256-6DS1e9KxM+E6dj49xucxwXJnXbw2ILLe3fNLQyDpt0w=";
+  npmDepsHash = "sha256-6DS1e9KxM+E6dj49xucxwXJnXbw2ILLe3fNLQyDpt0w="; # UPDATE ME
 
   meta = {
     description = "Use Claude Code from any ACP client such as Zed";
-    homepage = "https://github.com/zed-industries/claude-code-acp";
+    homepage = "https://github.com/zed-industries/claude-agent-acp";
     license = lib.licenses.asl20;
     maintainers = with lib.maintainers; [ ];
-    mainProgram = "claude-code-acp";
+    mainProgram = "claude-agent-acp";
   };
 }
 #+end_src
@@ -1025,6 +1196,7 @@ buildNpmPackage rec {
   # };
 }
 #+end_src
+
 ** python.nix
 #+begin_src nix :tangle ./modules/python.nix
 { config, lib, pkgs, ... }:
@@ -1106,6 +1278,7 @@ in
       geopandas
       # stats project
       statsmodels
+      
       # network science 2 class
       powerlaw
       tailestim
@@ -1333,7 +1506,7 @@ python3.pkgs.buildPythonPackage rec {
   fetchFromGitHub,
 }:
 
-python3.pkgs.buildPythonApplication rec {
+python3.pkgs.buildPythonPackage rec {
   pname = "tailestim";
   version = "0.6.0";
   pyproject = true;
@@ -1375,7 +1548,7 @@ python3.pkgs.buildPythonApplication rec {
   fetchFromGitHub,
 }:
 
-python3.pkgs.buildPythonApplication rec {
+python3.pkgs.buildPythonPackage rec {
   pname = "powerlaw";
   version = "2.0.0";
   pyproject = true;
@@ -1461,6 +1634,44 @@ sleep 1
 xdotool type -- "$(xsel -bo | tr \\n \\r | sed s/\\r*\$//)"
 '')
 
+    (pkgs.writeScriptBin "dl-toggle-dev-workspace" ''
+#!/usr/bin/env bash
+# Toggle between current workspace and workspace 9 (dev/test workspace)
+
+CURRENT=$(${pkgs.wmctrl}/bin/wmctrl -d | grep '\*' | cut -d' ' -f1)
+DEV_WORKSPACE=8  # 0-indexed, so 8 = workspace 9
+
+if [ "$CURRENT" = "$DEV_WORKSPACE" ]; then
+    # Return to previous workspace (stored in file)
+    PREV=$(cat /tmp/prev-workspace 2>/dev/null || echo 0)
+    ${pkgs.wmctrl}/bin/wmctrl -s "$PREV"
+else
+    # Save current and switch to dev
+    echo "$CURRENT" > /tmp/prev-workspace
+    ${pkgs.wmctrl}/bin/wmctrl -s "$DEV_WORKSPACE"
+fi
+'')
+
+    (pkgs.writeScriptBin "dl-visual-test-setup" ''
+#!/usr/bin/env bash
+# Set up isolated visual testing environment
+
+# Switch to dev workspace
+${pkgs.wmctrl}/bin/wmctrl -s 8
+
+# Start test daemon if not running
+if ! emacsclient -s visual-test --eval 't' 2>/dev/null; then
+    doom emacs --daemon=visual-test
+    sleep 2
+fi
+
+# Create frame in dev workspace
+emacsclient -s visual-test -c &
+
+echo "Visual test environment ready on workspace 9"
+echo "Use: emacsclient -s visual-test --eval '...'"
+'')
+
   ];
 }
 #+end_src
@@ -1498,9 +1709,6 @@ in
     shellAliases = myAliases;
   };
 
-  home.sessionPath = [
-    "~/.config/emacs/bin"
-  ];
   home.packages = with pkgs; [
     # disfetch lolcat cowsay onefetch
     # gnugrep gnused
@@ -1844,6 +2052,8 @@ redshift -l 42.361145:-71.057083 &
         "commands/custom/<Primary><Alt>Delete" = "xfce4-session-logout";
         "commands/custom/<Primary><Shift>Escape" = "xfce4-taskmanager";
         "commands/custom/<Super>minus" = "xkill";
+        "commands/custom/<Super>9" = "wmctrl -s 8";  # Jump to workspace 9 (dev/test)
+        "commands/custom/<Super>grave" = "dl-toggle-dev-workspace";  # Toggle to/from dev workspace
 
 #+end_src
 ***** Screenshot
@@ -1852,6 +2062,16 @@ redshift -l 42.361145:-71.057083 &
         "commands/custom/<Alt>Print" = "xfce4-screenshooter -w";
         "commands/custom/Print" = "xfce4-screenshooter";
         "commands/custom/<Shift>Print" = "xfce4-screenshooter -r";
+
+#+end_src
+***** Power Management
+#+begin_src nix
+        # Power management
+        "commands/custom/<Primary><Alt>l" = "xflock4";  # Lock screen
+        "commands/custom/<Primary><Alt>s" = "systemctl suspend";  # Suspend/sleep
+        "commands/custom/<Primary><Alt>h" = "systemctl hibernate";  # Hibernate
+        "commands/custom/<Primary><Alt>r" = "systemctl reboot";  # Restart
+        "commands/custom/<Primary><Alt>p" = "systemctl poweroff";  # Power off
 
 #+end_src
 ***** XFWM4 Keybindings / Window Manager Keybindings

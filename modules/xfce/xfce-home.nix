@@ -163,11 +163,20 @@ redshift -l 42.361145:-71.057083 &
         "commands/custom/<Primary><Alt>Delete" = "xfce4-session-logout";
         "commands/custom/<Primary><Shift>Escape" = "xfce4-taskmanager";
         "commands/custom/<Super>minus" = "xkill";
+        "commands/custom/<Super>9" = "wmctrl -s 8";  # Jump to workspace 9 (dev/test)
+        "commands/custom/<Super>grave" = "dl-toggle-dev-workspace";  # Toggle to/from dev workspace
 
         # Screenshot
         "commands/custom/<Alt>Print" = "xfce4-screenshooter -w";
         "commands/custom/Print" = "xfce4-screenshooter";
         "commands/custom/<Shift>Print" = "xfce4-screenshooter -r";
+
+        # Power management
+        "commands/custom/<Primary><Alt>l" = "xflock4";  # Lock screen
+        "commands/custom/<Primary><Alt>s" = "systemctl suspend";  # Suspend/sleep
+        "commands/custom/<Primary><Alt>h" = "systemctl hibernate";  # Hibernate
+        "commands/custom/<Primary><Alt>r" = "systemctl reboot";  # Restart
+        "commands/custom/<Primary><Alt>p" = "systemctl poweroff";  # Power off
 
         # xfwm4/custom
         "xfwm4/custom/override" = true;

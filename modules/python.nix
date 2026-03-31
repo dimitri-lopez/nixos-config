@@ -77,6 +77,7 @@ in
       geopandas
       # stats project
       statsmodels
+      
       # network science 2 class
       powerlaw
       tailestim

@@ -29,9 +29,6 @@ in
     shellAliases = myAliases;
   };
 
-  home.sessionPath = [
-    "~/.config/emacs/bin"
-  ];
   home.packages = with pkgs; [
     # disfetch lolcat cowsay onefetch
     # gnugrep gnused

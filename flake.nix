@@ -15,6 +15,7 @@
       inputs.hyprland.follows = "hyprland";
     };
     raise.url = "github:knarkzel/raise";
+    opencode.url = "github:AodhanHayter/opencode-flake";
   };
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
