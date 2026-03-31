@@ -1,18 +1,36 @@
 { config, lib, pkgs, ... }:
 
+let
+  rEnv = pkgs.rWrapper.override {
+    packages = with pkgs.rPackages; [
+      ggcorrplot
+      tidyverse
+      ggplot2
+      openintro
+      infer
+      GGally
+      NHANES
+    ];
+  };
+in
 {
   home.packages = with pkgs; [
     gephi
-    # R and dependencies
-    R
+    gpick
+
+    # Include the R environment
+    rEnv
+
+    # Other system packages
     zlib
     libxmlb
     libxml2
-    gpick
-    # (rWrapper.withPackages (p: with p; [
-    #   tidyverse
-    #   ggplot2
-    #   # Add other R packages here
-    # ]))
   ];
+
+  # Ensure R can find its user-installed packages
+  # This might be implicitly handled by rEnv, but explicit is safer
+  # If you encounter issues, you might need to adjust R_LIBS_USER
+  # home.sessionVariables = {
+  #   R_LIBS_USER = "${pkgs.rWrapper}/lib/R/library";
+  # };
 }

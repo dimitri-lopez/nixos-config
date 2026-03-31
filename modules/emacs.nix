@@ -11,6 +11,11 @@ let
     python3 = pkgs.python312;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
+  claude-code-acp = import ./npm-packages/claude-code-acp.nix {
+    lib = lib;
+    buildNpmPackage = pkgs.buildNpmPackage;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
 in
 {
 
@@ -21,8 +26,20 @@ in
 
   # services.gvfs.enable = true; # needed for emacs tramp
   home.packages = with pkgs; [
-    unzip
-    emacs     
+
+    nix-init
+
+    signal-cli
+    signal-desktop
+    imagemagick
+    
+    # agent shell
+    gemini-cli
+    claude-code
+    claude-code-acp
+    opencode
+    
+    # emacs     
     ripgrep
     # optional dependencies
     coreutils # basic GNU utilities
@@ -43,9 +60,11 @@ in
     clang-tools # for clangd for emacs development
     pandoc
     poppler-utils # for pdftotext-mode
+    tree # for gptel agent
 
     mu
-    # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.etags ]))
     isync
     offlineimap
     tesseract # image to text
@@ -54,15 +73,26 @@ in
     doi2bib # for grabbing doi information
 
     pdf2svg # for inline pdfs
+    node-glob # for searching for files
 
-    bonsai
+    cbonsai
 
-    nerd-fonts.fira-code
+    cardo
+    eb-garamond
+    libertinus
+    libre-baskerville
     nerd-fonts.droid-sans-mono
+    nerd-fonts.fira-code
     nerd-fonts.jetbrains-mono
+    source-serif
+    texlivePackages.forum
+    
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot
+    (pkgs.writeScriptBin "emenu"''
+emacsclient -c -F '((name . "emenu-drun") (minibuffer . only) (width . 100) (height . 10) (undecorated . t))' -e '(emenu-drun)'
+'')
     (pkgs.writeScriptBin "doom-git-clone-doom-repo-and-install" ''
 #!/usr/bin/env bash
 rm -rf ~/.config/emacs

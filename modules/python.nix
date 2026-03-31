@@ -1,5 +1,28 @@
 { config, lib, pkgs, ... }:
 
+let
+  epidatpy = import ./python-packages/epidatpy.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  epiweeks = import ./python-packages/epiweeks.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  tailestim = import ./python-packages/tailestim.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  powerlaw = import ./python-packages/powerlaw.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  
+in
 # let
 #   pytrends = import ./python-packages/pytrends.nix {
 #     lib = lib;
@@ -12,6 +35,7 @@
     uv
     (python312.withPackages (python3Packages: with python3Packages; [
       jupyter
+      colour # personal
       conda
       numpy
       sympy
@@ -28,6 +52,15 @@
       fastparquet
       pyarrow
       qrcode
+      opencv4
+      # brazil
+      geojson
+
+      # influenza forecasting
+      python-dotenv
+      epidatpy
+      epiweeks
+      us
 
       # nXGF dependencies
       jax
@@ -40,6 +73,13 @@
       google-genai
       scikit-learn
       diskcache
+      graph-tool
+      geopandas
+      # stats project
+      statsmodels
+      # network science 2 class
+      powerlaw
+      tailestim
     ]))
   ];
 }

@@ -1,8 +1,14 @@
 { config, pkgs, ... }:
 {
   fonts.packages = with pkgs; [
-    nerd-fonts.fira-code
+    cardo
+    eb-garamond
+    libertinus
+    libre-baskerville
     nerd-fonts.droid-sans-mono
+    nerd-fonts.fira-code
     nerd-fonts.jetbrains-mono
+    source-serif
+    texlivePackages.forum
   ];
 }
