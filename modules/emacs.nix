@@ -46,7 +46,7 @@ in
     claude-agent-acp
     free-coding-models
     # inputs.opencode.packages.${pkgs.system}.default
-    (pkgs.writeScriptBin "opencode" "npx opencode-ai \"$@\"")
+    (pkgs.writeShellScriptBin "opencode" "exec npx opencode-ai \"$@\"")
     
     # inputs.opencode.packages.${pkgs.system}.default
     gnuplot

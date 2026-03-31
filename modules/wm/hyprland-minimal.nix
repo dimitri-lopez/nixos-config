@@ -355,7 +355,7 @@ windowrule = nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned
     #   # systemd.enable = true;
   };
 
-  home.packages = with pkgs; [
+home.packages = with pkgs; [
     alacritty # fancy terminal
     kitty # default terminal
     waybar # bar, switch to eww later
