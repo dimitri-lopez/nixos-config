@@ -48,6 +48,9 @@ in
     # inputs.opencode.packages.${pkgs.system}.default
     (pkgs.writeScriptBin "opencode" "npx opencode-ai \"$@\"")
     
+    # inputs.opencode.packages.${pkgs.system}.default
+    gnuplot
+    
     (pkgs.writeScriptBin "update-npm-tools" ''
 #!/usr/bin/env bash
 # usage: update-npm-tools free-coding-models 0.3.26
