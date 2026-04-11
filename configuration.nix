@@ -93,9 +93,6 @@
     layout = "us";
     variant = "";
   };
-  environment.sessionVariables = {
-    PATH = "/run/current-system/sw/bin:" + "/home/dimitril/.nix-profile/bin:" + "$HOME/.local/bin";
-  };
   services.xserver.enable = true;
   services.xserver.displayManager.lightdm = {
     enable = true;
@@ -115,9 +112,9 @@
       nativeBuildInputs = [ pkgs.pkg-config ];
       buildInputs = with pkgs.xorg; [ libX11 libXft libXinerama ];
       installPhase = ''
-        make DESTDIR=$out install
+        make PREFIX=$out install
         mkdir -p $out/share/xsessions
-        cat > $out/share/xsessions/vxwm.desktop << 'EOF'
+        cat > $out/share/xsessions/vxwm.desktop << EOF
   [Desktop Entry]
   Type=Application
   Name=vxwm

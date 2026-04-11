@@ -64,7 +64,7 @@ feh --bg-fill ~/Dropbox/images/Truchas_LopezRanch_MW.jpg &
     URxvt*cursorColor: #a7c080
   '';
 
-  home.file."~/.config/sxhkd/sxhkdrc".text = ''
+  home.file.".config/sxhkd/sxhkdrc".text = ''
 # Super key
 super = Mod4
 
@@ -99,7 +99,7 @@ super + shift + e
   loginctl terminate-user $USER
   '';
 
-  home.file."~/.config/tint2/tint2rc".text = ''
+  home.file.".config/tint2/tint2rc".text = ''
     # Tint2 configuration
     
     # Panel

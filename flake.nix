@@ -42,10 +42,10 @@
           rev = "24bbb12074704680edf894ea82a066b3b2662c42";
           sha256 = "01ggidzvb44m8s179d4had7lrvzrmxapp84dhirbygpxfzn6gsiz";
         };
-        nativeBuildInputs = with pkgs; [ pkg-config libX11 libXft libXinerama ];
-        buildInputs = with pkgs; [ libX11 libXft libXinerama ];
+        nativeBuildInputs = with pkgs; [ pkg-config xorg.libX11 xorg.libXft xorg.libXinerama ];
+        buildInputs = with pkgs; [ xorg.libX11 xorg.libXft xorg.libXinerama ];
         installPhase = ''
-          make DESTDIR=$out install
+          make PREFIX=$out install
         '';
       };
       
@@ -64,9 +64,9 @@
         };
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
-      packages = {
-        x86_64-linux.vxwm = vxwm;
-        x86_64-linux.vxwm-unstable = vxwm;
+      packages.x86_64-linux = {
+        vxwm = vxwm;
+        vxwm-unstable = vxwm;
         default = vxwm;
       };
       legacyPackages.x86_64-linux = {

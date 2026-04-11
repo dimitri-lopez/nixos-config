@@ -17,7 +17,9 @@
   };
   
   # Unified autostart script - detects session type
-  home.file.".local/bin/common-autostart".text = ''
+  home.file.".local/bin/common-autostart" = {
+    executable = true;
+    text = ''
 #!/bin/sh
 # Common autostart for all desktop environments
 
@@ -42,7 +44,7 @@ case "$XDG_SESSION_TYPE" in
     ;;
 esac
   '';
-  
+  };
   home.file.".xprofile".text = ''
 # Source common autostart for X11
 [ -f ~/.local/bin/common-autostart ] && ~/.local/bin/common-autostart &

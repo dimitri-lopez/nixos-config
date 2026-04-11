@@ -97,7 +97,7 @@ feh --bg-fill ~/Dropbox/images/Truchas_LopezRanch_MW.jpg &
     URxvt*cursorColor: #a7c080
   '';
 
-  home.file."~/.config/sxhkd/sxhkdrc".text = ''
+  home.file.".config/sxhkd/sxhkdrc".text = ''
 # Super key
 super = Mod4
 
@@ -132,7 +132,7 @@ super + shift + e
   loginctl terminate-user $USER
   '';
 
-  home.file."~/.config/tint2/tint2rc".text = ''
+  home.file.".config/tint2/tint2rc".text = ''
     # Tint2 configuration
     
     # Panel
@@ -311,10 +311,10 @@ imports = [
           rev = "24bbb12074704680edf894ea82a066b3b2662c42";
           sha256 = "01ggidzvb44m8s179d4had7lrvzrmxapp84dhirbygpxfzn6gsiz";
         };
-        nativeBuildInputs = with pkgs; [ pkg-config libX11 libXft libXinerama ];
-        buildInputs = with pkgs; [ libX11 libXft libXinerama ];
+        nativeBuildInputs = with pkgs; [ pkg-config xorg.libX11 xorg.libXft xorg.libXinerama ];
+        buildInputs = with pkgs; [ xorg.libX11 xorg.libXft xorg.libXinerama ];
         installPhase = ''
-          make DESTDIR=$out install
+          make PREFIX=$out install
         '';
       };
       
@@ -333,9 +333,9 @@ imports = [
         };
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
-      packages = {
-        x86_64-linux.vxwm = vxwm;
-        x86_64-linux.vxwm-unstable = vxwm;
+      packages.x86_64-linux = {
+        vxwm = vxwm;
+        vxwm-unstable = vxwm;
         default = vxwm;
       };
       legacyPackages.x86_64-linux = {
@@ -511,9 +511,6 @@ services.xserver.xkb = {
 #+end_src
 ** vxwm window manager
 #+begin_src nix
-environment.sessionVariables = {
-  PATH = "/run/current-system/sw/bin:" + "/home/dimitril/.nix-profile/bin:" + "$HOME/.local/bin";
-};
 services.xserver.enable = true;
 services.xserver.displayManager.lightdm = {
   enable = true;
@@ -533,9 +530,9 @@ services.displayManager.sessionPackages = [
     nativeBuildInputs = [ pkgs.pkg-config ];
     buildInputs = with pkgs.xorg; [ libX11 libXft libXinerama ];
     installPhase = ''
-      make DESTDIR=$out install
+      make PREFIX=$out install
       mkdir -p $out/share/xsessions
-      cat > $out/share/xsessions/vxwm.desktop << 'EOF'
+      cat > $out/share/xsessions/vxwm.desktop << EOF
 [Desktop Entry]
 Type=Application
 Name=vxwm
@@ -754,7 +751,9 @@ Common packages, services, and autostart for all desktop environments.
   };
   
   # Unified autostart script - detects session type
-  home.file.".local/bin/common-autostart".text = ''
+  home.file.".local/bin/common-autostart" = {
+    executable = true;
+    text = ''
 #!/bin/sh
 # Common autostart for all desktop environments
 
@@ -779,7 +778,7 @@ case "$XDG_SESSION_TYPE" in
     ;;
 esac
   '';
-  
+  };
   home.file.".xprofile".text = ''
 # Source common autostart for X11
 [ -f ~/.local/bin/common-autostart ] && ~/.local/bin/common-autostart &
