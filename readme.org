@@ -14,11 +14,9 @@ See my [[install.org]] for installation instructions.
 -----
 - [[*Try out python package][Install python package]]
 
-* TODO List
-** TODO mu4e
-** TODO Fix brave nixos extraOpt
+* Inbox
 
-* itch.nix
+** itch.nix
 - [ ] [[*home.nix modules][home.nix modules]]
 - [ ] [[elisp:(org-babel-tangle)]]
 - [ ] [[git add -A ./modules/itch.nix]]
@@ -32,7 +30,7 @@ See my [[install.org]] for installation instructions.
 }
 #+end_src
 
-* vxwm home config
+** vxwm home config
 #+begin_src nix :tangle ./modules/vxwm-home.nix
 { config, pkgs, ... }:
 
@@ -153,6 +151,7 @@ dl-caps-lock-to-control &
     arandr
   ];
 }
+#+end_src
 
 * Resources
 
