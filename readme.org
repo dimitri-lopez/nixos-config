@@ -33,7 +33,7 @@ See my [[install.org]] for installation instructions.
 #+end_src
 
 * vxwm home config
-#+begin_src nix :tangle ./modules/desktop.nix
+#+begin_src nix :tangle ./modules/vxwm-home.nix
 { config, pkgs, ... }:
 
 {
@@ -720,21 +720,61 @@ See [[*home.nix modules][home.nix modules]].
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 #+end_src
-* Modules
-** configuration.nix modules
-[[*configuration.nix imports][configuration.nix imports]]
+* DESKTOP SELECTION
+:PROPERTIES:
+:custom_id: desktop-selection
+:END:
+
+Choose your desktop by commenting/uncommenting in BOTH sections below.
+
+*** System imports (configuration.nix)
 #+begin_src nix :noweb-ref configuration.nix-imports
 imports =
   [ # Include the results of the hardware scan.
     ./hardware-configuration.nix
-    ./modules/xfce/xfce.nix
+    
+    # === XFCE (uncomment to enable) ===
+    # ./modules/xfce/xfce.nix
+    
+    # === vxwm (no system module needed) ===
+    
+    # === Hyprland (uncomment to enable) ===
     # ./system/hyprland.nix
+    
     ./modules/steam.nix
     ./system/bluetooth.nix
     ./system/pipewire.nix
     ./system/syncthing.nix
   ];
 #+end_src
+
+*** Home imports (home.nix)
+#+begin_src nix :noweb-ref home.nix.imports
+imports = [
+  # === XFCE (uncomment to enable) ===
+  # ./modules/xfce/xfce-home.nix
+  
+  # === vxwm (current) ===
+  ./modules/vxwm-home.nix
+  
+  # === Hyprland (uncomment to enable) ===
+  # ./modules/wm/hyprland-minimal.nix
+  # ./modules/hyprland/hyprland-home.nix
+  
+  ./modules/git.nix
+  ./modules/phd.nix
+  ./modules/itch.nix
+  ./modules/python.nix
+  ./modules/sh.nix
+  ./modules/scripting.nix
+  ./modules/emacs.nix
+  ./modules/brave.nix
+  ./modules/minecraft.nix
+  ./modules/watchy.nix
+  ./modules/bluetooth.nix
+];
+#+end_src
+** Modules
 ** home.nix modules
 #+begin_src nix :noweb-ref home.nix.imports
   imports = [
