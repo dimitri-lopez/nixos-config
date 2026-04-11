@@ -44,6 +44,7 @@ sudo nixos-rebuild switch --flake . --upgrade
 - Edit `readme.org`, not any of the .nix files directly. Upon tangling they will be repopulated.
 - User needs new shell session for PATH/env changes to take effect
 - `configuration.nix` requires sudo for ownership: `sudo chown root configuration.nix`
+- When creating new module files, stage them with `git add` before running home-manager switch
 
 ## Module Locations
 - System modules: `~/.dotfiles/modules/*.nix`
