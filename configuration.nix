@@ -103,13 +103,6 @@
       logind-check-graphical=true
     '';
   };
-  services.xserver.displayManager.session = [
-    {
-      manage = "window";
-      name = "vxwm";
-      start = ''vxwm'';
-    }
-  ];
   services.displayManager.sessionPackages = [ 
     (pkgs.stdenv.mkDerivation {
       pname = "vxwm";
@@ -173,7 +166,6 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     syncthing
-  
   ];
   system.autoUpgrade.enable = true;
   system.autoUpgrade.dates = "weekly";

@@ -521,13 +521,6 @@ services.xserver.displayManager.lightdm = {
     logind-check-graphical=true
   '';
 };
-services.xserver.displayManager.session = [
-  {
-    manage = "window";
-    name = "vxwm";
-    start = ''vxwm'';
-  }
-];
 services.displayManager.sessionPackages = [ 
   (pkgs.stdenv.mkDerivation {
     pname = "vxwm";
@@ -601,7 +594,6 @@ nixpkgs.config.permittedInsecurePackages = [
 # $ nix search wget
 environment.systemPackages = with pkgs; [
   syncthing
-
 ];
 #+end_src
 ** Automatic updating
