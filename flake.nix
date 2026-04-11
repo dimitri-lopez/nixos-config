@@ -51,7 +51,11 @@
     in {
       packages = {
         x86_64-linux.vxwm = vxwm;
+        x86_64-linux.vxwm-unstable = vxwm;
         default = vxwm;
+      };
+      legacyPackages.x86_64-linux = {
+        inherit vxwm;
       };
       nixosConfigurations = {
         nixos = lib.nixosSystem {
