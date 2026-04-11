@@ -37,6 +37,9 @@ picom -b &
 # Tint2 bar
 tint2 &
 
+# sxhkd for keybindings
+sxhkd &
+
 # Set wallpaper
 feh --bg-fill ~/Dropbox/images/Truchas_LopezRanch_MW.jpg &
 '';
@@ -59,6 +62,41 @@ feh --bg-fill ~/Dropbox/images/Truchas_LopezRanch_MW.jpg &
     ! Colors (Everforest-ish)
     URxvt*foreground: #d3c6aa
     URxvt*cursorColor: #a7c080
+  '';
+
+  home.file."~/.config/sxhkd/sxhkdrc".text = ''
+# Super key
+super = Mod4
+
+# Launch / raise applications (jumpapp-style)
+super + e
+  dl-jumpapp-emacs
+
+super + t
+  jumpapp urxvt
+
+super + b
+  jumpapp firefox
+
+super + c
+  jumpapp brave
+
+# Window management
+super + q
+  xdotool windowclose
+
+super + f
+  xdotool windowsize 100% 100%
+
+super + n
+  xdotool windowminimize
+
+super + m
+  xdotool windowmaximize
+
+# Logout
+super + shift + e
+  loginctl terminate-user $USER
   '';
 
   home.file."~/.config/tint2/tint2rc".text = ''
@@ -84,17 +122,21 @@ feh --bg-fill ~/Dropbox/images/Truchas_LopezRanch_MW.jpg &
     tooltip_time_format = %Y-%m-%d
     
     # Launcher
-    launcher_item_app = tint2conf
+    launcher_item_app = urxvt
+    launcher_item_app = emacs
+    launcher_item_app = emacsclient -c
   '';
 
   home.packages = with pkgs; [
     picom-pijulius
     lemonbar
     tint2
+    sxhkd
     xdotool
     xorg.xrandr
     feh
     arandr
+    jumpapp
     # xorg.xauth  # TODO: Enable for X11 remote forwarding (ssh -X)
   ];
 }

@@ -37,6 +37,7 @@
   # services.pulseaudio.enable = false;
   # TODO moved to ./system/pipewire.nix
   # security.rtkit.enable = true;
+    security.polkit.enable = true;
   # services.pipewire = {
   #   enable = true;
   #   alsa.enable = true;
@@ -92,8 +93,16 @@
     layout = "us";
     variant = "";
   };
+  environment.sessionVariables = {
+    PATH = "/run/current-system/sw/bin:" + "/home/dimitril/.nix-profile/bin:" + "$HOME/.local/bin";
+  };
   services.xserver.enable = true;
-  services.xserver.displayManager.lightdm.enable = true;
+  services.xserver.displayManager.lightdm = {
+    enable = true;
+    extraConfig = ''
+      logind-check-graphical=true
+    '';
+  };
   services.xserver.displayManager.session = [
     {
       manage = "window";
@@ -119,7 +128,8 @@
   [Desktop Entry]
   Type=Application
   Name=vxwm
-  Exec=vxwm
+  Exec=$out/bin/vxwm
+  TryExec=$out/bin/vxwm
   EOF
       '';
       passthru.providedSessions = [ "vxwm" ];
