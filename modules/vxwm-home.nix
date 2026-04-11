@@ -52,13 +52,6 @@ sleep 1 && restart-emacs-daemon &
 # Caps lock to control
 dl-caps-lock-to-control &
 '';
-    
-    # Start Emacs daemon
-    sleep 1 && restart-emacs-daemon &
-    
-    # Caps lock to control
-    dl-caps-lock-to-control &
-  '';
   
   home.file.".Xresources".text = ''
     ! Xresources configuration for vxwm
@@ -111,9 +104,9 @@ dl-caps-lock-to-control &
     lemonbar
     tint2
     xdotool
-    xauth
     xorg.xrandr
     feh
     arandr
+    # xorg.xauth  # TODO: Enable for X11 remote forwarding (ssh -X)
   ];
 }

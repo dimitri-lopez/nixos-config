@@ -27,7 +27,7 @@
         name = "Dimitri";
         email = "dimitrilopez01@gmail.com";
         dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
-        # wm = "hyprland"; # Selected window manager or desktop environment; must select one in both ./user/wm/ and ./system/wm/
+        wm = "vxwm"; # Options: "xfce", "vxwm", "hyprland" - desktop modules auto-loaded in flake.nix
         # editor = "emacsclient -c -a 'emacs'"
       };
       systemSettings = {
@@ -48,6 +48,21 @@
           make DESTDIR=$out install
         '';
       };
+      
+      selectedDesktop = {
+        xfce = {
+          system = [ ./modules/xfce/xfce.nix ];
+          home = [ ./modules/xfce/xfce-home.nix ];
+        };
+        vxwm = {
+          system = [];
+          home = [ ./modules/vxwm-home.nix ];
+        };
+        hyprland = {
+          system = [ ./system/hyprland.nix ];
+          home = [ ./modules/wm/hyprland-minimal.nix ./modules/hyprland/hyprland-home.nix ];
+        };
+      }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
       packages = {
         x86_64-linux.vxwm = vxwm;
@@ -60,13 +75,13 @@
       nixosConfigurations = {
         nixos = lib.nixosSystem {
           inherit system;
-          modules = [ ./configuration.nix ];
+          modules = [ ./configuration.nix ] ++ selectedDesktop.system;
         };
       };
       homeConfigurations = {
         "dimitril" = home-manager.lib.homeManagerConfiguration {
           inherit pkgs;
-          modules = [ ./home.nix ];
+          modules = [ ./home.nix ] ++ selectedDesktop.home;
           extraSpecialArgs = {
             inherit userSettings;
             inherit inputs;

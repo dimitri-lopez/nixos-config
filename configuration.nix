@@ -4,8 +4,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      ./modules/xfce/xfce.nix
-      # ./system/hyprland.nix
+      
       ./modules/steam.nix
       ./system/bluetooth.nix
       ./system/pipewire.nix
