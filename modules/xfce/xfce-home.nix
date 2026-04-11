@@ -1,17 +1,8 @@
 { config, pkgs, lib, ... }:
 
 {
-  home.packages = with pkgs; [
-    (pkgs.writeScriptBin "dl-xfce-autostart" ''
-#!/usr/bin/env bash
-dl-caps-lock-to-control &
-dl-restart-emacs-daemon &
-syncthing --no-browser &
-dropbox &
-redshift -l 42.361145:-71.057083 &
-    '')
-
-    ];
+  # Use common autostart - no need for custom script
+  # The common-autostart script handles caps-lock, emacs, dropbox, syncthing
 home.file."/home/dimitril/.themes/Everforest-Dark-Soft" = {
   source = ./themes/everforest-xfce-now-window-borders;
   recursive = true;

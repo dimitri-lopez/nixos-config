@@ -61,6 +61,9 @@ See my [[install.org]] for installation instructions.
 # X resources
 xrdb -merge ~/.Xresources &
 
+# Source common autostart (caps-lock, emacs, dropbox, syncthing)
+[ -f ~/.local/bin/common-autostart ] && ~/.local/bin/common-autostart &
+
 # Compton (picom) - compositor
 picom -b &
 
@@ -69,21 +72,6 @@ tint2 &
 
 # Set wallpaper
 feh --bg-fill ~/Dropbox/images/Truchas_LopezRanch_MW.jpg &
-
-# Start Dropbox
-dropbox start &
-
-# Start Syncthing
-syncthing --no-browser &
-
-# Redshift for eye strain
-redshift -l 42.361145:-71.057083 &
-
-# Start Emacs daemon
-sleep 1 && restart-emacs-daemon &
-
-# Caps lock to control
-dl-caps-lock-to-control &
 '';
   
   home.file.".Xresources".text = ''
@@ -242,6 +230,7 @@ imports =
 Always included regardless of wm setting:
 #+begin_src nix :noweb-ref home.nix.imports
 imports = [
+  ./modules/common.nix
   ./modules/git.nix
   ./modules/phd.nix
   ./modules/itch.nix
@@ -700,6 +689,61 @@ See [[*home.nix modules][home.nix modules]].
   programs.home-manager.enable = true;
 #+end_src
 * Modules
+** common.nix
+Common packages, services, and autostart for all desktop environments.
+#+begin_src nix :tangle ./modules/common.nix
+{ config, pkgs, ... }:
+
+{
+  # Packages that work across all desktop environments
+  home.packages = with pkgs; [
+    dropbox
+    redshift
+    syncthing
+    vim
+  ];
+  
+  # Home-manager services (auto-managed by home-manager)
+  services.redshift = {
+    enable = true;
+    latitude = "42.36";
+    longitude = "-71.06";
+  };
+  
+  # Unified autostart script - detects session type
+  home.file.".local/bin/common-autostart".text = ''
+#!/bin/sh
+# Common autostart for all desktop environments
+
+# Caps lock to control (works everywhere)
+dl-caps-lock-to-control &
+
+# Emacs daemon
+sleep 1 && restart-emacs-daemon &
+
+case "$XDG_SESSION_TYPE" in
+  x11)
+    # X11 desktops (vxwm, xfce)
+    dropbox start &
+    syncthing --no-browser &
+    redshift -l 42.361145:-71.057083 &
+    ;;
+  wayland)
+    # Wayland desktops - services handled by home-manager services
+    # but we still need dropbox/syncthing
+    dropbox start &
+    syncthing --no-browser &
+    ;;
+esac
+  '';
+  
+  home.file.".xprofile".text = ''
+# Source common autostart for X11
+[ -f ~/.local/bin/common-autostart ] && ~/.local/bin/common-autostart &
+  '';
+}
+#+end_src
+
 ** phd.nix
 
 #+begin_src bash
@@ -1948,17 +1992,8 @@ in
 { config, pkgs, lib, ... }:
 
 {
-  home.packages = with pkgs; [
-    (pkgs.writeScriptBin "dl-xfce-autostart" ''
-#!/usr/bin/env bash
-dl-caps-lock-to-control &
-dl-restart-emacs-daemon &
-syncthing --no-browser &
-dropbox &
-redshift -l 42.361145:-71.057083 &
-    '')
-
-    ];
+  # Use common autostart - no need for custom script
+  # The common-autostart script handles caps-lock, emacs, dropbox, syncthing
 <<xfce-home>>
 
 
@@ -2578,8 +2613,6 @@ We want this to be enabled within the homemanager imports:
     hyprpaper # wallpaper
     # redshift # blue light filter
     # geoclue2 # red shift dependency
-    vim  # basic text editor
-    dropbox # syncing files
     blueman # bluetooth
     xfce.xfce4-taskmanager
     xfce.thunar
@@ -2659,18 +2692,14 @@ $menu = wofi --show drun
 # Autostart necessary processes (like notifications daemons, status bars, etc.)
 # Or execute your favorite apps at launch like this:
 exec-once = systemctl --user restart gvfs-daemon # needed for tramp emacs
-exec-once = dropbox
+exec-once = ~/.local/bin/common-autostart
 # exec-once = blueman-applet # TODO Need to double check if this is needed
 
-exec-once = hyprsunset
+# Redshift handled by home-manager services.redshift in common.nix
+# hyprsunset commented out - using services.redshift instead
 exec-once = hyprpaper
 exec-once = hypridle
 # exec-once = waybar
-
-exec-once = sleep 1 && restart-emacs-daemon
-# exec-once = $terminal
-# exec-once = nm-applet &
-# exec-once = waybar & hyprpaper & firefox
 #+end_src
 **** Environment variables
 

@@ -28,6 +28,9 @@
 # X resources
 xrdb -merge ~/.Xresources &
 
+# Source common autostart (caps-lock, emacs, dropbox, syncthing)
+[ -f ~/.local/bin/common-autostart ] && ~/.local/bin/common-autostart &
+
 # Compton (picom) - compositor
 picom -b &
 
@@ -36,21 +39,6 @@ tint2 &
 
 # Set wallpaper
 feh --bg-fill ~/Dropbox/images/Truchas_LopezRanch_MW.jpg &
-
-# Start Dropbox
-dropbox start &
-
-# Start Syncthing
-syncthing --no-browser &
-
-# Redshift for eye strain
-redshift -l 42.361145:-71.057083 &
-
-# Start Emacs daemon
-sleep 1 && restart-emacs-daemon &
-
-# Caps lock to control
-dl-caps-lock-to-control &
 '';
   
   home.file.".Xresources".text = ''

@@ -27,7 +27,8 @@
         name = "Dimitri";
         email = "dimitrilopez01@gmail.com";
         dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
-        wm = "vxwm"; # Options: "xfce", "vxwm", "hyprland" - desktop modules auto-loaded in flake.nix
+        # Options: "xfce", "vxwm", "hyprland" - desktop modules auto-loaded in flake.nix
+        wm = "vxwm"; 
         # editor = "emacsclient -c -a 'emacs'"
       };
       systemSettings = {
