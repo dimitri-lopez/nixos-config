@@ -95,6 +95,13 @@
   };
   services.xserver.enable = true;
   services.xserver.displayManager.lightdm.enable = true;
+  services.xserver.displayManager.session = [
+    {
+      manage = "window";
+      name = "vxwm";
+      start = ''vxwm'';
+    }
+  ];
   services.displayManager.sessionPackages = [ 
     (pkgs.stdenv.mkDerivation {
       pname = "vxwm";
