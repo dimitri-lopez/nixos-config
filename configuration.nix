@@ -89,11 +89,36 @@
   # services.xserver.desktopManager.xfce.enable = true;
   
   # Configure keymap in X11
-  # services.xserver.xkb = {
-  #   layout = "us";
-  #   variant = "";
-  # };
-  
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "";
+  };
+  services.xserver.enable = true;
+  services.xserver.displayManager.lightdm.enable = true;
+  services.displayManager.sessionPackages = [ 
+    (pkgs.stdenv.mkDerivation {
+      pname = "vxwm";
+      version = "unstable";
+      src = pkgs.fetchgit {
+        url = "https://codeberg.org/wh1tepearl/vxwm.git";
+        rev = "24bbb12074704680edf894ea82a066b3b2662c42";
+        sha256 = "01ggidzvb44m8s179d4had7lrvzrmxapp84dhirbygpxfzn6gsiz";
+      };
+      nativeBuildInputs = [ pkgs.pkg-config ];
+      buildInputs = with pkgs.xorg; [ libX11 libXft libXinerama ];
+      installPhase = ''
+        make DESTDIR=$out install
+        mkdir -p $out/share/xsessions
+        cat > $out/share/xsessions/vxwm.desktop << 'EOF'
+  [Desktop Entry]
+  Type=Application
+  Name=vxwm
+  Exec=vxwm
+  EOF
+      '';
+      passthru.providedSessions = [ "vxwm" ];
+    })
+  ];
   # Enable CUPS to print documents.
   services.printing.enable = true;
   # Define a user account. Don't forget to set a password with ‘passwd’.

@@ -168,7 +168,25 @@ Within configuration.nix and home.nix I have a set of modules that I can add and
       pkgs = nixpkgs.legacyPackages.${system};
       <<userSettings>>
       <<systemSettings>>
+      vxwm = pkgs.stdenv.mkDerivation {
+        pname = "vxwm";
+        version = "unstable";
+        src = pkgs.fetchgit {
+          url = "https://codeberg.org/wh1tepearl/vxwm.git";
+          rev = "24bbb12074704680edf894ea82a066b3b2662c42";
+          sha256 = "01ggidzvb44m8s179d4had7lrvzrmxapp84dhirbygpxfzn6gsiz";
+        };
+        nativeBuildInputs = with pkgs; [ pkg-config libX11 libXft libXinerama ];
+        buildInputs = with pkgs; [ libX11 libXft libXinerama ];
+        installPhase = ''
+          make DESTDIR=$out install
+        '';
+      };
     in {
+      packages = {
+        x86_64-linux.vxwm = vxwm;
+        default = vxwm;
+      };
       nixosConfigurations = {
         nixos = lib.nixosSystem {
           inherit system;
@@ -350,11 +368,157 @@ i18n.extraLocaleSettings = {
 ** X11 Keymap
 #+begin_src nix
 # Configure keymap in X11
-# services.xserver.xkb = {
-#   layout = "us";
-#   variant = "";
-# };
+services.xserver.xkb = {
+  layout = "us";
+  variant = "";
+};
+#+end_src
+** vxwm window manager
+#+begin_src nix
+services.xserver.enable = true;
+services.xserver.displayManager.lightdm.enable = true;
+services.displayManager.sessionPackages = [ 
+  (pkgs.stdenv.mkDerivation {
+    pname = "vxwm";
+    version = "unstable";
+    src = pkgs.fetchgit {
+      url = "https://codeberg.org/wh1tepearl/vxwm.git";
+      rev = "24bbb12074704680edf894ea82a066b3b2662c42";
+      sha256 = "01ggidzvb44m8s179d4had7lrvzrmxapp84dhirbygpxfzn6gsiz";
+    };
+    nativeBuildInputs = [ pkgs.pkg-config ];
+    buildInputs = with pkgs.xorg; [ libX11 libXft libXinerama ];
+    installPhase = ''
+      make DESTDIR=$out install
+      mkdir -p $out/share/xsessions
+      cat > $out/share/xsessions/vxwm.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=vxwm
+Exec=vxwm
+EOF
+    '';
+    passthru.providedSessions = [ "vxwm" ];
+  })
+];
+#+end_src
+** vxwm home config
+#+begin_src nix :noweb-ref vxwm-home
+  services.picom = {
+    enable = true;
+    package = pkgs.picom-pijulius;
+    backend = "glx";
+    settings = {
+      blur-method = "dual_kawase";
+      blur-strength = 5;
+      blur-background = true;
+      animations = true;
+      animation-stiffness = 500;
+      animation-window-mass = 1;
+      animation-window-open = "effortless EaseInOut";
+      animation-window-close = "effortless EaseInOut";
+      fade = true;
+      fade-in-step = 0.03;
+      fade-out-step = 0.03;
+      no-fading-openclose = false;
+      shadow = true;
+      shadow-opacity = 0.5;
+    };
+  };
 
+  home.packages = with pkgs; [
+    picom-pijulius
+    lemonbar
+    tint2
+    xdotool
+    xauth
+    xorg.xrandr
+    feh
+    arandr
+  ];
+  
+  home.file.".xprofile".text = ''
+#!/bin/sh
+# X resources
+xrdb -merge ~/.Xresources &
+
+# Compton (picom) - compositor
+picom -b &
+
+# Tint2 bar
+tint2 &
+
+# Set wallpaper
+feh --bg-fill ~/Dropbox/images/Truchas_LopezRanch_MW.jpg &
+
+# Start Dropbox
+dropbox start &
+
+# Start Syncthing
+syncthing --no-browser &
+
+# Redshift for eye strain
+redshift -l 42.361145:-71.057083 &
+
+# Start Emacs daemon
+sleep 1 && restart-emacs-daemon &
+
+# Caps lock to control
+dl-caps-lock-to-control &
+'';
+    
+    # Start Emacs daemon
+    sleep 1 && restart-emacs-daemon &
+    
+    # Caps lock to control
+    dl-caps-lock-to-control &
+  '';
+  
+  home.file.".Xresources".text = ''
+    ! Xresources configuration for vxwm
+    
+    ! Cursor theme
+    Xcursor.size: 24
+    
+    ! Window appearance
+    URxvt*font: xft:Iosevka:size=10
+    URxvt*boldFont: xft:Iosevka:bold:size=10
+    URxvt*italicFont: xft:Iosevka:italic:size=10
+    
+    ! Transparency
+    URxvt*depth: 32
+    URxvt*background: [90]#000000
+    
+    ! Colors (Everforest-ish)
+    URxvt*foreground: #d3c6aa
+    URxvt*cursorColor: #a7c080
+  '';
+
+  home.file."~/.config/tint2/tint2rc".text = ''
+    # Tint2 configuration
+    
+    # Panel
+    panel = bottom
+    panel_items = LTSC
+    panel_size = 100% 30
+    panel_margin = 0 5
+    panel_padding = 5 0
+    panel_background_id = 1
+    
+    # Battery
+    battery = 1
+    battery_icon = 0
+    battery_tooltip = 1
+    
+    # Clock
+    time1 = %H:%M
+    time2 = %Y-%m-%d
+    time_format = %H:%M
+    tooltip_time_format = %Y-%m-%d
+    
+    # Launcher
+    launcher_item_app = tint2conf
+  '';
 #+end_src
 ** CUPS printing
 #+begin_src nix
@@ -463,6 +627,7 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
 {
 <<home.nix.imports>>
 <<home.nix>>
+<<vxwm-home>>
 }
 #+end_src
 ** home.nix Imports
@@ -549,7 +714,7 @@ See [[*home.nix modules][home.nix modules]].
   #  /etc/profiles/per-user/dimitril/etc/profile.d/hm-session-vars.sh
   #
   home.sessionVariables = {
-    # EDITOR = "emacs";
+    EDITOR = "emacsclient";
   };
 #+end_src
 
@@ -576,7 +741,7 @@ imports =
 ** home.nix modules
 #+begin_src nix :noweb-ref home.nix.imports
   imports = [
-    ./modules/xfce/xfce-home.nix
+    # ./modules/xfce/xfce-home.nix
     ./modules/git.nix
     ./modules/phd.nix
     ./modules/itch.nix

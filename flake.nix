@@ -34,7 +34,25 @@
         system = "x86_64-linux"; # system arch
         hostname = "dimitril-hostname";   # hostname
       };
+      vxwm = pkgs.stdenv.mkDerivation {
+        pname = "vxwm";
+        version = "unstable";
+        src = pkgs.fetchgit {
+          url = "https://codeberg.org/wh1tepearl/vxwm.git";
+          rev = "24bbb12074704680edf894ea82a066b3b2662c42";
+          sha256 = "01ggidzvb44m8s179d4had7lrvzrmxapp84dhirbygpxfzn6gsiz";
+        };
+        nativeBuildInputs = with pkgs; [ pkg-config libX11 libXft libXinerama ];
+        buildInputs = with pkgs; [ libX11 libXft libXinerama ];
+        installPhase = ''
+          make DESTDIR=$out install
+        '';
+      };
     in {
+      packages = {
+        x86_64-linux.vxwm = vxwm;
+        default = vxwm;
+      };
       nixosConfigurations = {
         nixos = lib.nixosSystem {
           inherit system;
