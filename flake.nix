@@ -15,6 +15,10 @@
     };
     raise.url = "github:knarkzel/raise";
     opencode.url = "github:AodhanHayter/opencode-flake";
+    srwc = {
+      url = "github:infraflakes/srwc";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
@@ -26,8 +30,8 @@
         name = "Dimitri";
         email = "dimitrilopez01@gmail.com";
         dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
-        # Options: "xfce", "vxwm", "hyprland" - desktop modules auto-loaded in flake.nix
-        wm = "vxwm"; 
+        # Options: "xfce", "vxwm", "hyprland", "srwc" - desktop modules auto-loaded in flake.nix
+        wm = "srwc"; 
         # editor = "emacsclient -c -a 'emacs'"
       };
       systemSettings = {
@@ -61,6 +65,10 @@
         hyprland = {
           system = [ ./system/hyprland.nix ];
           home = [ ./modules/wm/hyprland-minimal.nix ./modules/hyprland/hyprland-home.nix ];
+        };
+        srwc = {
+          system = [ inputs.srwc.nixosModules.default ];
+          home = [ ./modules/srwc-home.nix ];
         };
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {

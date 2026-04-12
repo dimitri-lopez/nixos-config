@@ -33,6 +33,27 @@
         "type": "github"
       }
     },
+    "dagger": {
+      "inputs": {
+        "nixpkgs": [
+          "srwc",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1775772788,
+        "narHash": "sha256-iw1Hui/ZyIFm0e8+uffH/WAIbecuajV5+7yOx+XnxpM=",
+        "owner": "dagger",
+        "repo": "nix",
+        "rev": "4abe2b7e61d6bb1850bf5823022e9a55e08ed985",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dagger",
+        "repo": "nix",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -46,6 +67,24 @@
       "original": {
         "owner": "NixOS",
         "repo": "flake-compat",
+        "type": "github"
+      }
+    },
+    "flake-parts": {
+      "inputs": {
+        "nixpkgs-lib": "nixpkgs-lib"
+      },
+      "locked": {
+        "lastModified": 1775087534,
+        "narHash": "sha256-91qqW8lhL7TLwgQWijoGBbiD4t7/q75KTi8NxjVmSmA=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "3107b77cd68437b9a76194f0f7f9c55f2329ca5b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
         "type": "github"
       }
     },
@@ -497,6 +536,21 @@
         "type": "indirect"
       }
     },
+    "nixpkgs-lib": {
+      "locked": {
+        "lastModified": 1774748309,
+        "narHash": "sha256-+U7gF3qxzwD5TZuANzZPeJTZRHS29OFQgkQ2kiTJBIQ=",
+        "owner": "nix-community",
+        "repo": "nixpkgs.lib",
+        "rev": "333c4e0545a6da976206c74db8773a1645b5870a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nixpkgs.lib",
+        "type": "github"
+      }
+    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1756288264,
@@ -597,7 +651,30 @@
         "hyprland-plugins": "hyprland-plugins",
         "nixpkgs": "nixpkgs",
         "opencode": "opencode",
-        "raise": "raise"
+        "raise": "raise",
+        "srwc": "srwc"
+      }
+    },
+    "srwc": {
+      "inputs": {
+        "dagger": "dagger",
+        "flake-parts": "flake-parts",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1775997821,
+        "narHash": "sha256-QZc6F4+7EZHfhe23AU7+5Jvzrhk0igWLLIxQEagggRg=",
+        "owner": "infraflakes",
+        "repo": "srwc",
+        "rev": "a74eb704abea0863152b8749db069dd022ebb915",
+        "type": "github"
+      },
+      "original": {
+        "owner": "infraflakes",
+        "repo": "srwc",
+        "type": "github"
       }
     },
     "systems": {
