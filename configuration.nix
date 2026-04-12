@@ -111,6 +111,22 @@
       };
       nativeBuildInputs = [ pkgs.pkg-config ];
       buildInputs = with pkgs.xorg; [ libX11 libXft libXinerama ];
+      prePatch = ''
+        # Provide a hollowed-out config.def.h that lets sxhkd handle all keys
+        # Find line numbers for keys array start and end
+        START=$(grep -n "static const Key keys" config.def.h | cut -d: -f1)
+        END=$(sed -n "$START,\$p" config.def.h | grep -n "};" | head -n 1 | cut -d: -f1)
+        END=$((START + END - 1))
+        
+        # Replace the keys array with an empty one
+        head -n $((START - 1)) config.def.h > config.def.h.new
+        echo "static const Key keys[] = { { 0, 0, NULL, { .i = 0 } } };" >> config.def.h.new
+        tail -n +$((END + 1)) config.def.h >> config.def.h.new
+        mv config.def.h.new config.def.h
+        
+        # Suppress unused function warnings (since we removed their keybindings)
+        sed -i 's/CFLAGS   = \(.*\)/CFLAGS = \1 -Wno-unused-function/' config.mk
+      '';
       installPhase = ''
         make PREFIX=$out install
         mkdir -p $out/share/xsessions

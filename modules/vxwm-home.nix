@@ -28,6 +28,9 @@
 # X resources
 xrdb -merge ~/.Xresources &
 
+# Set key repeat rate (Delay 185ms, Rate 75/s)
+xset r rate 185 75 &
+
 # Source common autostart (caps-lock, emacs, dropbox, syncthing)
 [ -f ~/.local/bin/common-autostart ] && ~/.local/bin/common-autostart &
 
@@ -69,6 +72,9 @@ feh --bg-fill ~/Dropbox/images/Truchas_LopezRanch_MW.jpg &
 super = Mod4
 
 # Launch / raise applications (jumpapp-style)
+super + space
+  emenu
+
 super + e
   dl-jumpapp-emacs
 
@@ -85,18 +91,24 @@ super + c
 super + q
   xdotool windowclose
 
+alt + w
+  wmctrl -r :ACTIVE: -b toggle,maximized_vert,maximized_horz
+
 super + f
-  xdotool windowsize 100% 100%
+  wmctrl -r :ACTIVE: -b toggle,maximized_vert,maximized_horz
 
 super + n
   xdotool windowminimize
 
 super + m
-  xdotool windowmaximize
+  wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz
 
 # Logout
 super + shift + e
   loginctl terminate-user $USER
+
+super + shift + h
+  systemctl hibernate
   '';
 
   home.file.".config/tint2/tint2rc".text = ''
