@@ -1,0 +1,540 @@
+#+TITLE: Infinite Canvas WMs Collection
+#+DESCRIPTION: Rices and dotfiles for vxwm, hevel, driftwm, niri, scroll - the infinite canvas/scrollable tiling window managers
+#+AUTHOR: Collected from r/unixporn and GitHub
+
+* Introduction
+
+This document catalogs rices and dotfiles for window managers that feature "infinite canvas" or "scrollable tiling" paradigms. These WMs abandon traditional workspaces in favor of infinite scrolling surfaces where windows are arranged on an endless 2D plane.
+
+** WMs Covered:
+- vxwm (X11, dwm fork)
+- hevel (Wayland)
+- driftwm (Wayland, Rust)
+- celestial (Wayland - vxwm port)
+- srwc (Wayland - trackpad-first infinite canvas)
+- niri (Wayland - scrollable tiling)
+- scroll (Sway fork - PaperWM-like)
+- river (Wayland - dynamic tiling in Zig)
+
+* vxwm (X11 - dwm Fork)
+
+** Whispering Razor Toaster
+- Reddit :: https://redd.it/1s04n3y
+- Repo :: https://codeberg.org/wh1tepearl/vxwm
+- Author :: wh1tepearl
+- Stack :: Gentoo | vxwm | st | compositor: retardium | terminal: lavat
+- Screenshot :: 
+- Consensus :: Extremely high rice, one of the most heavily riced setups on r/unixporn. The "infinite canvas" concept combined with the unique terminal aesthetics made this go viral. Many users praised the cohesive dark theme and the unique compositor choice.
+
+** vxwm Details
+- Based on dwm with infinite canvas patch
+- Features: pan, zoom, floating windows on infinite 2D plane
+- Configuration: edited via config.h (suckless style)
+- No user dotfiles repos found (WM too niche)
+
+*** vxwm Features
+- Infinite 2D canvas - windows float on endless plane
+- Pan - move viewport with mouse/keyboard
+- Zoom - zoom in/out of canvas
+- Floating mode - all windows float, no tiling
+- dwm patches included - sided resize, toggle floating, warp cursor
+- Suckless philosophy - config via source edit + recompile
+- BSD/Linux support
+- X11 only
+
+* hevel (Wayland)
+
+** Infinitely Scrolling 360°
+- Reddit :: https://redd.it/1qa1y6z
+- Repo :: https://git.sr.ht/~dlm/hevel
+- Author :: realguy2300000
+- Stack :: hst (terminal) | mojito (bar) | swiv (image viewer) | swclock (clock)
+- Screenshot :: 
+- Consensus :: First true implementation of 360° scrolling WM. Community was impressed by the mouse-only control scheme (no keyboard shortcuts). Called "mind map wm" - users noted it could be very productive for certain workflows.
+
+** Scrollable Floating Zooming
+- Reddit :: https://redd.it/1rcwvwh
+- Repo :: https://git.sr.ht/~dlm/hevel
+- Author :: realguy2300000
+- Stack :: hevel (compositor) | hst (terminal) | mojito (bar)
+- Screenshot :: 
+- Consensus :: Added zooming feature which was highly requested. Called "first continuous 3-dimensional manifold wayland compositor." Users interested in the tech but noted the steep learning curve.
+
+** hevel Details
+- Uses neuswc compositor library
+- Mouse-only controls via mouse chords
+- No tiling - floating windows on infinite plane
+- Zoom feature added in later versions
+
+*** hevel Features
+- 360° infinite scrolling - scroll in any direction
+- Mouse-only controls - no keyboard shortcuts needed
+- Mouse chords - button combinations for commands
+- Floating windows - no automatic tiling
+- Zoom capability - zoom in/out while scrolling
+- neuswc library - wallpapers, screenshots, double borders
+- Wayland compositor based on swc
+- Zig-based configuration
+
+* driftwm (Wayland - Rust)
+
+** Infinite Canvas Wayland Compositor
+- Reddit :: https://redd.it/1rw4e1z
+- Repo :: https://github.com/malbiruk/driftwm
+- Extras/Dotfiles :: https://github.com/malbiruk/driftwm/tree/main/extras
+- Author :: malbiruk
+- Stack :: driftwm (Wayland) | fuzzel (launcher) | waybar
+- Screenshot :: 
+- Consensus :: "Trackpad-first" approach was praised. Called "vibecoded" (built with AI assistance) which sparked some discussion. Visual polish (widgets, blur, shadows) stood out. Community appreciated the macOS-like expose feature. One user noted "we went full circle floating -> tiling -> scrolling -> floating (infinite)."
+
+** driftwm Details
+- Built on smithay
+- Inspired by vxwm, hevel, and niri
+- Features: pan, zoom, trackpad gestures, infinite background (shaders or tiled images)
+- Window rules: opacity, blur, position per app_id
+- Only has dev's extras folder as "dotfiles" - no user configs yet
+
+*** driftwm Features
+- Trackpad-first design - optimized for laptop trackpads
+- Infinite 2D canvas - windows on endless plane
+- Pan - 3-finger swipe or scroll to move viewport
+- Zoom - pinch or mod+scroll to zoom
+- Trackpad gestures - built-in gesture support
+- Infinite background - GLSL shaders or tiled images
+- Window rules - per-app opacity, blur, position
+- macOS-like expose - overview mode to see all windows
+- Window snapping - edge-based window snapping
+- Edge panning - swipe at screen edges to pan
+- Blur effects - window decorations with shadows
+- Rust-based - built on smithay crates
+- Wayland compositor
+
+* celestial (Wayland - vxwm Port)
+
+** Wayland Port of vxwm
+- Reddit :: https://redd.it/1rr8qlp
+- Repo :: https://github.com/celestial-wl/celestial
+- Author :: wh1tepearl
+- Stack :: celestial (dwl-based Wayland compositor)
+- Screenshot :: 
+- Consensus :: Port of vxwm to Wayland using dwl as base. Not suckless but still small codebase compared to sway/hyprland. Infinite canvas feature from vxwm working, zoom coming soon. Community excited about the wayland port.
+
+*** celestial Features
+- Wayland port of vxwm - infinite canvas on Wayland
+- dwl-based - uses dwl as compositor base
+- Small codebase - compared to sway/hyprland
+- Infinite canvas - pan and zoom on 2D plane
+- Zoom coming soon - feature in development
+- Not suckless - but similar minimal philosophy
+
+* srwc (Wayland - Trackpad-First Infinite Canvas)
+
+** Overview
+- Repo :: https://github.com/infraflakes/srwc
+- Stars :: 3
+- Lineage :: Fork of driftwm with optimizations, protocols, and utilities added
+- Concept :: Trackpad-first infinite canvas Wayland compositor
+
+*** srwc Features
+- Trackpad-first design - optimized for laptop trackpads
+- Infinite 2D canvas - windows float on endless plane
+- Pan - 3-finger swipe, trackpad scroll, mod+drag
+- Zoom - 2-finger pinch, 3-finger pinch, mod+scroll, mod+=/mod+-
+- Scroll momentum - flick carries viewport with friction
+- Jump to nearest window - 4-finger swipe or mod+arrow
+- MRU cycling - Alt-Tab with hold-to-commit
+- Zoom-to-fit - 4-finger pinch or mod+W (overview)
+- Center window - 4-finger hold or mod+C
+- Move windows - 3-finger doubletap-swipe or Alt+drag
+- Resize windows - Alt+3-finger swipe or Alt+ RMB drag
+- Magnetic snap - windows snap to edges during drag
+- Auto-pan - canvas auto-pans when dragging to edge
+- Fit window - mod+M centers and maximizes
+- Fullscreen - mod+F (viewport mode, any action exits)
+- Built-in screenshot - interactive UI, drag to select, clipboard support
+- Screencasting - GNOME portal via PipeWire (no portal-wlr needed)
+- Infinite background - GLSL shaders or tiled images
+- Window rules - app_id/title matching, opacity, blur, position
+- Widget windows - pinned, immovable, below normal windows
+- Multi-monitor - independent viewports, different zoom levels, viewport outlines
+- Rust-based - built on smithay
+- NixOS support - flake with module
+- CLI install - =srwc install= sets up config and session
+
+*** srwc vs driftwm
+- Added: text-input-v3 protocol
+- Added: screen casting via GNOME portal
+- Added: built-in screenshot utility
+- Added: ext_data_control_v1 protocol
+- Added: optimizations
+
+* niri (Wayland - Scrollable Tiling)
+
+** Overview
+- Repo :: https://github.com/niri-wm/niri
+- Stars :: 22.2k
+- Concept :: Windows arranged in columns on infinite strip going right. Scrollable tiling - windows never resize when new ones open.
+- Inspiration :: PaperWM (GNOME Shell extension)
+
+*** niri Features
+- Scrollable tiling - windows in columns on infinite horizontal strip
+- No window resizing - new windows don't affect existing ones
+- Dynamic workspaces - vertical columns as workspaces
+- Per-monitor workspaces - each monitor has independent workspace strip
+- Horizontal scrolling - scroll left/right through columns
+- Workspace switching - vertical movement between workspaces
+- Resizable columns - adjust column widths
+- Window gaps - configurable inner/outer gaps
+- Floating windows - support for floating mode
+- Borderless windows - optional borderless look
+- Tag-based layout - window tags for complex layouts
+- XDG desktop portal support - for screensharing
+- Rust-based - modern, safe codebase
+- Wayland-native - not X11
+
+** saatvik333/niri-dotfiles (127 stars)
+- URL :: https://github.com/saatvik333/niri-dotfiles
+- Stack :: Niri | Waybar | Alacritty | Kitty | Fish | Mako | Rofi | Neovim | Yazi | Starship
+- Features :: Dynamic theming, borderless layouts, gapless minimal look, system-wide theme switching
+- Install :: Automated install script for Arch-based distros
+- Screenshot :: 
+
+** SwayKh/dotfiles (138 stars)
+- URL :: https://github.com/SwayKh/dotfiles/tree/main/niri
+- Stack :: Niri | foot | waybar | rofi-wayland | dunst | swaylock
+- Config :: =config.kdl=
+- Screenshot :: 
+
+** rickinshah/0xNiri (32 stars)
+- URL :: https://github.com/rickinshah/0xNiri
+- Stack :: Niri | waybar | fuzzel | gtklock | thunar | yazi | fish
+- Theme :: Catppuccin Mocha
+- Features :: Auto-hide waybar, consistent theme across apps
+- Screenshot :: 
+
+** vaelixd/niri-dotfiles (20+ stars)
+- URL :: https://github.com/vaelixd/niri-dotfiles
+- Stack :: Niri | fuzzel | waybar | waypaper | dunst | hyprlock | rofi | neovim | kitty | yazi
+- Features :: Blank/workspace preview, minimal setup
+- Screenshot :: 
+
+** jR4dh3y/dots-niri (20 stars)
+- URL :: https://github.com/jR4dh3y/dots-niri
+- Homepage :: https://rice.jr4.in/
+- Stack :: Niri | waybar | rofi | hyprlock | nvim | fish
+- Features :: Interactive terminal installer, weather widget
+- Install :: =curl -fsSL https://jr4.in/niri | bash=
+- Screenshot :: 
+
+** mohammedbilalns/dotfiles (8 stars)
+- URL :: https://github.com/mohammedbilalns/dotfiles
+- Stack :: Niri | Sway | Hyprland (multiple WMs)
+- Install :: GNU Stow
+- Screenshot :: 
+
+** abbesm0hamed/dofs (Fedora + Niri)
+- URL :: https://github.com/abbesm0hamed/dofs
+- Stack :: Niri | WezTerm | Rofi | Waybar | Mako | Fish (Hydro prompt)
+- Theme :: Gruvbox
+- Features :: Fedora Workstation + Niri, automated bootstrap
+- Install :: =bash -c "$(curl -fsSL https://raw.githubusercontent.com/abbesm0hamed/dofs/migrate/chezmoi/bootstrap.sh)"=
+- Screenshot :: 
+
+** gvolpe/nix-config (1055 stars - NixOS)
+- URL :: https://github.com/gvolpe/dotfiles
+- Stack :: Niri | Fish | Fuzzel | Vicinae | Waybar | Kitty | Nemo | SwayNC | Hyprlax
+- Features :: Full NixOS + Home Manager config, multiple WMs (Niri, Hyprland, XMonad)
+- Screenshot :: 
+
+** mikkurogue/dotfiles (Niri + Hyprland)
+- URL :: https://github.com/mikkurogue/dotfiles
+- Stack :: Niri | Hyprland | Ghostty | Fish | Zsh | Starship
+- Features :: Both WMs in same dotfiles, automated install
+- Screenshot :: 
+
+** leomorgzzz/Rework-LLylithe-Dotfiles-Niri-version-
+- URL :: https://github.com/leomorgzzz/Rework-LLylithe-Dotfiles-Niri-version-
+- Stack :: Niri | Kitty | Waybar (floating Nord style) | Rofi | Hyprlock | Mako
+- Theme :: Nord
+- Screenshot :: 
+
+* scroll (Sway Fork - PaperWM-like)
+
+** Overview
+- Repo :: https://github.com/dawsers/scroll
+- Stars :: 455
+- Concept :: Sway fork with scrolling layout like PaperWM, niri, or hyprscroller
+- Release :: v1.12.8
+
+*** scroll Features
+- Sway fork - i3/sway compatible configuration
+- PaperWM-like scrolling - horizontal scrolling layout
+- Workspace scaling - zoom out to overview
+- Overview mode - see all windows at once
+- Trail system - group windows into named collections
+- Trailmarks - bookmarked windows within trails for quick access
+- Animations - customizable window animations
+- Rounded borders - window decorations
+- Dimming - dim inactive windows
+- Dynamic shadows - with blur support
+- Touchpad scrolling - 3-finger swipe to scroll
+- Mouse drag scrolling - drag to navigate
+- Lua scripting - custom scripting API
+- Fullscreen modes - workspace/global/application/application
+- Window cycling - cycle through windows
+- i3/sway compatible - same keybindings work
+
+**** Trail System Explained
+:PROPERTIES:
+:CUSTOM_ID: scroll-trail-system
+:END:
+
+The trail system is a powerful way to organize and quickly access frequently-used windows across your entire desktop.
+
+***** What is a Trail?
+A *trail* is a named collection of windows (trailmarks) that can span multiple workspaces, tiling modes, and monitors. Think of it as a virtual "favorites" group that persists across your session.
+
+***** What is a Trailmark?
+A *trailmark* is an anonymous bookmark on a window. Unlike named marks in traditional WMs, trailmarks are grouped into trails - you can have multiple trails for different contexts (e.g., "dev-work", "communications", "media").
+
+***** Key Trail Commands
+
+| Command | Action |
+|---------|--------|
+| =trail new= | Create a new trail (becomes active) |
+| =trail next= / =trail prev= | Navigate between trails |
+| =trail number N= | Jump to trail N |
+| =trail delete= | Delete the active trail |
+| =trail clear= | Remove all trailmarks from active trail |
+| =trail to_selection= | Convert trail to selection list |
+| =trailmark toggle= | Add/remove trailmark on focused window |
+| =trailmark next= / =trailmark prev= | Navigate trailmarks in active trail |
+| =trailmark jump= | Enter jump mode showing trailmarked windows |
+
+***** Example Configuration
+#+begin_src swayconfig
+# Enter trailmark mode with Super+;
+bindsym $mod+semicolon mode "trailmark"
+
+mode "trailmark" {
+    bindsym bracketright trailmark next      # Next trailmark
+    bindsym bracketleft trailmark prev       # Previous trailmark
+    bindsym semicolon trailmark toggle; mode default  # Toggle current
+    bindsym slash trailmark jump; mode default        # Jump to any trailmark
+    bindsym Escape mode "default"
+}
+
+# Enter trail management mode with Super+Shift+;
+bindsym $mod+Shift+semicolon mode "trail"
+
+mode "trail" {
+    bindsym bracketright trail next          # Next trail
+    bindsym bracketleft trail prev            # Previous trail
+    bindsym 0 trail number 0; mode default   # Jump to trail 0
+    bindsym 1 trail number 1; mode default   # Jump to trail 1
+    bindsym semicolon trail new; mode default  # Create new trail
+    bindsym d trail delete; mode default       # Delete active trail
+    bindsym c trail clear; mode default         # Clear trailmarks
+    bindsym insert trail to_selection; mode default
+    bindsym Escape mode "default"
+}
+#+end_src
+
+***** Use Cases
+- *Dev workflow*: Create a trail for your IDE, terminal, browser, and docs
+- *Communication*: Group Slack, Discord, email windows together
+- *Research*: Keep reference windows bookmarked across workspaces
+- *Media*: Group music player, podcast app, video together
+
+Unlike traditional workspace systems, trails let you organize windows by *task* rather than *location*.
+
+** Example Configuration
+- URL :: https://github.com/dawsers/scroll/blob/master/config.in
+- Location :: Usually installed to =/etc/scroll/config=, copy to =~/.config/scroll/config=
+- Features :: 
+  - Horizontal scrolling layout
+  - Workspace scaling (overview mode)
+  - Trail/trailmark system for window groups
+  - Animations, rounded borders, dimming, shadows
+  - Lua scripting API
+  - Touchpad/mouse drag scrolling
+
+** scroll Configuration Example
+#+begin_src swayconfig
+# Basic scroll config (from config.in)
+set $mod Mod4
+set $term kitty
+
+# Output configuration
+output * bg ~/wallpaper.png fill
+
+# Layout settings
+layout_default_width 0.5
+layout_default_height 1.0
+
+# Gaps
+gaps inner 4
+gaps outer 20
+
+# Key bindings
+bindsym $mod+Return exec $term
+bindsym $mod+Shift+Q kill
+bindsym $mod+D exec wofi --show drun
+#+end_src
+
+* river (Wayland - Dynamic Tiling in Zig)
+
+** Overview
+- Repo :: https://codeberg.org/river/river
+- Language :: Written in Zig
+- Concept :: Dynamic tiling Wayland compositor with flexible runtime configuration
+- Configuration :: =~/.config/river/init= (Zig-based or any language)
+
+*** river Features
+- Dynamic tiling - windows automatically arranged
+- Zig-based - fast, memory-safe language
+- Flexible configuration - any language via init script
+- Runtime configuration - change settings without restart
+- Tags - flexible workspace/tag system
+- Float support - floating windows support
+- Layout generators - rivertile, bspwm-like, centered
+- Input handling - keyboard/mouse/touchpad
+- Output management - multi-monitor support
+- XWayland support - runs X11 apps
+- Wayland native - modern compositor
+- Kernel-mode DRM - direct rendering
+- Scratchpad - temporary window storage
+- Window rules - per-application rules
+
+** SwayKh/dotfiles/river (138 stars)
+- URL :: https://github.com/SwayKh/dotfiles/tree/main/river
+- Stack :: River | foot | waybar | rofi-wayland | dunst | swaylock-effects | yazi | floorp
+- Features :: Full config with environment, init, scratchpads
+- Screenshot :: 
+
+** embeddingBits/arch_dotfiles (61 stars)
+- URL :: https://github.com/embeddingBits/arch_dotfiles
+- Stack :: River | Ghostty | Emacs | Rofi | waybar | fish
+- Theme :: Gruvbox
+- Install :: GNU Stow based
+- Screenshot :: 
+
+** hidayry/riverwm-dotfiles (19 stars)
+- URL :: https://github.com/hidayry/riverwm-dotfiles
+- Stack :: River | Foot | zsh (zap) | Rofi-wayland | thunar
+- Theme :: Various (shows gallery)
+- Screenshot :: 
+
+** prmadev/River-Dotfiles (20 stars, archived)
+- URL :: https://github.com/prmadev/River-Dotfiles
+- Stack :: River | configured in Go
+- Theme :: Rose-Pine
+- Note :: Config written in Go for river initialization
+- Screenshot :: 
+
+** adarsh-67r/riverwm (177 stars)
+- URL :: https://github.com/theCode-Breaker/riverwm
+- Stack :: River | waybar
+- Theme :: Catppuccin
+- Screenshot :: 
+
+** Danvenrit/river-dots
+- URL :: https://github.com/Danvenrit/river-dots
+- Stack :: River | waybar
+- Features :: Basic init script + waybar config
+- Screenshot :: 
+
+** Z-8Bit/River
+- URL :: https://github.com/Z-8Bit/River
+- Features :: Automated setup script
+- Screenshot :: 
+
+** nitrogenez/zig-river-config
+- URL :: https://github.com/nitrogenez/zig-river-config
+- Stack :: River configured in Zig
+- Features :: Programming language based config
+
+** riverpipe - Bar Generator
+- URL :: https://github.com/raitonoberu/riverpipe
+- Purpose :: Generate waybar-compatible bars for River with ease
+
+** waterfall - Config Collection
+- URL :: https://github.com/uncomfyhalomacro/waterfall
+- Purpose :: Collection of all rice and configs for riverwm
+
+** River Configuration Examples
+
+*** Basic init (shell)
+#+begin_src bash
+#!/bin/sh
+# ~/.config/river/init
+
+riverctl spawn "waybar"
+riverctl spawn "foot --server"
+
+# Key bindings
+riverctl map normal Super+Return spawn "footclient"
+riverctl map normal Super+Q close
+riverctl map normal Super+D spawn "wofi --show drun"
+
+# Floating modifier
+riverctl set-focused-window-border-width 2
+riverctl set-unfocused-window-border-width 2
+#+end_src
+
+*** Nim Configuration (from gist)
+- URL :: https://gist.github.com/yummy-licorice/4c9c79e5eae938c08279d0178645461f
+- Language :: Nim
+- Features :: Full river config in Nim with keybindings, rules, layouts
+
+* Related Projects
+
+** Wayland.fyi - Minimalist Wayland SIG
+- URL :: https://wayland.fyi
+- Lists :: Several "infinite canvas" inspired WMs:
+  - nyctal (Go)
+  - velox (swc-based)
+  - wsxwm (neuswc-based)
+  - tohu (wsxwm fork)
+  - slgro (floating, neuswc)
+  - shko (zig, neuswc) - highly configurable, scrolling, zooming
+  - dwc (dynamic, neuswc)
+  - sunday (3x3 grid tiling, zig + neuswc)
+  - klatka (kiosk-style, neuswc)
+  - wmonad (Haskell, swc)
+
+** neuswc - Compositor Library
+- URL :: https://git.sr.ht/~shrub900/neuswc
+- Fork :: of swc for hevel window manager
+- Features :: wallpapers, screenshots, double borders, fullscreen, zooming, subsurfaces
+
+** neuwm - hevel-inspired
+- URL :: https://git.sr.ht/~pfr/neuwm
+- Based :: wsxwm, inspired by hevel
+- Features :: Tiling + floating, workspaces, zoom via scroll wheel
+
+* Key Concepts
+
+** Infinite Canvas
+- Your screen is a viewport onto an infinite 2D plane
+- Pan around to find windows, zoom out to see all
+- No workspaces - just one big surface
+
+** Scrollable Tiling (niri style)
+- Windows in columns on infinite horizontal strip
+- New windows don't resize existing ones
+- Scroll to navigate, workspaces are vertical columns
+
+** Mouse Chords (hevel)
+- Commands via mouse button combinations
+- No keyboard shortcuts needed
+- Example: 1→3→drag = create window
+
+* References
+- vxwm: https://codeberg.org/wh1tepearl/vxwm
+- hevel: https://git.sr.ht/~dlm/hevel
+- driftwm: https://github.com/malbiruk/driftwm
+- celestial: https://github.com/celestial-wl/celestial
+- niri: https://github.com/niri-wm/niri
+- scroll: https://github.com/dawsers/scroll
+- Wayland.fyi: https://wayland.fyi
