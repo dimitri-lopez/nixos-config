@@ -12,7 +12,6 @@
     wl-clipboard
     brightnessctl
     playerctl
-    emenu
     jumpapp
   ];
 
@@ -148,7 +147,4 @@
     '';
   };
 
-  wayland.windowManager.srwc = {
-    enable = true;
-  };
 }

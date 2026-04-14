@@ -203,7 +203,6 @@ super + shift + h
     wl-clipboard
     brightnessctl
     playerctl
-    emenu
     jumpapp
   ];
 
@@ -339,9 +338,6 @@ super + shift + h
     '';
   };
 
-  wayland.windowManager.srwc = {
-    enable = true;
-  };
 }
 #+end_src
 
@@ -689,6 +685,8 @@ services.xserver.xkb = {
 #+end_src
 ** srwc window manager
 #+begin_src nix
+programs.srwc.enable = true;
+services.xserver.displayManager.lightdm.greeters.slick.enable = true;
 services.displayManager.sessionPackages = [
   (pkgs.writeTextDir "share/wayland-sessions/srwc.desktop" ''
     [Desktop Entry]
@@ -750,7 +748,6 @@ EOF
     passthru.providedSessions = [ "vxwm" ];
   })
 ];
-programs.srwc.enable = true;
 #+end_src
 ** CUPS printing
 #+begin_src nix

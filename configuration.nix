@@ -93,6 +93,8 @@
     layout = "us";
     variant = "";
   };
+  programs.srwc.enable = true;
+  services.xserver.displayManager.lightdm.greeters.slick.enable = true;
   services.displayManager.sessionPackages = [
     (pkgs.writeTextDir "share/wayland-sessions/srwc.desktop" ''
       [Desktop Entry]
@@ -151,7 +153,6 @@
       passthru.providedSessions = [ "vxwm" ];
     })
   ];
-  programs.srwc.enable = true;
   # Enable CUPS to print documents.
   services.printing.enable = true;
   # Define a user account. Don't forget to set a password with ‘passwd’.
