@@ -699,7 +699,7 @@ services.displayManager.sessionPackages = [
 ];
 #+end_src
 ** vxwm window manager
-#+begin_src nix
+#+begin_src nixx
 services.xserver.enable = true;
 services.xserver.displayManager.lightdm = {
   enable = true;

@@ -105,54 +105,6 @@
       DesktopNames=srwc
     '')
   ];
-  services.xserver.enable = true;
-  services.xserver.displayManager.lightdm = {
-    enable = true;
-    extraConfig = ''
-      logind-check-graphical=true
-    '';
-  };
-  services.displayManager.sessionPackages = [ 
-    (pkgs.stdenv.mkDerivation {
-      pname = "vxwm";
-      version = "unstable";
-      src = pkgs.fetchgit {
-        url = "https://codeberg.org/wh1tepearl/vxwm.git";
-        rev = "24bbb12074704680edf894ea82a066b3b2662c42";
-        sha256 = "01ggidzvb44m8s179d4had7lrvzrmxapp84dhirbygpxfzn6gsiz";
-      };
-      nativeBuildInputs = [ pkgs.pkg-config ];
-      buildInputs = with pkgs.xorg; [ libX11 libXft libXinerama ];
-      prePatch = ''
-        # Provide a hollowed-out config.def.h that lets sxhkd handle all keys
-        # Find line numbers for keys array start and end
-        START=$(grep -n "static const Key keys" config.def.h | cut -d: -f1)
-        END=$(sed -n "$START,\$p" config.def.h | grep -n "};" | head -n 1 | cut -d: -f1)
-        END=$((START + END - 1))
-        
-        # Replace the keys array with an empty one
-        head -n $((START - 1)) config.def.h > config.def.h.new
-        echo "static const Key keys[] = { { 0, 0, NULL, { .i = 0 } } };" >> config.def.h.new
-        tail -n +$((END + 1)) config.def.h >> config.def.h.new
-        mv config.def.h.new config.def.h
-        
-        # Suppress unused function warnings (since we removed their keybindings)
-        sed -i 's/CFLAGS   = \(.*\)/CFLAGS = \1 -Wno-unused-function/' config.mk
-      '';
-      installPhase = ''
-        make PREFIX=$out install
-        mkdir -p $out/share/xsessions
-        cat > $out/share/xsessions/vxwm.desktop << EOF
-  [Desktop Entry]
-  Type=Application
-  Name=vxwm
-  Exec=$out/bin/vxwm
-  TryExec=$out/bin/vxwm
-  EOF
-      '';
-      passthru.providedSessions = [ "vxwm" ];
-    })
-  ];
   # Enable CUPS to print documents.
   services.printing.enable = true;
   # Define a user account. Don't forget to set a password with ‘passwd’.
