@@ -687,6 +687,19 @@ services.xserver.xkb = {
   variant = "";
 };
 #+end_src
+** srwc window manager
+#+begin_src nix
+services.displayManager.sessionPackages = [
+  (pkgs.writeTextDir "share/wayland-sessions/srwc.desktop" ''
+    [Desktop Entry]
+    Name=srwc
+    Comment=Trackpad-first infinite canvas Wayland compositor
+    Exec=srwc start
+    Type=WaylandSession
+    DesktopNames=srwc
+  '')
+];
+#+end_src
 ** vxwm window manager
 #+begin_src nix
 services.xserver.enable = true;
@@ -737,6 +750,7 @@ EOF
     passthru.providedSessions = [ "vxwm" ];
   })
 ];
+programs.srwc.enable = true;
 #+end_src
 ** CUPS printing
 #+begin_src nix

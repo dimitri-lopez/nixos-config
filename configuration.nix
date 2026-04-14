@@ -93,6 +93,16 @@
     layout = "us";
     variant = "";
   };
+  services.displayManager.sessionPackages = [
+    (pkgs.writeTextDir "share/wayland-sessions/srwc.desktop" ''
+      [Desktop Entry]
+      Name=srwc
+      Comment=Trackpad-first infinite canvas Wayland compositor
+      Exec=srwc start
+      Type=WaylandSession
+      DesktopNames=srwc
+    '')
+  ];
   services.xserver.enable = true;
   services.xserver.displayManager.lightdm = {
     enable = true;
@@ -141,6 +151,7 @@
       passthru.providedSessions = [ "vxwm" ];
     })
   ];
+  programs.srwc.enable = true;
   # Enable CUPS to print documents.
   services.printing.enable = true;
   # Define a user account. Don't forget to set a password with ‘passwd’.

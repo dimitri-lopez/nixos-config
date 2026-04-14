@@ -1,0 +1,48 @@
+#+title: Srwc
+
+
+Start by loading /nixos-config the skill.
+
+I have been running into issues with loading into the srwc window manager. You can check the git history for a lot of the changes that we have made lately. I am still having trouble, this is currently what is happening:
+1. Rebuild home-manager and nixos-rebuild switch
+2. Then reboot
+3. Pick latest nix generation
+4. Attempt to login
+5. Met with "Unable to start session"
+6. Reboot
+7. Boot into older nix generation with xfce
+8. And that is where we are now
+
+So the current window manager is xfce, that is to be expected. However, that is because I booted into an older nix generation.
+
+Can you check the logs of lightdm as well as .xsession logs and other places to see what error messages are around, and potential fixes we can make to get past this?
+
+**Investigation findings:**
+
+The "Unable to start session" error occurs because srwc is a Wayland compositor but the system is configured with LightDM (an X11 display manager) and no wayland session file exists.
+
+Root causes:
+1. No wayland session `.desktop` file exists for srwc in `/share/wayland-sessions/`
+2. srwc needs to be launched via its CLI (`srwc start`), not as a standard session
+3. The current configuration has `services.xserver.enable = true` but doesn't create a wayland session entry
+
+**Fix to add to readme.org (srwc window manager section):**
+
+Add a wayland session file by creating a desktop entry in the nix config:
+
+```nix
+# Add to the srwc system config section (around line 670)
+services.displayManager.sessionPackages = [
+  (pkgs.writeTextDir "share/wayland-sessions/srwc.desktop" ''
+    [Desktop Entry]
+    Name=srwc
+    Comment=Trackpad-first infinite canvas Wayland compositor
+    Exec=srwc start
+    Type=WaylandSession
+    DesktopNames=srwc
+ '')
+];
+```
+
+This creates a `.desktop` file in the wayland-sessions directory so LightDM can present srwc as a selectable session option at login.
+
