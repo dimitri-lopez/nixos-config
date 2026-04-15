@@ -3,6 +3,12 @@
 
 Start by loading /nixos-config the skill.
 
+
+
+
+
+
+* Old 
 I have been running into issues with loading into the srwc window manager. You can check the git history for a lot of the changes that we have made lately. I am still having trouble, this is currently what is happening:
 1. Rebuild home-manager and nixos-rebuild switch
 2. Then reboot

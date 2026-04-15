@@ -17,7 +17,10 @@
     opencode.url = "github:AodhanHayter/opencode-flake";
     srwc = {
       url = "github:infraflakes/srwc";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+    nixpkgs-unstable = {
+      url = "github:NixOS/nixpkgs/nixos-unstable";
     };
   };
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
@@ -25,6 +28,44 @@
       system = "x86_64-linux";
       lib = nixpkgs.lib;
       pkgs = nixpkgs.legacyPackages.${system};
+      srwcPackage =
+        let
+          srwc-bin = pkgs.fetchurl {
+            url = "https://github.com/infraflakes/srwc/releases/download/v0.2.1/srwc-v0.2.1-linux-amd64-debian";
+            sha256 = "e96330afe34c7995dee01c18320a17ea4534e79a97cde67a29cb7dfd7afa7699";
+          };
+        in
+          pkgs.runCommandCC "srwc" {
+            nativeBuildInputs = [ pkgs.makeWrapper ];
+            passthru.providedSessions = [ "srwc" ];
+          } ''
+            mkdir -p $out/bin $out/share/wayland-sessions
+            cp ${srwc-bin} $out/bin/srwc
+            chmod +x $out/bin/srwc
+            cat > $out/share/wayland-sessions/srwc.desktop << 'EOF'
+[Desktop Entry]
+Name=srwc
+Comment=Trackpad-first infinite canvas Wayland compositor
+Exec=srwc start
+Type=WaylandSession
+DesktopNames=srwc
+EOF
+            wrapProgram $out/bin/srwc \
+              --prefix PATH : "${pkgs.lib.makeBinPath [pkgs.xdg-utils pkgs.libnotify pkgs.xwayland-satellite]}" \
+              --suffix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath [
+                pkgs.pipewire
+                pkgs.libdisplay-info
+                pkgs.seatd
+                pkgs.libinput
+                pkgs.libgbm
+                pkgs.libxkbcommon
+                pkgs.libdrm
+                pkgs.libglvnd
+                pkgs.xorg.libX11
+                pkgs.xorg.libXcursor
+                pkgs.xorg.libxcb
+              ]}"
+          '';
       userSettings = {
         username = "dimitril";
         name = "Dimitri";
@@ -37,20 +78,6 @@
       systemSettings = {
         system = "x86_64-linux"; # system arch
         hostname = "dimitril-hostname";   # hostname
-      };
-      vxwm = pkgs.stdenv.mkDerivation {
-        pname = "vxwm";
-        version = "unstable";
-        src = pkgs.fetchgit {
-          url = "https://codeberg.org/wh1tepearl/vxwm.git";
-          rev = "24bbb12074704680edf894ea82a066b3b2662c42";
-          sha256 = "01ggidzvb44m8s179d4had7lrvzrmxapp84dhirbygpxfzn6gsiz";
-        };
-        nativeBuildInputs = with pkgs; [ pkg-config xorg.libX11 xorg.libXft xorg.libXinerama ];
-        buildInputs = with pkgs; [ xorg.libX11 xorg.libXft xorg.libXinerama ];
-        installPhase = ''
-          make PREFIX=$out install
-        '';
       };
       
       selectedDesktop = {
@@ -67,23 +94,20 @@
           home = [ ./modules/wm/hyprland-minimal.nix ./modules/hyprland/hyprland-home.nix ];
         };
         srwc = {
-          system = [ inputs.srwc.nixosModules.default ];
+          system = [ ];
           home = [ ./modules/srwc-home.nix ];
         };
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
       packages.x86_64-linux = {
-        vxwm = vxwm;
-        vxwm-unstable = vxwm;
-        default = vxwm;
       };
       legacyPackages.x86_64-linux = {
-        inherit vxwm;
       };
       nixosConfigurations = {
         nixos = lib.nixosSystem {
           inherit system;
           modules = [ ./configuration.nix ] ++ selectedDesktop.system;
+          specialArgs = { inherit inputs; srwc = srwcPackage; };
         };
       };
       homeConfigurations = {

@@ -469,20 +469,6 @@ imports = [
       pkgs = nixpkgs.legacyPackages.${system};
       <<userSettings>>
       <<systemSettings>>
-      vxwm = pkgs.stdenv.mkDerivation {
-        pname = "vxwm";
-        version = "unstable";
-        src = pkgs.fetchgit {
-          url = "https://codeberg.org/wh1tepearl/vxwm.git";
-          rev = "24bbb12074704680edf894ea82a066b3b2662c42";
-          sha256 = "01ggidzvb44m8s179d4had7lrvzrmxapp84dhirbygpxfzn6gsiz";
-        };
-        nativeBuildInputs = with pkgs; [ pkg-config xorg.libX11 xorg.libXft xorg.libXinerama ];
-        buildInputs = with pkgs; [ xorg.libX11 xorg.libXft xorg.libXinerama ];
-        installPhase = ''
-          make PREFIX=$out install
-        '';
-      };
       
       selectedDesktop = {
         xfce = {
@@ -498,23 +484,20 @@ imports = [
           home = [ ./modules/wm/hyprland-minimal.nix ./modules/hyprland/hyprland-home.nix ];
         };
         srwc = {
-          system = [ inputs.srwc.nixosModules.default ];
+          system = [ ];
           home = [ ./modules/srwc-home.nix ];
         };
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
       packages.x86_64-linux = {
-        vxwm = vxwm;
-        vxwm-unstable = vxwm;
-        default = vxwm;
       };
       legacyPackages.x86_64-linux = {
-        inherit vxwm;
       };
       nixosConfigurations = {
         nixos = lib.nixosSystem {
           inherit system;
           modules = [ ./configuration.nix ] ++ selectedDesktop.system;
+          specialArgs = { inherit inputs; };
         };
       };
       homeConfigurations = {
@@ -561,7 +544,7 @@ inputs = {
 Help is available in the configuration.nix(5) man page and in the NixOS manual (accessible by running ‘nixos-help’).
 
 #+begin_src nix :noweb yes :tangle configuration.nix :noweb-ref configuration.nix-setup
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
   <<configuration.nix-imports>>
@@ -685,17 +668,11 @@ services.xserver.xkb = {
 #+end_src
 ** srwc window manager
 #+begin_src nix
-programs.srwc.enable = true;
+services.xserver.enable = true;
+services.xserver.displayManager.lightdm.enable = true;
 services.xserver.displayManager.lightdm.greeters.slick.enable = true;
-services.displayManager.sessionPackages = [
-  (pkgs.writeTextDir "share/wayland-sessions/srwc.desktop" ''
-    [Desktop Entry]
-    Name=srwc
-    Comment=Trackpad-first infinite canvas Wayland compositor
-    Exec=srwc start
-    Type=WaylandSession
-    DesktopNames=srwc
-  '')
+services.displayManager.sessionPackages = with pkgs; [
+  inputs.srwc.packages.${pkgs.stdenv.system}.default
 ];
 #+end_src
 ** vxwm window manager
@@ -796,6 +773,7 @@ nixpkgs.config.permittedInsecurePackages = [
 # $ nix search wget
 environment.systemPackages = with pkgs; [
   syncthing
+  inputs.srwc.packages.${pkgs.stdenv.system}.default
 ];
 #+end_src
 ** Automatic updating

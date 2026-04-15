@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, srwc, ... }:
 
 {
   imports =
@@ -93,17 +93,11 @@
     layout = "us";
     variant = "";
   };
-  programs.srwc.enable = true;
+  services.xserver.enable = true;
+  services.xserver.displayManager.lightdm.enable = true;
   services.xserver.displayManager.lightdm.greeters.slick.enable = true;
-  services.displayManager.sessionPackages = [
-    (pkgs.writeTextDir "share/wayland-sessions/srwc.desktop" ''
-      [Desktop Entry]
-      Name=srwc
-      Comment=Trackpad-first infinite canvas Wayland compositor
-      Exec=srwc start
-      Type=WaylandSession
-      DesktopNames=srwc
-    '')
+  services.displayManager.sessionPackages = with pkgs; [
+    srwc
   ];
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -143,6 +137,7 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     syncthing
+    srwc
   ];
   system.autoUpgrade.enable = true;
   system.autoUpgrade.dates = "weekly";
