@@ -94,7 +94,7 @@ EOF
           home = [ ./modules/wm/hyprland-minimal.nix ./modules/hyprland/hyprland-home.nix ];
         };
         srwc = {
-          system = [ ];
+          system = [ ./modules/srwc/srwc.nix ];
           home = [ ./modules/srwc-home.nix ];
         };
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");

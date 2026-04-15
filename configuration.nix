@@ -1,4 +1,4 @@
-{ config, pkgs, inputs, srwc, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
   imports =
@@ -96,9 +96,12 @@
   services.xserver.enable = true;
   services.xserver.displayManager.lightdm.enable = true;
   services.xserver.displayManager.lightdm.greeters.slick.enable = true;
-  services.displayManager.sessionPackages = with pkgs; [
-    srwc
-  ];
+  services.displayManager = {
+    sessionPackages = with pkgs; [
+      inputs.srwc.packages.${pkgs.stdenv.system}.default
+    ];
+    defaultSession = "srwc";
+  };
   # Enable CUPS to print documents.
   services.printing.enable = true;
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -137,7 +140,7 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     syncthing
-    srwc
+    inputs.srwc.packages.${pkgs.stdenv.system}.default
   ];
   system.autoUpgrade.enable = true;
   system.autoUpgrade.dates = "weekly";
