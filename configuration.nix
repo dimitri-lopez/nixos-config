@@ -101,7 +101,21 @@
       inputs.srwc.packages.${pkgs.stdenv.system}.default
     ];
     defaultSession = "srwc";
+    preStart = ''
+      # Patch xsession-wrapper to not fail on systemctl --user (no user systemd in lightdm)
+      XSW=$(find /nix/var/nix/profiles/system/etc/profile.d -name 'xsession-wrapper' 2>/dev/null | head -1)
+      if [ -n "$XSW" ] && [ -f "$XSW" ]; then
+        cp "$XSW" "$XSW.bak" 2>/dev/null || true
+        # Make systemctl --user calls non-fatal
+        sed -i 's|systemctl --user|systemctl --user \&\& true || true|' "$XSW" 2>/dev/null || true
+        # Remove nixos-fake-graphical-session entirely
+        sed -i '/nixos-fake-graphical-session/d' "$XSW" 2>/dev/null || true
+      fi
+      # Clear old XSession from accounts-daemon
+      ${pkgs.dbus}/bin/dbus-send --system --dest=org.freedesktop.Accounts --print-reply /org/freedesktop/Accounts/User1000 org.freedesktop.Accounts.User.SetXSession string: "" 2>/dev/null || true
+    '';
   };
+  services.seatd.enable = true;
   # Enable CUPS to print documents.
   services.printing.enable = true;
   # Define a user account. Don't forget to set a password with ‘passwd’.

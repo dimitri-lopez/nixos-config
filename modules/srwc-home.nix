@@ -5,7 +5,7 @@
     waybar
     xdg-utils
     libnotify
-    xwayland-satellite
+    xwayland
     xdg-desktop-portal-gnome
     xdg-desktop-portal-gtk
     xdg-desktop-portal
@@ -29,7 +29,6 @@
 
       [cursor]
       hide_timeout = 0
-      hide_on_key_press = false
 
       [input]
       follow_cursor = "always"
@@ -139,11 +138,8 @@
 
     ".xprofile".text = ''
       #!/bin/sh
-      # XDG portals for screen sharing
-      xdg-desktop-portal &
-
-      # Start waybar
-      waybar &
+      # Wayland session - xprofile runs before compositor
+      # Start xdg-desktop-portal after compositor is ready
     '';
   };
 
