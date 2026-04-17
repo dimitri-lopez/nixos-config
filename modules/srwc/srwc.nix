@@ -1,10 +1,6 @@
 { inputs, srwc, pkgs, ... }:
 
 {
-  services.displayManager = {
-    defaultSession = "srwc";
-  };
-
   services.xserver.displayManager.lightdm = {
     enable = true;
     greeters.slick = {

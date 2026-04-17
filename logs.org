@@ -1,0 +1,13 @@
+#+title: Logs
+
+* Test LightDM
+sudo systemctl restart display-manager
+
+* LightDM logs
+
+sudo cat /var/log/lightdm/lightdm.log
+sudo cat /var/log/lightdm/seat0-greeter.log
+Failing 
+sudo cat /var/log/lightdm/lightdm.log
+sudo cat /var/log/lightdm/seat0-greeter.log
+sudo cat /var/log/lightdm/seat0-greeter-*.log
