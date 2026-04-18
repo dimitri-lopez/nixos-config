@@ -7,11 +7,13 @@
     redshift
     syncthing
     vim
+    htop
+    bottom
   ];
   
   # Home-manager services (auto-managed by home-manager)
   services.redshift = {
-    enable = true;
+    enable = false; # Disabled to prevent premature graphical-session.target activation
     latitude = "42.36";
     longitude = "-71.06";
   };

@@ -24,15 +24,15 @@
       options = [ "fmask=0077" "dmask=0077" ];
     };
   
-  fileSystems."/mnt/data" = {
-    device = "/dev/disk/by-uuid/892faac5-767f-4bcf-9a64-9e694d5f3074";
-    fsType = "ext4";
-    options = [ "defaults" "nofail" ];
-  };
+  # fileSystems."/mnt/data" = {
+  #   device = "/dev/disk/by-uuid/892faac5-767f-4bcf-9a64-9e694d5f3074";
+  #   fsType = "ext4";
+  #   options = [ "defaults" "nofail" ];
+  # };
   
-  systemd.tmpfiles.rules = [
-    "d /mnt/data 0755 dimitril users -"
-  ];
+  # systemd.tmpfiles.rules = [
+#   "d /mnt/data 0755 dimitril users -"
+# ];
 
   swapDevices =
     [ { device = "/dev/disk/by-uuid/667f86cc-c1c9-416b-928b-f08a01bfb12c"; }

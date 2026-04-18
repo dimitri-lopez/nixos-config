@@ -96,7 +96,7 @@ echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new ha
     playwright-test # CLI for running playwright tests
 
     mu
-    ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    ((emacsPackagesFor emacs-pgtk).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
     # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.etags ]))
     isync
     offlineimap

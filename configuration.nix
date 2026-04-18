@@ -14,6 +14,8 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.resumeDevice = "/dev/disk/by-uuid/667f86cc-c1c9-416b-928b-f08a01bfb12c";
+  boot.kernelParams = [ "resume=UUID=667f86cc-c1c9-416b-928b-f08a01bfb12c" ];
   
   networking.hostName = "nixos"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking
@@ -94,9 +96,17 @@
     layout = "us";
     variant = "";
   };
-  services.xserver.enable = true;
-  services.xserver.displayManager.lightdm.enable = true;
-  services.xserver.displayManager.lightdm.greeters.slick.enable = true;
+  services.xserver.enable = false;
+  services.greetd = {
+    enable = true;
+    settings = {
+      default_session = {
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --cmd 'uwsm start -S srwc'";
+        user = "greeter";
+      };
+    };
+  };
+  services.xserver.displayManager.lightdm.enable = false;
   # UWSM - Universal Wayland Session Manager
   # Wraps Wayland compositors with systemd session integration
   programs.uwsm = {
@@ -105,12 +115,12 @@
       srwc = {
         prettyName = "srwc";
         comment = "srwc Wayland compositor managed by UWSM";
-        binPath = "${inputs.srwc.packages.${pkgs.stdenv.system}.default}/bin/srwc";
+        binPath = "${pkgs.writeShellScript "srwc-uwsm-wrapper" "exec ${inputs.srwc.packages.${pkgs.stdenv.system}.default}/bin/srwc start"}";
       };
     };
   };
 
-  programs.srwc.enable = true;
+  # programs.srwc.enable = true;
   services.displayManager = {
     defaultSession = "srwc-uwsm";
   };

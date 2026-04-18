@@ -1,73 +1,139 @@
 #+title: Srwc
 
+* Documentation & Features
 
-Start by loading /nixos-config the skill.
+Srwc is a spatial Wayland compositor built on the Smithay library. Unlike traditional tiling or floating window managers, it provides an infinite 2D canvas where windows can be placed and navigated freely.
 
+**Key Concepts:**
+- **Infinite Canvas:** Windows exist on a giant 2D plane. You pan your "camera" around to see different parts of it.
+- **Continuous Zoom:** You can zoom in/out of the canvas smoothly.
+- **Spatial Memory:** Windows stay where you put them on the canvas, even if you pan away.
 
+**Trackpad & Mouse Controls:**
+- **Pan Canvas:**
+  - Trackpad: 3-finger swipe
+  - Mouse: Click and drag on the background (Left Mouse Button)
+- **Zoom:**
+  - Trackpad: 2-finger pinch
+  - Mouse: Scroll wheel (usually with a modifier like Super)
+- **Window Management:**
+  - Move Window: Alt + Left Click drag
+  - Resize Window: Alt + Right Click drag
+  - Center on Window: Super + Ctrl + Left Click
 
+**Keyboard Shortcuts:**
+| Action            | Keybinding                               |
+| :---              | :---                                     |
+| **Terminal**        | `Super + Return`                         |
+| **App Launcher**    | `Super + Space`                          |
+| **Emacs**           | `Alt + e`                                |
+| **Task Manager**    | `Super + Escape`                         |
+| **Hibernate**       | `Super + h`                              |
+| **Cycle Windows**   | `Alt + Tab` / `Alt + Shift + Tab`        |
+| **Close Window**    | `Super + q`                              |
+| **Maximize (Fit)**  | `Super + m` / `Alt + w`                  |
+| **Fullscreen**      | `Super + f`                              |
+| **Center Focused**  | `Super + c`                              |
+| **Zoom In / Out**   | `Super + =` / `Super + -`                |
+| **Zoom Reset**      | `Super + 0` / `Super + z`                |
+| **Zoom to Fit All** | `Super + w`                              |
+| **Pan Viewport**    | `Super + Ctrl + Arrow Keys`              |
+| **Snap Camera**     | `Super + Arrow Keys` (to nearest window) |
+| **Nudge Window**    | `Super + Shift + Arrow Keys`             |
+| **Quit Session**    | `Super + Ctrl + Shift + q`               |
 
+* Configuration Reference (~/.config/srwc/config.toml)
 
+This section documents all available configuration options supported by the `srwc` compositor.
 
-* Old 
-I have been running into issues with loading into the srwc window manager. You can check the git history for a lot of the changes that we have made lately. I am still having trouble, this is currently what is happening:
-1. Rebuild home-manager and nixos-rebuild switch
-2. Then reboot
-3. Pick latest nix generation
-4. Attempt to login
-5. Met with "Unable to start session"
-6. Reboot
-7. Boot into older nix generation with xfce
-8. And that is where we are now
+**Top-Level Options:**
+- `mod_key`: String ("Super" or "Alt"). Default: "Super".
+- `cycle_modifier`: String ("Alt" or "Ctrl"). Modifier held during window cycling.
+- `focus_follows_mouse`: Boolean.
+- `autostart`: Array of strings. Commands to run on startup.
+- `env`: Table of key-value pairs for environment variables.
+- `keybindings`: Table mapping strings (e.g., "Mod+Return") to actions (e.g., "exec foot").
 
-So the current window manager is xfce, that is to be expected. However, that is because I booted into an older nix generation.
+**[input] Section:**
+- **[input.keyboard]**
+  - `repeat_rate`: Integer.
+  - `repeat_delay`: Integer.
+  - `layout`: String (e.g., "us").
+  - `variant`: String.
+  - `options`: String (XKB options).
+  - `model`: String.
+  - `layout_independent`: Boolean.
+- **[input.trackpad]**
+  - `tap_to_click`: Boolean.
+  - `natural_scroll`: Boolean.
+  - `tap_and_drag`: Boolean.
+  - `accel_speed`: Float (-1.0 to 1.0).
+  - `accel_profile`: String ("adaptive" or "flat").
+  - `click_method`: String ("button-areas" or "clickfinger").
+- **[input.mouse]**
+  - `accel_speed`: Float.
+  - `accel_profile`: String.
+  - `natural_scroll`: Boolean.
+- **[input.scroll]**
+  - `speed`: Float.
+  - `friction`: Float (momentum decay).
 
-Can you check the logs of lightdm as well as .xsession logs and other places to see what error messages are around, and potential fixes we can make to get past this?
+**[navigation] Section:**
+- `animation_speed`: Float. Speed of camera transitions (lower is faster).
+- `nudge_step`: Integer. Pixels to move window per nudge.
+- `pan_step`: Float. Base panning speed for keyboard.
+- `trackpad_speed`: Float.
+- `mouse_speed`: Float.
+- `friction`: Float. Momentum decay for flings.
+- **[navigation.edge_pan]**
+  - `zone`: Float. Distance from screen edge to trigger auto-panning.
+  - `speed_min`: Float.
+  - `speed_max`: Float.
 
-**Investigation findings:**
+**[zoom] Section:**
+- `step`: Float. Factor per zoom increment (e.g., 1.1).
+- `fit_padding`: Float. Padding used for "Zoom to Fit" actions.
 
-The "Unable to start session" error occurs because srwc is a Wayland compositor but the system is configured with LightDM (an X11 display manager) and no wayland session file exists.
+**[background] Section:**
+- `shader_path`: String. Path to a GLSL fragment shader for the background.
+- `wallpaper_path`: String. Path to a static PNG/JPG image.
 
-Root causes:
-1. No wayland session `.desktop` file exists for srwc in `/share/wayland-sessions/`
-2. srwc needs to be launched via its CLI (`srwc start`), not as a standard session
-3. The current configuration has `services.xserver.enable = true` but doesn't create a wayland session entry
+**[effects] Section:**
+- `blur_radius`: Integer.
+- `blur_strength`: Float.
 
-**Fix to add to readme.org (srwc window manager section):**
+**[decorations] Section:**
+- `bg_color`: String (Hex or Color name).
+- `fg_color`: String.
+- `corner_radius`: Integer.
 
-Use UWSM (Universal Wayland Session Manager) to wrap srwc. This handles systemd session integration and creates the proper desktop entry.
+**[xwayland] Section:**
+- `enabled`: Boolean. Default: true.
 
-```nix
-  programs.uwsm = {
-    enable = true;
-    waylandCompositors = {
-      srwc = {
-        prettyName = "srwc";
-        comment = "srwc Wayland compositor managed by UWSM";
-        binPath = "${inputs.srwc.packages.${pkgs.stdenv.system}.default}/bin/srwc";
-      };
-    };
-  };
+**[[window_rules]] (List of Tables):**
+- `app_id`: String (regex match).
+- `title`: String (regex match).
+- `position`: [Integer, Integer].
+- `size`: [Integer, Integer].
+- `widget`: Boolean (pins window to background, excludes from focus cycle).
+- `decoration`: String ("client", "server", or "none").
+- `blur`: Boolean.
+- `opacity`: Float (0.0 to 1.0).
 
-  services.displayManager.defaultSession = "srwc-uwsm";
-```
+**[[outputs]] (List of Tables):**
+- `name`: String (e.g., "eDP-1").
+- `scale`: Float.
+- `transform`: String ("normal", "90", "180", "270", "flipped", etc.).
+- `position`: "auto" or [Integer, Integer].
+- `mode`: String (e.g., "1920x1080@60").
 
-This ensures the session is started properly under systemd and is selectable in LightDM as "srwc (UWSM)".
+* History & Setup (Archived)
 
-* Fix Applied (2026-04-18)
-Added the wayland session file directly to readme.org section, but must apply via direct nix editing since tangle is disabled temporarily.
+**Investigation findings (2026-04-18):**
+The "Unable to start session" error was resolved by switching from LightDM to greetd/tuigreet and using UWSM to manage the session lifecycle.
 
-To apply manually:
-1. Edit configuration.nix (line ~670 region for srwc) to add the desktop entry
-2. Or wait until tangle is re-enabled
-
-* Flake Update (2026-04-18)
-Use the infraflakes nixos module instead of manual package. Keep nixpkgs-unstable branch.
-
-Flake changes needed:
-- Remove manual srwcPackage from flake.nix (the fetchurl-based derivation)
-- Use inputs.srwc.nixosModules.default in configuration.nix imports
-
-Applied to flake.nix:
-- Removed srwcPackage derivation
-- srwc input already uses nixpkgs-unstable
-
+**Fix Applied:**
+- Enabled `programs.uwsm` in NixOS.
+- Wrapped `srwc` with a `start` argument.
+- Switched to `emacs-pgtk` for native Wayland support.
+- Disabled `services.xserver` to resolve GPU/DRM conflicts.

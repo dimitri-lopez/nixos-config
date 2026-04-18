@@ -1,11 +1,10 @@
 { config, pkgs, ... }:
 
 {
-  home.packages = with pkgs; [
+home.packages = with pkgs; [
     waybar
     xdg-utils
     libnotify
-    xwayland
     xdg-desktop-portal-gnome
     xdg-desktop-portal-gtk
     xdg-desktop-portal
@@ -13,6 +12,10 @@
     brightnessctl
     playerctl
     jumpapp
+    fuzzel
+    wmenu
+    foot
+    alacritty
   ];
 
   home.file = {
@@ -50,9 +53,17 @@
       "alt+e" = "exec emacsclient -c -a 'emacs'"
 
       # emenu (application launcher)
-      "super+space" = "exec emenu"
+      "super+space" = "exec fuzzel"
 
-      # Zoom controls
+      # Terminal
+      "super+return" = "exec foot"
+      "alt+return" = "exec foot"
+
+      # Task Manager
+      "super+escape" = "exec foot btm"
+
+      # Open emacs
+      "alt+e" = "exec emacs"
       "super+equal" = "zoom-in"
       "super+minus" = "zoom-out"
       "super+0" = "zoom-reset"
@@ -61,24 +72,43 @@
       "alt+tab" = "cycle-windows forward"
       "alt+shift+tab" = "cycle-windows backward"
       "super+q" = "close-window"
+      "super+f" = "toggle-fullscreen"
+      "super+c" = "center-window"
+
+      # Panning
+      "super+ctrl+up" = "pan-viewport up"
+      "super+ctrl+down" = "pan-viewport down"
+      "super+ctrl+left" = "pan-viewport left"
+      "super+ctrl+right" = "pan-viewport right"
+
+      # Center nearest window in direction (Snap Camera)
+      "super+up" = "center-nearest up"
+      "super+down" = "center-nearest down"
+      "super+left" = "center-nearest left"
+      "super+right" = "center-nearest right"
+
+      # Nudge window (pseudo-tiling alignment)
+      "super+shift+up" = "nudge-window up"
+      "super+shift+down" = "nudge-window down"
+      "super+shift+left" = "nudge-window left"
+      "super+shift+right" = "nudge-window right"
 
       # Quit
       "super+ctrl+shift+q" = "quit"
+
+      # Hibernation
+      "super+h" = "exec systemctl hibernate"
+
+      [[window_rules]]
+      app_id = ".*"
+      opacity = 0.95
+      blur = true
 
       [[window_rules]]
       app_id = "emacs"
       opacity = 0.95
       blur = true
-
-      [[window_rules]]
-      app_id = "foot"
-      opacity = 0.95
-      blur = true
-
-      [[window_rules]]
-      app_id = "Alacritty"
-      opacity = 0.95
-      blur = true
+      decoration = "none"
     '';
 
     ".config/waybar/config".text = ''
