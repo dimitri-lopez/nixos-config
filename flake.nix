@@ -28,44 +28,6 @@
       system = "x86_64-linux";
       lib = nixpkgs.lib;
       pkgs = nixpkgs.legacyPackages.${system};
-      srwcPackage =
-        let
-          srwc-bin = pkgs.fetchurl {
-            url = "https://github.com/infraflakes/srwc/releases/download/v0.2.1/srwc-v0.2.1-linux-amd64-debian";
-            sha256 = "e96330afe34c7995dee01c18320a17ea4534e79a97cde67a29cb7dfd7afa7699";
-          };
-        in
-          pkgs.runCommandCC "srwc" {
-            nativeBuildInputs = [ pkgs.makeWrapper ];
-            passthru.providedSessions = [ "srwc" ];
-          } ''
-            mkdir -p $out/bin $out/share/wayland-sessions
-            cp ${srwc-bin} $out/bin/srwc
-            chmod +x $out/bin/srwc
-            cat > $out/share/wayland-sessions/srwc.desktop << 'EOF'
-[Desktop Entry]
-Name=srwc
-Comment=Trackpad-first infinite canvas Wayland compositor
-Exec=srwc start
-Type=WaylandSession
-DesktopNames=srwc
-EOF
-            wrapProgram $out/bin/srwc \
-              --prefix PATH : "${pkgs.lib.makeBinPath [pkgs.xdg-utils pkgs.libnotify pkgs.xwayland-satellite]}" \
-              --suffix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath [
-                pkgs.pipewire
-                pkgs.libdisplay-info
-                pkgs.seatd
-                pkgs.libinput
-                pkgs.libgbm
-                pkgs.libxkbcommon
-                pkgs.libdrm
-                pkgs.libglvnd
-                pkgs.xorg.libX11
-                pkgs.xorg.libXcursor
-                pkgs.xorg.libxcb
-              ]}"
-          '';
       userSettings = {
         username = "dimitril";
         name = "Dimitri";
@@ -94,7 +56,7 @@ EOF
           home = [ ./modules/wm/hyprland-minimal.nix ./modules/hyprland/hyprland-home.nix ];
         };
         srwc = {
-          system = [ ./modules/srwc/srwc.nix ];
+          system = [];
           home = [ ./modules/srwc-home.nix ];
         };
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
@@ -107,7 +69,7 @@ EOF
         nixos = lib.nixosSystem {
           inherit system;
           modules = [ ./configuration.nix ] ++ selectedDesktop.system;
-          specialArgs = { inherit inputs; srwc = srwcPackage; };
+          specialArgs = { inherit inputs; };
         };
       };
       homeConfigurations = {

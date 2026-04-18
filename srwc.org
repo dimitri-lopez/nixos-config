@@ -34,21 +34,40 @@ Root causes:
 
 **Fix to add to readme.org (srwc window manager section):**
 
-Add a wayland session file by creating a desktop entry in the nix config:
+Use UWSM (Universal Wayland Session Manager) to wrap srwc. This handles systemd session integration and creates the proper desktop entry.
 
 ```nix
-# Add to the srwc system config section (around line 670)
-services.displayManager.sessionPackages = [
-  (pkgs.writeTextDir "share/wayland-sessions/srwc.desktop" ''
-    [Desktop Entry]
-    Name=srwc
-    Comment=Trackpad-first infinite canvas Wayland compositor
-    Exec=srwc start
-    Type=WaylandSession
-    DesktopNames=srwc
- '')
-];
+  programs.uwsm = {
+    enable = true;
+    waylandCompositors = {
+      srwc = {
+        prettyName = "srwc";
+        comment = "srwc Wayland compositor managed by UWSM";
+        binPath = "${inputs.srwc.packages.${pkgs.stdenv.system}.default}/bin/srwc";
+      };
+    };
+  };
+
+  services.displayManager.defaultSession = "srwc-uwsm";
 ```
 
-This creates a `.desktop` file in the wayland-sessions directory so LightDM can present srwc as a selectable session option at login.
+This ensures the session is started properly under systemd and is selectable in LightDM as "srwc (UWSM)".
+
+* Fix Applied (2026-04-18)
+Added the wayland session file directly to readme.org section, but must apply via direct nix editing since tangle is disabled temporarily.
+
+To apply manually:
+1. Edit configuration.nix (line ~670 region for srwc) to add the desktop entry
+2. Or wait until tangle is re-enabled
+
+* Flake Update (2026-04-18)
+Use the infraflakes nixos module instead of manual package. Keep nixpkgs-unstable branch.
+
+Flake changes needed:
+- Remove manual srwcPackage from flake.nix (the fetchurl-based derivation)
+- Use inputs.srwc.nixosModules.default in configuration.nix imports
+
+Applied to flake.nix:
+- Removed srwcPackage derivation
+- srwc input already uses nixpkgs-unstable
 

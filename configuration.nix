@@ -4,11 +4,12 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      
+
       ./modules/steam.nix
       ./system/bluetooth.nix
       ./system/pipewire.nix
       ./system/syncthing.nix
+      inputs.srwc.nixosModules.default
     ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -109,10 +110,8 @@
     };
   };
 
+  programs.srwc.enable = true;
   services.displayManager = {
-    sessionPackages = with pkgs; [
-      inputs.srwc.packages.${pkgs.stdenv.system}.default
-    ];
     defaultSession = "srwc-uwsm";
   };
   services.seatd.enable = true;
