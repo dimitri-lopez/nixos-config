@@ -225,6 +225,10 @@ home.packages = with pkgs; [
       # or use tiled image:
       # tile_path = "~/.config/srwc/tile.png"
 
+      [effects]
+      blur_radius = 5
+      blur_strength = 0.5
+
       [keybindings]
       # Maximize (fit window to viewport)
       "alt+w" = "fit-window"
