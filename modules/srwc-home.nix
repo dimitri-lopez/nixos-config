@@ -23,27 +23,16 @@ home.packages = with pkgs; [
       # srwc configuration
       # https://github.com/infraflakes/srwc
 
-      [mod]
-      super = true
-
       [input.keyboard]
       repeat_rate = 75
       repeat_delay = 185
 
       [cursor]
-      hide_timeout = 0
-      # hide_on_key_press = false
-
-      [input]
-      follow_cursor = "always"
 
       [background]
       # shader_path = "~/.config/srwc/bg.glsl"
       # or use tiled image:
       # tile_path = "~/.config/srwc/tile.png"
-
-      [workspaces]
-      # workspace_labels = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
       [keybindings]
       # Maximize (fit window to viewport)
@@ -63,8 +52,7 @@ home.packages = with pkgs; [
       # Task Manager
       "super+escape" = "exec foot btm"
 
-      # Open emacs
-      "alt+e" = "exec emacs"
+      # Zoom controls
       "super+equal" = "zoom-in"
       "super+minus" = "zoom-out"
       "super+0" = "zoom-reset"
