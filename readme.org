@@ -882,7 +882,7 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
 :END:
 ** Setup
 #+begin_src nix :noweb yes :tangle home.nix :noweb-ref home.nix-setup
-{ config, pkgs, ... }:
+{ config, lib, pkgs, userSettings, ... }:
 
 {
 <<home.nix.imports>>
@@ -913,6 +913,12 @@ See [[*home.nix modules][home.nix modules]].
   # want to update the value, then make sure to first check the Home Manager
   # release notes.
   home.stateVersion = "25.05"; # Please read the comment before changing.
+
+  home.activation.checkSrwcConfig = lib.hmModule.dagEntryAfter ["checkConfig"] ''
+    if [ "${userSettings.wm}" = "srwc" ]; then
+      srwc check-config || true
+    fi
+  '';
 #+end_src
 ** home.nix packages inbox
 # Packages go to their own modules now - see modules/*.nix

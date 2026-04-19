@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, userSettings, ... }:
 
 {
 imports = [
@@ -33,6 +33,12 @@ nixpkgs.config.permittedInsecurePackages = [
 # want to update the value, then make sure to first check the Home Manager
 # release notes.
 home.stateVersion = "25.05"; # Please read the comment before changing.
+
+home.activation.checkSrwcConfig = lib.hmModule.dagEntryAfter ["checkConfig"] ''
+  if [ "${userSettings.wm}" = "srwc" ]; then
+    srwc check-config || true
+  fi
+'';
 # Home Manager is pretty good at managing dotfiles. The primary way to manage
 # plain files is through 'home.file'.
 home.file = {
