@@ -15,6 +15,44 @@ See my [[install.org]] for installation instructions.
 - [[*Try out python package][Install python package]]
 
 * Inbox
+** Boox tablet droidux module
+- [X] Added to readme.org inbox
+#+begin_src nix :tangle ./modules/droidux.nix
+{ pkgs, ... }:
+
+{
+  home.packages = with pkgs; [
+    xournalpp
+    android-tools
+    (pkgs.callPackage ({ stdenv, fetchurl, xz }: stdenv.mkDerivation {
+      pname = "droidux";
+      version = "572f903";
+      src = fetchurl {
+        url = "https://github.com/leath-dub/droidux/releases/download/572f903/droidux-x86_64-linux-musl.xz";
+        sha256 = "1wr5frj7ysp57c9zzw1hdhazlkfiqw96bqwdn3dan4xxzmn9683j";
+      };
+      nativeBuildInputs = [ xz ];
+      dontBuild = true;
+      dontConfigure = true;
+      dontPatchShebangs = true;
+      unpackPhase = "true";
+      buildPhase = "true";
+      installPhase = ''
+        mkdir -p $out/bin
+        xz -d <$src -c >$out/bin/droidux
+        chmod +x $out/bin/droidux
+      '';
+    }) {})
+  ];
+
+  programs.bash = {
+    enable = true;
+    shellAliases = {
+      droidux-connect = "droidux \"onyx_emp_Wacom I2C Digitizer\"";
+    };
+  };
+}
+#+end_src
 ** itch.nix
 - [ ] [[*home.nix modules][home.nix modules]]
 - [ ] [[elisp:(org-babel-tangle)]]
@@ -459,6 +497,7 @@ Always included regardless of wm setting:
 #+begin_src nix :noweb-ref home.nix.imports
 imports = [
   ./modules/common.nix
+  ./modules/droidux.nix
   ./modules/git.nix
   ./modules/phd.nix
   ./modules/itch.nix

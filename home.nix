@@ -3,6 +3,7 @@
 {
 imports = [
   ./modules/common.nix
+  ./modules/droidux.nix
   ./modules/git.nix
   ./modules/phd.nix
   ./modules/itch.nix
