@@ -34,12 +34,6 @@ nixpkgs.config.permittedInsecurePackages = [
 # want to update the value, then make sure to first check the Home Manager
 # release notes.
 home.stateVersion = "25.05"; # Please read the comment before changing.
-
-home.activation.checkSrwcConfig = ''
-  if [ "${userSettings.wm}" = "srwc" ]; then
-    /run/current-system/sw/bin/srwc check-config || true
-  fi
-'';
 # Home Manager is pretty good at managing dotfiles. The primary way to manage
 # plain files is through 'home.file'.
 home.file = {

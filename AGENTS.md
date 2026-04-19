@@ -68,10 +68,19 @@ sudo nixos-rebuild switch --flake . --upgrade
 - `configuration.nix` requires sudo for ownership: `sudo chown root configuration.nix`
 - When creating new module files, stage them with `git add` before running home-manager switch
 - Window manager is configured via `userSettings.wm` in readme.org's flake.nix section
+- When creating new files (especially *.nix), add them to readme.org using `#+begin_src nix :tangle ./path/to/module.nix` blocks so they are tracked by the literate programming workflow
 
 ## Module Locations
 - System modules: `~/.dotfiles/modules/*.nix`
 - Home modules referenced in `home.nix` imports
+
+## System vs Home-Manager Split
+
+Window manager and other compositor-specific configs should be split:
+- **System config** (`system/*.nix`): Login managers, compositor services, seat management
+- **Home config** (`modules/*-home.nix`): User packages, dotfiles, activation scripts
+
+This allows cleaner WM switching - changing `userSettings.wm` loads the right modules automatically.
 
 ## Reference
 See loaded `nixos-config` skill for detailed guidance.

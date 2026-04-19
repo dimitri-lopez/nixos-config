@@ -1,7 +1,11 @@
 { config, pkgs, ... }:
 
 {
-home.packages = with pkgs; [
+  home.activation.checkSrwcConfig = ''
+    /run/current-system/sw/bin/srwc check-config || true
+  '';
+
+  home.packages = with pkgs; [
     waybar
     xdg-utils
     libnotify

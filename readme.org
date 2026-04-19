@@ -16,7 +16,10 @@ See my [[install.org]] for installation instructions.
 
 * Inbox
 ** Boox tablet droidux module
-- [X] Added to readme.org inbox
+Usage:
+1. Enable USB debugging on Boox (Settings → Developer options → USB debugging)
+2. Connect Boox via USB
+3. Run: ~droidux-connect~ or ~droidux "onyx_emp_Wacom I2C Digitizer"~
 #+begin_src nix :tangle ./modules/droidux.nix
 { pkgs, ... }:
 
@@ -230,7 +233,11 @@ super + shift + h
 { config, pkgs, ... }:
 
 {
-home.packages = with pkgs; [
+  home.activation.checkSrwcConfig = ''
+    /run/current-system/sw/bin/srwc check-config || true
+  '';
+
+  home.packages = with pkgs; [
     waybar
     xdg-utils
     libnotify
@@ -487,7 +494,6 @@ imports =
     ./system/bluetooth.nix
     ./system/pipewire.nix
     ./system/syncthing.nix
-    inputs.srwc.nixosModules.default
   ];
 #+end_src
 
@@ -543,7 +549,7 @@ imports = [
           home = [ ./modules/wm/hyprland-minimal.nix ./modules/hyprland/hyprland-home.nix ];
         };
         srwc = {
-          system = [ ];
+          system = [ ./system/srwc.nix ];
           home = [ ./modules/srwc-home.nix ];
         };
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
@@ -731,35 +737,6 @@ services.xserver.xkb = {
   variant = "";
 };
 #+end_src
-** srwc window manager
-#+begin_src nix
-services.xserver.enable = false;
-services.greetd = {
-  enable = true;
-  settings = {
-    default_session = {
-      command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --cmd 'uwsm start -S srwc'";
-      user = "greeter";
-    };
-  };
-};
-services.xserver.displayManager.lightdm.enable = false;
-programs.uwsm = {
-  enable = true;
-  waylandCompositors = {
-    srwc = {
-      prettyName = "srwc";
-      comment = "srwc Wayland compositor managed by UWSM";
-      binPath = "${pkgs.writeShellScript "srwc-uwsm-wrapper" "exec ${inputs.srwc.packages.${pkgs.stdenv.system}.default}/bin/srwc start"}";
-    };
-  };
-};
-services.displayManager = {
-  defaultSession = "srwc-uwsm";
-};
-services.seatd.enable = true;
-services.dbus.enable = true;
-#+end_src
 ** vxwm window manager
 #+begin_src nixx
 services.xserver.enable = true;
@@ -944,12 +921,6 @@ See [[*home.nix modules][home.nix modules]].
   # want to update the value, then make sure to first check the Home Manager
   # release notes.
   home.stateVersion = "25.05"; # Please read the comment before changing.
-
-  home.activation.checkSrwcConfig = ''
-    if [ "${userSettings.wm}" = "srwc" ]; then
-      /run/current-system/sw/bin/srwc check-config || true
-    fi
-  '';
 #+end_src
 ** home.nix packages inbox
 # Packages go to their own modules now - see modules/*.nix
@@ -2854,10 +2825,46 @@ in
   };
 }
 #+end_src
+** srwc.nix
+Loaded via flake's selectedDesktop when userSettings.wm = "srwc"
+#+begin_src nix :tangle ./system/srwc.nix
+{ config, pkgs, inputs, ... }:
+
+{
+  imports = [ ./pipewire.nix ./dbus.nix ];
+
+  services.xserver.enable = false;
+  services.greetd = {
+    enable = true;
+    settings = {
+      default_session = {
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --cmd 'uwsm start -S srwc'";
+        user = "greeter";
+      };
+    };
+  };
+  services.xserver.displayManager.lightdm.enable = false;
+  programs.uwsm = {
+    enable = true;
+    waylandCompositors = {
+      srwc = {
+        prettyName = "srwc";
+        comment = "srwc Wayland compositor managed by UWSM";
+        binPath = "${pkgs.writeShellScript "srwc-uwsm-wrapper" "exec ${inputs.srwc.packages.${pkgs.stdenv.system}.default}/bin/srwc start"}";
+      };
+    };
+  };
+  services.displayManager = {
+    defaultSession = "srwc-uwsm";
+  };
+  services.seatd.enable = true;
+  services.dbus.enable = true;
+}
+#+end_src
 * Hyprland
 ** hyprland.nix
 We want this to be imported within configuration.nix modules:
-- [[*configuration.nix modules][configuration.nix nodules]]
+- [[*configuration.nix modules][configuration.nix modules]]
 #+begin_src nix :tangle ./system/hyprland.nix
 { config, lib, pkgs, ... }:
 

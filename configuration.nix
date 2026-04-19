@@ -9,7 +9,6 @@
       ./system/bluetooth.nix
       ./system/pipewire.nix
       ./system/syncthing.nix
-      inputs.srwc.nixosModules.default
     ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -97,32 +96,6 @@
     layout = "us";
     variant = "";
   };
-  services.xserver.enable = false;
-  services.greetd = {
-    enable = true;
-    settings = {
-      default_session = {
-        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --cmd 'uwsm start -S srwc'";
-        user = "greeter";
-      };
-    };
-  };
-  services.xserver.displayManager.lightdm.enable = false;
-  programs.uwsm = {
-    enable = true;
-    waylandCompositors = {
-      srwc = {
-        prettyName = "srwc";
-        comment = "srwc Wayland compositor managed by UWSM";
-        binPath = "${pkgs.writeShellScript "srwc-uwsm-wrapper" "exec ${inputs.srwc.packages.${pkgs.stdenv.system}.default}/bin/srwc start"}";
-      };
-    };
-  };
-  services.displayManager = {
-    defaultSession = "srwc-uwsm";
-  };
-  services.seatd.enable = true;
-  services.dbus.enable = true;
   # Enable CUPS to print documents.
   services.printing.enable = true;
   # Define a user account. Don't forget to set a password with ‘passwd’.
