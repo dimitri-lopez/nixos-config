@@ -40,11 +40,34 @@ home-manager switch --flake . --update && sudo nixos-rebuild switch --flake . --
 sudo nixos-rebuild switch --flake . --upgrade
 ```
 
+## Literate Programming
+
+- Edit `readme.org`, not any .nix files directly
+- Files like `flake.nix`, `configuration.nix`, `home.nix`, and `modules/*.nix` are regenerated on tangle
+- Tangle command: `doom +org tangle ~/.dotfiles/readme.org`
+
+## Inbox Workflow
+
+- New packages or settings go to the **Inbox** section at the top of `readme.org` first
+- After verifying they work, move to the appropriate module
+
+## Module Organization
+
+| Location | Purpose |
+|----------|---------|
+| `modules/*.nix` | Home-manager modules |
+| `modules/python-packages/*.nix` | Custom Python packages |
+| `modules/npm-packages/*.nix` | Custom npm packages |
+| `modules/wm/*.nix` | Window manager modules |
+| `modules/xfce/`, `modules/hyprland/` | WM-specific subdirectories |
+| `system/*.nix` | System-level modules |
+
 ## Important Notes
+
 - Edit `readme.org`, not any of the .nix files directly. Upon tangling they will be repopulated.
-- User needs new shell session for PATH/env changes to take effect
 - `configuration.nix` requires sudo for ownership: `sudo chown root configuration.nix`
 - When creating new module files, stage them with `git add` before running home-manager switch
+- Window manager is configured via `userSettings.wm` in readme.org's flake.nix section
 
 ## Module Locations
 - System modules: `~/.dotfiles/modules/*.nix`
