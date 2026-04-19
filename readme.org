@@ -192,11 +192,10 @@ super + shift + h
 { config, pkgs, ... }:
 
 {
-  home.packages = with pkgs; [
+home.packages = with pkgs; [
     waybar
     xdg-utils
     libnotify
-    xwayland-satellite
     xdg-desktop-portal-gnome
     xdg-desktop-portal-gtk
     xdg-desktop-portal
@@ -204,6 +203,10 @@ super + shift + h
     brightnessctl
     playerctl
     jumpapp
+    fuzzel
+    wmenu
+    foot
+    alacritty
   ];
 
   home.file = {
@@ -220,7 +223,7 @@ super + shift + h
 
       [cursor]
       hide_timeout = 0
-      hide_on_key_press = false
+      # hide_on_key_press = false
 
       [input]
       follow_cursor = "always"
@@ -242,9 +245,17 @@ super + shift + h
       "alt+e" = "exec emacsclient -c -a 'emacs'"
 
       # emenu (application launcher)
-      "super+space" = "exec emenu"
+      "super+space" = "exec fuzzel"
 
-      # Zoom controls
+      # Terminal
+      "super+return" = "exec foot"
+      "alt+return" = "exec foot"
+
+      # Task Manager
+      "super+escape" = "exec foot btm"
+
+      # Open emacs
+      "alt+e" = "exec emacs"
       "super+equal" = "zoom-in"
       "super+minus" = "zoom-out"
       "super+0" = "zoom-reset"
@@ -253,24 +264,43 @@ super + shift + h
       "alt+tab" = "cycle-windows forward"
       "alt+shift+tab" = "cycle-windows backward"
       "super+q" = "close-window"
+      "super+f" = "toggle-fullscreen"
+      "super+c" = "center-window"
+
+      # Panning
+      "super+ctrl+up" = "pan-viewport up"
+      "super+ctrl+down" = "pan-viewport down"
+      "super+ctrl+left" = "pan-viewport left"
+      "super+ctrl+right" = "pan-viewport right"
+
+      # Center nearest window in direction (Snap Camera)
+      "super+up" = "center-nearest up"
+      "super+down" = "center-nearest down"
+      "super+left" = "center-nearest left"
+      "super+right" = "center-nearest right"
+
+      # Nudge window (pseudo-tiling alignment)
+      "super+shift+up" = "nudge-window up"
+      "super+shift+down" = "nudge-window down"
+      "super+shift+left" = "nudge-window left"
+      "super+shift+right" = "nudge-window right"
 
       # Quit
       "super+ctrl+shift+q" = "quit"
+
+      # Hibernation
+      "super+h" = "exec systemctl hibernate"
+
+      [[window_rules]]
+      app_id = ".*"
+      opacity = 0.95
+      blur = true
 
       [[window_rules]]
       app_id = "emacs"
       opacity = 0.95
       blur = true
-
-      [[window_rules]]
-      app_id = "foot"
-      opacity = 0.95
-      blur = true
-
-      [[window_rules]]
-      app_id = "Alacritty"
-      opacity = 0.95
-      blur = true
+      decoration = "none"
     '';
 
     ".config/waybar/config".text = ''
@@ -308,7 +338,7 @@ super + shift + h
     '';
 
     ".config/waybar/style.css".text = ''
-      * {
+      ,* {
         border: none;
         font-family: "Iosevka";
         font-size: 12px;
@@ -330,11 +360,8 @@ super + shift + h
 
     ".xprofile".text = ''
       #!/bin/sh
-      # XDG portals for screen sharing
-      xdg-desktop-portal &
-
-      # Start waybar
-      waybar &
+      # Wayland session - xprofile runs before compositor
+      # Start xdg-desktop-portal after compositor is ready
     '';
   };
 
@@ -430,6 +457,7 @@ imports =
     ./system/bluetooth.nix
     ./system/pipewire.nix
     ./system/syncthing.nix
+    inputs.srwc.nixosModules.default
   ];
 #+end_src
 
@@ -533,7 +561,10 @@ inputs = {
   opencode.url = "github:AodhanHayter/opencode-flake";
   srwc = {
     url = "github:infraflakes/srwc";
-    inputs.nixpkgs.follows = "nixpkgs";
+    inputs.nixpkgs.follows = "nixpkgs-unstable";
+  };
+  nixpkgs-unstable = {
+    url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 };
 #+end_src
@@ -559,6 +590,9 @@ See [[*configuration.nix modules][configuration.nix modules]]
 # Bootloader.
 boot.loader.systemd-boot.enable = true;
 boot.loader.efi.canTouchEfiVariables = true;
+# TODO Not fully sure what these next two lines are for
+boot.resumeDevice = "/dev/disk/by-uuid/667f86cc-c1c9-416b-928b-f08a01bfb12c";
+boot.kernelParams = [ "resume=UUID=667f86cc-c1c9-416b-928b-f08a01bfb12c" ];
 
 networking.hostName = "nixos"; # Define your hostname.
 networking.networkmanager.enable = true; # Enable networking
@@ -668,12 +702,32 @@ services.xserver.xkb = {
 #+end_src
 ** srwc window manager
 #+begin_src nix
-services.xserver.enable = true;
-services.xserver.displayManager.lightdm.enable = true;
-services.xserver.displayManager.lightdm.greeters.slick.enable = true;
-services.displayManager.sessionPackages = with pkgs; [
-  inputs.srwc.packages.${pkgs.stdenv.system}.default
-];
+services.xserver.enable = false;
+services.greetd = {
+  enable = true;
+  settings = {
+    default_session = {
+      command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --cmd 'uwsm start -S srwc'";
+      user = "greeter";
+    };
+  };
+};
+services.xserver.displayManager.lightdm.enable = false;
+programs.uwsm = {
+  enable = true;
+  waylandCompositors = {
+    srwc = {
+      prettyName = "srwc";
+      comment = "srwc Wayland compositor managed by UWSM";
+      binPath = "${pkgs.writeShellScript "srwc-uwsm-wrapper" "exec ${inputs.srwc.packages.${pkgs.stdenv.system}.default}/bin/srwc start"}";
+    };
+  };
+};
+services.displayManager = {
+  defaultSession = "srwc-uwsm";
+};
+services.seatd.enable = true;
+services.dbus.enable = true;
 #+end_src
 ** vxwm window manager
 #+begin_src nixx
@@ -924,11 +978,13 @@ Common packages, services, and autostart for all desktop environments.
     redshift
     syncthing
     vim
+    htop
+    bottom
   ];
-  
+
   # Home-manager services (auto-managed by home-manager)
   services.redshift = {
-    enable = true;
+    enable = false; # Disabled to prevent premature graphical-session.target activation
     latitude = "42.36";
     longitude = "-71.06";
   };
@@ -1245,7 +1301,7 @@ echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new ha
     playwright-test # CLI for running playwright tests
 
     mu
-    ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    ((emacsPackagesFor emacs-pgtk).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
     # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.etags ]))
     isync
     offlineimap
@@ -1724,6 +1780,36 @@ python3.pkgs.buildPythonApplication rec {
     license = lib.licenses.lgpl21Only;
     maintainers = with lib.maintainers; [ ];
     mainProgram = "py5";
+  };
+}
+#+end_src
+*** pyobjc.nix
+#+begin_src nix :tangle no
+
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+}:
+
+stdenv.mkDerivation rec {
+  pname = "pyobjc";
+  version = "11.1";
+
+  src = fetchFromGitHub {
+    owner = "ronaldoussoren";
+    repo = "pyobjc";
+    rev = "v${version}";
+    hash = "sha256-vbw9F2CQRykP+042lTUL7hrJ2rVWnjk9JMKnUdPWTGQ=";
+  };
+
+  meta = {
+    description = "The Python <-> Objective-C Bridge with bindings for macOS frameworks";
+    homepage = "https://github.com/ronaldoussoren/pyobjc";
+    license = lib.licenses.unfree; # FIXME: nix-init did not find a license
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "pyobjc";
+    platforms = lib.platforms.all;
   };
 }
 #+end_src

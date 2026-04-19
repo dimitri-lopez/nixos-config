@@ -1,5 +1,31 @@
 #+title: Todo
 
 * TODO List
+** SRWC errors
+Upon checking:
+#+begin_src bash :results verbatim
+srwc check-config
+#+end_src
+
+#+RESULTS:
+: 2026-04-19T15:07:11.402003Z  INFO srwc::config: Loaded config from /home/dimitril/.config/srwc/config.toml
+: 2026-04-19T15:07:11.402128Z ERROR srwc::config: Failed to parse config: TOML parse error at line 44, column 1
+:    |
+: 44 | "alt+e" = "exec emacs"
+:    | ^^^^^^^
+: duplicate key
+: 
+: 2026-04-19T15:07:11.404490Z  INFO srwc: Config OK
+
+These need to be fixed, until the config is clean.
+
+** Linting of errors
+It would be nice before anytime we run home-manager, that we run a linting check like the above, make sure nothing goes through the gaps.
+
+Is there a way to have this happen before home-manager switch? Or should I create a custom bash command that runs the checks before doing so?
+
+
+
+* TODO List
 ** TODO mu4e
 ** TODO Fix brave nixos extraOpt

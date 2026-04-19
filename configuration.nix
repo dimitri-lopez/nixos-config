@@ -4,7 +4,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-
+      
       ./modules/steam.nix
       ./system/bluetooth.nix
       ./system/pipewire.nix
@@ -14,6 +14,7 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  # TODO Not fully sure what these next two lines are for
   boot.resumeDevice = "/dev/disk/by-uuid/667f86cc-c1c9-416b-928b-f08a01bfb12c";
   boot.kernelParams = [ "resume=UUID=667f86cc-c1c9-416b-928b-f08a01bfb12c" ];
   
@@ -107,8 +108,6 @@
     };
   };
   services.xserver.displayManager.lightdm.enable = false;
-  # UWSM - Universal Wayland Session Manager
-  # Wraps Wayland compositors with systemd session integration
   programs.uwsm = {
     enable = true;
     waylandCompositors = {
@@ -119,8 +118,6 @@
       };
     };
   };
-
-  # programs.srwc.enable = true;
   services.displayManager = {
     defaultSession = "srwc-uwsm";
   };

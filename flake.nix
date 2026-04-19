@@ -56,7 +56,7 @@
           home = [ ./modules/wm/hyprland-minimal.nix ./modules/hyprland/hyprland-home.nix ];
         };
         srwc = {
-          system = [];
+          system = [ ];
           home = [ ./modules/srwc-home.nix ];
         };
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");

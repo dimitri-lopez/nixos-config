@@ -10,7 +10,7 @@
     htop
     bottom
   ];
-  
+
   # Home-manager services (auto-managed by home-manager)
   services.redshift = {
     enable = false; # Disabled to prevent premature graphical-session.target activation

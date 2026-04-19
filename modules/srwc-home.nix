@@ -32,6 +32,7 @@ home.packages = with pkgs; [
 
       [cursor]
       hide_timeout = 0
+      # hide_on_key_press = false
 
       [input]
       follow_cursor = "always"
