@@ -5,6 +5,7 @@
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       
+      ./modules/kanata.nix
       ./modules/steam.nix
       ./system/bluetooth.nix
       ./system/pipewire.nix
@@ -32,6 +33,7 @@
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   # hardware.enableAllFirmware = true;
+    hardware.uinput.enable = true;
   services.devmon.enable = true;
   services.gvfs.enable = true; # needed for emacs tramp
   services.udisks2.enable = true;
@@ -103,7 +105,7 @@
     isNormalUser = true;
     description = "Dimitri Lopez";
     # adding mlocate to use find file within doom emacs
-    extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" "mlocate" "docker"];
+    extraGroups = [ "networkmanager" "wheel" "storage" "input" "uinput" "dialout" "video" "render" "mlocate" "docker"];
     packages = with pkgs; [
     #  thunderbird
     ];

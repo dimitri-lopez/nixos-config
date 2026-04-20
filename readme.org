@@ -482,6 +482,7 @@ imports =
   [ # Include the results of the hardware scan.
     ./hardware-configuration.nix
     
+    ./modules/kanata.nix
     ./modules/steam.nix
     ./system/bluetooth.nix
     ./system/pipewire.nix
@@ -650,6 +651,7 @@ networking.firewall.allowedUDPPorts = [ 22000 21027 ];
 ** Power issues
 #+begin_src nix
 # hardware.enableAllFirmware = true;
+  hardware.uinput.enable = true;
 #+end_src
 
 ** USB
@@ -801,7 +803,7 @@ users.users.dimitril = {
   isNormalUser = true;
   description = "Dimitri Lopez";
   # adding mlocate to use find file within doom emacs
-  extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" "mlocate" "docker"];
+  extraGroups = [ "networkmanager" "wheel" "storage" "input" "uinput" "dialout" "video" "render" "mlocate" "docker"];
   packages = with pkgs; [
   #  thunderbird
   ];
@@ -1042,6 +1044,32 @@ esac
 # Source common autostart for X11
 [ -f ~/.local/bin/common-autostart ] && ~/.local/bin/common-autostart &
   '';
+}
+#+end_src
+
+** kanata.nix
+#+begin_src nix :tangle ./modules/kanata.nix
+{ config, pkgs, ... }:
+
+{
+  services.kanata = {
+    enable = true;
+    keyboards = {
+      default = {
+        # Empty devices list allows kanata to auto-detect all keyboards
+        devices = [ ];
+        config = ''
+          (defsrc
+            caps
+          )
+
+          (deflayer base
+            lctl
+          )
+        '';
+      };
+    };
+  };
 }
 #+end_src
 

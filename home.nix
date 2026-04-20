@@ -14,6 +14,7 @@ imports = [
   ./modules/brave.nix
   ./modules/minecraft.nix
   ./modules/watchy.nix
+  ./modules/mcp-nixos.nix
 ];
 # Home Manager needs a bit of information about you and the paths it should
 # manage.

@@ -22,7 +22,14 @@
     nixpkgs-unstable = {
       url = "github:NixOS/nixpkgs/nixos-unstable";
     };
+  
+    mcp-nixos = {
+      url = "github:utensils/mcp-nixos";
+    };
+  
+    # neomacs.url = "github:eval-exec/neomacs";
   };
+  # outputs = inputs@{ self, nixpkgs, home-manager, neomacs, ... }:
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
@@ -62,6 +69,7 @@
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
       packages.x86_64-linux = {
+        # neomacs = inputs.neomacs.packages.x86_64-linux.default;
       };
       legacyPackages.x86_64-linux = {
       };
