@@ -20,6 +20,7 @@
     wmenu
     foot
     alacritty
+    xfce.xfce4-taskmanager
   ];
 
   home.file = {
@@ -58,7 +59,7 @@
       "alt+return" = "exec foot"
 
       # Task Manager
-      "super+escape" = "exec foot btm"
+      "super+escape" = "exec xfce4-taskmanager"
 
       # Zoom controls
       "super+equal" = "zoom-in"
