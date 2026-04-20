@@ -1,37 +1,8 @@
 #+title: Notes
 
 
-Start by loading /nixos-config the skill.
 
-I have been running into issues with loading into the vxwm manager. You can check the git history for a lot of the changes that we have made lately. I am still having trouble, this is currently what is happening:
-1. Rebuild home-manager and nixos-rebuild switch
-2. Then reboot
-3. Pick latest nix generation
-4. Attempt to login
-5. Met with "Unable to start session"
-6. Reboot
-7. Boot into older nix generation with xfce
-8. And that is where we are now
-
-So the current window manager is xfce, that is to be expected. However, that is because I booted into an older nix generation.
-
-Can you check the logs of lightdm as well as .xsession logs and other places to see what error messages are around, and potential fixes we can make to get past this?
-
-* Fixed vxwm and session loading issues [2026-04-11 Sat]
-
-The `vxwm` session was failing due to several configuration errors.
-
-**Fixes Applied:**
-- **Binary Path**: Changed `make DESTDIR=$out install` to `make PREFIX=$out install` in the `vxwm` derivation. Previously, it installed to `/usr/local/bin/vxwm`, but the `.desktop` entry expected `/bin/vxwm`.
-- **Desktop Entry**: Removed single quotes from the `EOF` heredoc for `vxwm.desktop` creation. This allows `$out` to expand correctly to the Nix store path.
-- **Script Permissions**: Added `executable = true;` to the `common-autostart` script in `common.nix`.
-- **Home Manager Paths**: Removed `~` from `home.file` paths (e.g., `.config/sxhkd/sxhkdrc`). Home Manager creates these relative to `$HOME`, so literal `~` was creating a literal `~/` directory.
-- **System PATH**: Removed manual `PATH` override in `configuration.nix` that was missing core system paths like `/run/wrappers/bin` (which breaks `sudo`).
-- **Conflict Resolution**: Removed manual config files in `~/.config/tint2` and `~/.config/sxhkd` to allow Home Manager to link them correctly.
-
-**Status:**
-- `home-manager switch --flake .` succeeded.
-- `nix flake check` passes.
-- User needs to run `sudo nixos-rebuild switch --flake .` and then reboot to test the session.
-
-
+* TODO Items
+* Plans
+* Other notes
+* Current Ideas
