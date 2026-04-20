@@ -16,31 +16,412 @@ I see weylus in my browswer that I have connected to, but there is no video?
 - Run: ~droidux "onyx_emp_Wacom I2C Digitizer"~
 - Use Xournal++ for PDF annotation
 - Install: ~sudo apt install xournalpp~
-** SRWC errors
-Upon checking:
-#+begin_src bash :results verbatim
-srwc check-config
-#+end_src
-
-#+RESULTS:
-: 2026-04-19T15:07:11.402003Z  INFO srwc::config: Loaded config from /home/dimitril/.config/srwc/config.toml
-: 2026-04-19T15:07:11.402128Z ERROR srwc::config: Failed to parse config: TOML parse error at line 44, column 1
-:    |
-: 44 | "alt+e" = "exec emacs"
-:    | ^^^^^^^
-: duplicate key
-: 
-: 2026-04-19T15:07:11.404490Z  INFO srwc: Config OK
-
-These need to be fixed, until the config is clean.
-
-** Linting of errors
-It would be nice before anytime we run home-manager, that we run a linting check like the above, make sure nothing goes through the gaps.
-
-Is there a way to have this happen before home-manager switch? Or should I create a custom bash command that runs the checks before doing so?
-
-
 
 * TODO List
+** Window manager conditionals
+- srwc only with wayland window managers (hyprland, wayfire, etc.)
+- emacs-pgtk only with wayland (emacs-gtk3 for X11)
+
+Example nix conditionals:
+#+begin_src nix
+pkgs = import NixOS-25_05 {
+  locale = "en_US.UTF-8";
+  config = {
+    wm = "hyprland"; # or "srwc"
+    services = {
+      ex.enable = wm == "srwc";
+    };
+  };
+};
+#+end_src
+** Kanata Features Detailed
+*** Chords (defchordsv2)
+Press multiple keys simultaneously → different action. V2 allows overlapping chords.
+
+#+begin_src lisp
+;; Basic syntax
+(defchordsv2
+  (j k) esc 50 all-released ()           ; j+k → esc (vim-style)
+  (s d f) enter 50 first-release ()      ; s+d+f → enter
+  (w e r) tab 50 all-released (nav sym)   ; chord disabled in nav/sym layers
+)
+
+;; Timing: 50ms = "instant", 100-200ms = must hold briefly
+;; release-behavior: all-released, first-release, hold
+#+end_src
+
+Common endgame uses:
+- vim escape: ~(j k)~ → ~esc~
+- desktop switching: ~(w e)~ → left, ~(e r)~ → right
+- brackets: ~(j l)~ → ~=~, ~(k l)~ → ~=~, ~(l ;)~ → -=~
+
+*** Tap-dance
+Same key tapped multiple times → different actions.
+
+#+begin_src lisp
+(defalias
+  td-caps (tap-dance 200 (caps esc lctl))      ; 1tap=esc, 2tap=ctrl
+  td-symbol (tap-dance 300 (; : ; :))     ; ; → ; ;; → : (shifted)
+)
+
+;; Eager variant: activates each tap immediately
+td-eager (tap-dance-eager 500 (a b c d spc))
+#+end_src
+
+Endgame uses:
+- Caps Lock → escape, hold → control
+- Symbol key → quickly cycle through variations
+- Layer toggle via tapping
+
+*** Macros vs Dynamic Macros
+
+| Feature  | Macros           | Dynamic Macros      |
+|----------+------------------+---------------------|
+| Timing   | Fixed delays     | Records real timing |
+| Use case | Static texts     | Runtime recording   |
+| Changes  | Must edit config | Record while typing |
+
+#+begin_src lisp
+;; Static macro - defined in config
+(defalias
+  email (macro d i m i t r l i @example.com)
+  del-line (macro C-a C-k)
+)
+
+;; Dynamic macro - record at runtime
+(defalias
+  dmr (dynamic-macro-record 0)
+  dmp (dynamic-macro-play 0)
+  dms (dynamic-macro-record-stop)
+)
+;; Activate with a key, then type, then activate dms to save
+#+end_src
+
+*** Sequences (Leader keys)
+Vim-like leader sequences. Press keys in sequence to trigger actions.
+
+#+begin_src lisp
+;; Basic: leader key triggers sequence mode
+(defalias leader (ldr))
+
+;; Define sequences
+(defseq
+  fk1 (lsft a)              ; leader+a = Shift+a
+  fk2 (C-x C-c)            ; leader+x+c = exit emacs
+  ge (unicode 🐧)           ; leader+g+e = penguin
+)
+(deflayer base
+  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+  _ _ _ _ _ @leader _ _ _ _ _ _ _ _
+)
+
+;; In sequence mode, type: g e → outputs 🐧
+;; Or use on-idle to auto-exit
+(defseq
+  ge (unicode 🐧) 50 on-idle
+)
+#+end_src
+
+*** TCP Server
+Kanata can run a TCP server for external programs to interact.
+
+#+begin_src lisp
+;; Enable in defcfg
+(defcfg
+  enable-external-editor yes  ; Emacs integration
+  tcp-server-addr "127.0.0.1"
+  tcp-server-port 9876
+)
+
+;; External programs can:
+;; - Query current layer
+;; - Switch layers
+;; - Get layer change notifications
+;; - Execute actions
+
+;; Example: emacs can switch kanata layers
+;; nix-build wrapper for emacs integration exists
+#+end_src
+
+*** Virtual Keys (Fake keys)
+Internal triggers not mapped to physical keys. Used for advanced logic.
+
+#+begin_src lisp
+(deffakekeys
+  to-num (layer-switch numbers)
+  enter-typing (layer-while-held typing)
+)
+
+;; Use in switch/conditional logic
+(defalias
+  fk (switch ((layer num)) @to-num break ()))
+#+end_src
+
+*** Mouse Actions
+Move cursor, scroll, click - useful forno mouse setup.
+
+#+begin_src lisp
+(deflayer mouse
+  _    @mwu @mwd @mwl @mwr _    _    _    _    _    @maup _
+  _    mlft mmid mrgt _    _    _    _    _    _    _
+  _    @mltp @mrtp @mmtp _    _    _    _    _    _    _
+  _    _   @ms← @ms↓ @ms→ _    _    _    _    _    _    _)
+
+;; mwu/mwd = wheel up/down
+;; mlft/mmid/mrgt = left/middle/right
+;; mltp/rtp/mmtp = left/right/middle press
+;; ms←/↓/→ = mouse movement
+#+end_src
+
+*** One-shot Modifiers
+Temporary modifier until next key press. Like Sticky Keys but better.
+
+#+begin_src lisp
+(defalias
+  osh (one-shot 2000 lsft)    ; Shift for 2 seconds or next key
+  osc (one-shot-press 1000 lctl) ; Hold releases on next press
+  osr (one-shot-release 500 lmet)
+)
+#+end_src
+
+Useful for: Ctrl+C Ctrl+V without holding, then auto-release
+
+*** Caps Word
+Like Caps Lock but auto-releases at word end.
+
+#+begin_src lisp
+;; Activate caps word - capitalizes next word
+caps-word
+
+;; Usage: type "caps-word hello world"
+;; Output: "HELLO world" (capitalizes until non-letter)
+#+end_src
+
+*** Templates
+Reduce boilerplate by defining reusable patterns.
+
+#+begin_src lisp
+(deftemplate homerowmod (timeouttap timeouthold keytap keyhold)
+  (tap-hold $timeouttap $timeouthold $keytap $keyhold))
+
+;; Use: (t! homerowmod 200 200 a lmet)
+;; Expands to: (tap-hold 200 200 a lmet)
+(deftemplate homerowmodfiltered (timeouttap timeouthold keytap keyhold except-keys)
+  (tap-hold-release-keys $timeouttap $timeouthold
+    (multi $keytap (on-idle-fakekey to-base tap 20))
+    $keyhold $except-keys))
+#+end_src
+
+*** Kanata + Emacs + Tablet Workflows
+
+**** Popup Emacs from anywhere
+#+begin_src lisp
+;; Kanata chord → popup Emacs frame
+(defchordsv2
+  (e m) (cmd "emacsclient -c -e '(+popup)'") 0 ()
+)
+
+;; Open specific org file
+(defchordsv2
+  (o r) (cmd "emacsclient -c -o todo.org") 0 ()
+)
+
+;; Open agenda
+(defchordsv2
+  (a g) (cmd "emacsclient -c -e '(org-agenda)'") 0 ()
+)
+#+end_src
+
+**** Kando gesture → Emacs
+- Gesture opens Emacs frame at cursor
+- Can open specific org buffer
+- Visual pie menus
+
+**** InputActions stylus → Linux input
+Works with touchpad/stylus on Linux
+
+*** Boox Tablet as Linux Input
+
+Use Boox Note Air as external digitizer for Linux:
+
+| Tool           | Description                       | Link                                       |
+|----------------+-----------------------------------+--------------------------------------------|
+| [[https://github.com/leath-dub/droidux][droidux]]        | Made for Boox! Inherits digitizer | https://github.com/leath-dub/droidux       |
+| [[https://github.com/lemonxah/drawing_tablet][Drawing Tablet]] | Wayland-native, low latency       | https://github.com/lemonxah/drawing_tablet |
+| [[https://github.com/H-M-H/Weylus][Weylus]]         | Popular option                    | https://github.com/H-M-H/Weylus            |
+
+**Droidux** is best - specifically designed for Boox Note Air series!
+
+#+begin_src bash
+# Setup droidux
+curl -LO https://github.com/leath-dub/droidux/releases/download/latest/droidux-x86_64-linux-musl.xz
+tar -xf droidux-x86_64-linux-musl.xz
+sudo mv droidux /usr/local/bin/
+
+# Install hwdb for Boox (if needed)
+sudo cp hwdb.d/00-boox.hwdb /etc/udev/hwdb.d/
+
+# List devices
+droidux -l | jq ".name"
+
+# Run (Boox devices are typically "onyx_emp_Wacom I2C Digitizer")
+droidux "onyx_emp_Wacom I2C Digitizer"
+#+end_src
+
+*** Kanata + Emacs Integration
+
+TCP server enables bidirectional communication:
+
+#+begin_src lisp
+(defcfg
+  enable-external-editor yes
+  tcp-server-port 9876
+)
+#+end_src
+
+External programs can:
+1. Query current layer
+2. Switch layers programmatically
+3. Receive layer change events
+
+**kanata-switcher** (~7mind/kanata-switcher~):
+- Auto-switch layers based on focused application
+- Works with: GNOME, KDE, COSMIC, wlroots (Sway/Hyprland/Niri), X11
+- Tray indicator showing current layer
+
+#+begin_src json
+[
+  {"default": "default"},
+  {"class": "firefox", "layer": "browser"},
+  {"class": "emacs", "layer": "editor"},
+  {"class": "kitty|alacritty|ghostty|wezterm", "layer": "terminal"}
+]
+#+end_src
+
+**Doom Emacs + Kanata workflow:**
+1. Run kanata with TCP server: ~kanata -c config.kbd -p 10000~
+2. kanata-switcher detects focused window
+3. Switches to appropriate layer automatically
+
+**push-msg** - Send messages to external tools:
+#+begin_src lisp
+(defalias
+  notify-layer (push-msg "layer-changed:editor"))
+;; External tools (Raycast, Alfred, Hammerspoon, etc.) receive notification
+#+end_src
+
+**Emacs mode-line integration:**
+- TCP client polls current layer
+- Display in mode-line
+- Example clients exist in kanata repo: ~example_tcp_client~
+
+*** Platform-specific Config
+Different settings per OS.
+
+#+begin_src lisp
+(platform (linux)
+  (defalias run-my-script (cmd "bash -c 'echo hi'")))
+
+(platform (win)
+  (defalias run-my-script (cmd "powershell -c 'echo hi'")))
+
+(platform (macos)
+  (defalias run-my-script (cmd "osascript -e 'tell app \"Finder\"'")))
+#+end_src
+
+** Linux Keyboard Remappers (Non-Kanata)
+
+| Tool      | Features                              | Config |
+|-----------+---------------------------------------+--------|
+| [[https://github.com/jtroo/kanata][kanata]]    | Layers, tap-hold, chords, macros, TCP | Lisp   |
+| [[https://github.com/jtroo/keyd][keyd]]      | QMK-like, simple, fast                | INI    |
+| [[https://github.com/k0kubun/xremap][xremap]]    | App-specific, YAML, built-in layers   | YAML   |
+| [[https://github.com/jbensmann/mouseless][mouseless]] | Mouse control + key remap, layers     | YAML   |
+| [[https://github.com/ItayGarin/ktrl][ktrl]]      | TCP server, audio feedback            | Rust   |
+
+**Mouse/Gesture Tools (Emacs strokes-like):**
+
+| Tool         | Description                       | Best For          |
+|--------------+-----------------------------------+-------------------|
+| [[https://github.com/jbensmann/mouseless][mouseless]]    | Mouse via keyboard, layers        | No-mouse workflow |
+| [[https://github.com/taj-ny/InputActions][InputActions]] | Mouse/touchpad gestures (Wayland) | Gestures          |
+| [[https://github.com/kando-menu/kando][Kando]]        | Pie menus (graphical strokes)     | Visual menus      |
+| [[https://github.com/dkondor/wstroke][wstroke]]      | Easystroke for Wayfire            | Wayland gestures  |
+| [[https://github.com/thjaeger/easystroke][easystroke]]   | X11 gesture recognition           | Legacy X11        |
+
+**Kanata**
+Advanced kanata users with home row mods + chords:
+- Lucas (ldebritto): https://gist.github.com/ldebritto/44574eac93148f387aaa560ccb131903 - defchordsv2, vim-style (w e r → esc), one-shot mods, hyper key
+- well1791: https://github.com/well1791/dotfiles/blob/main/home/dot_config/kanata/config.kbd - Extensive CH_NO_MODS, CH_AL, CH_NA chord system
+- MaskRay: https://github.com/MaskRay/Config/blob/master/home/.config/kanata/config.kbd - vim-nav with (j k) esc, brackets chords
+- allisnulll: https://github.com/allisnulll/keyboard - Vim layer, repeat keys, numpad via chords
+- fsargent: https://github.com/fsargent/dotfiles/blob/main/config/kanata/kanata.kbd - homerowmod template, defchordsv2
+
+Kanata HRM samples:
+- https://github.com/jtroo/kanata/blob/main/cfg_samples/home-row-mod-advanced.kbd - fast typing layer, tap-hold-release-keys
+- https://github.com/jtroo/kanata/discussions/1656 - "key-timing" endgame approach
+
+Community resources:
+- Blog posts:
+  - https://blog.getreu.net/20250826-muscle-memory-friendly-home-row-mods/ - HRM comparison (QMK+ZMK+Vial+Kanata)
+  - https://shom.dev/start/using-kanata-to-remap-any-keyboard/ - Beginner getting started guide
+  - https://lcroberts.dev/blog/home-row-mods - Why I Switched To Home Row Mods
+  - https://satler.dev/blog/nixos-kmonad-install/ - NixOS + KMonad (Japanese)
+- Discussions:
+  - https://github.com/jtroo/kanata/discussions/1425 - Fast typing layer
+  - https://github.com/jtroo/kanata/discussions/1455 - Skip HRM while typing (key-timing)
+  - https://github.com/jtroo/kanata/discussions/1656 - Endgame (latest implementation)
+  - https://github.com/jtroo/kanata/discussions/1602 - Chordal Hold / opposite hands rule
+  - https://github.com/jtroo/kanata/issues/1602 - Summary of HRM options (permissive hold, bilateral, quick tap)
+- argenkiwi key-timing approach - https://github.com/argenkiwi/kenkyo/discussions/27 - flowtap, charmod, charmodkeys templates
+- External community:
+  - IRC: #kanata on libera.chat
+  - Reddit: r/MechanicalKeyboards, r/KeyboardLayouts
+  - HN: "kanata keyboard" searches
+  - daily.dev posts
+  - System Crafters forum: https://forum.systemcrafters.net/t/using-kanata-to-remap-your-keyboard/
+
+Previous config (commit b664dbd) - migrate back if using kanata:
+#+begin_src nix
+{ config, lib, pkgs, ... }:
+
+{
+  services.kanata = {
+    enable = true;
+    keyboards = {
+      default = {
+        devices = [
+          "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
+        ];
+        config = ''
+          (defsrc
+            caps a s d f j k l ;
+          )
+
+          (defalias
+            cap (tap-hold-press 200 200 esc lctl)
+            nav (layer-toggle nav)
+          )
+
+          (deflayer base
+            @cap a s d f j k l ;
+          )
+
+          (deflayer nav
+            _ a s d f j k l ;
+          )
+        '';
+      };
+    };
+  };
+
+  systemd.services.kanata-default.serviceConfig = {
+    DynamicUser = lib.mkForce false;
+    User = "root";
+    Group = "root";
+    CapabilityBoundingSet = lib.mkForce [ "CAP_SETGID" "CAP_SETUID" "CAP_SETPCAP" "CAP_SYS_ADMIN" ];
+  };
+}
+#+end_src
 ** TODO mu4e
 ** TODO Fix brave nixos extraOpt
