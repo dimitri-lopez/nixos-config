@@ -15,43 +15,34 @@ See my [[install.org]] for installation instructions.
 - [[*Try out python package][Install python package]]
 
 * Inbox
-** Boox tablet droidux module
+** Boox tablet (Weylus - recommended)
+Weylus works better with Boox over WiFi. Install on Boox from Play Store or F-Droid.
+
 Usage:
-1. Enable USB debugging on Boox (Settings → Developer options → USB debugging)
-2. Connect Boox via USB
-3. Run: ~droidux-connect~ or ~droidux "onyx_emp_Wacom I2C Digitizer"~
+1. Run ~weylus-start~ on laptop
+2. On Boox: Open Firefox and go to URL shown (http://:1701)
+3. Accept connection - tablet becomes drawing tablet
+
+USB (no WiFi):
+1. Run: ~adb reverse tcp:1701 tcp:1701 && adb reverse tcp:9001 tcp:9001~
+2. On Boox: Open Firefox and go to http://127.0.0.1:1701
+
+Note: droidux had USB issues with Boox.
 #+begin_src nix :tangle ./modules/droidux.nix
 { pkgs, ... }:
 
 {
   home.packages = with pkgs; [
     xournalpp
+    weylus
     android-tools
-    (pkgs.callPackage ({ stdenv, fetchurl, xz }: stdenv.mkDerivation {
-      pname = "droidux";
-      version = "572f903";
-      src = fetchurl {
-        url = "https://github.com/leath-dub/droidux/releases/download/572f903/droidux-x86_64-linux-musl.xz";
-        sha256 = "1wr5frj7ysp57c9zzw1hdhazlkfiqw96bqwdn3dan4xxzmn9683j";
-      };
-      nativeBuildInputs = [ xz ];
-      dontBuild = true;
-      dontConfigure = true;
-      dontPatchShebangs = true;
-      unpackPhase = "true";
-      buildPhase = "true";
-      installPhase = ''
-        mkdir -p $out/bin
-        xz -d <$src -c >$out/bin/droidux
-        chmod +x $out/bin/droidux
-      '';
-    }) {})
   ];
 
   programs.bash = {
     enable = true;
-    shellAliases = {
-      droidux-connect = "droidux \"onyx_emp_Wacom I2C Digitizer\"";
+shellAliases = {
+      weylus-start = "weylus";
+      weylus-usb = "adb reverse tcp:1701 tcp:1701 && adb reverse tcp:9001 tcp:9001 && weylus";
     };
   };
 }
