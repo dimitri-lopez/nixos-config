@@ -1,6 +1,21 @@
 #+title: Todo
 
+* weylus 
+
+<shell-maker-failed-command>
+OpenCode> I am trying to get weylus setup, however I am running into issues. Can you see the current unstaged changes
+
+I am using a boox note air 5 c (not 3), 
+
+I see weylus in my browswer that I have connected to, but there is no video?
 * TODO List
+** Boox Tablet Integration
+- Install droidux on laptop: ~droidux~
+- USB connect Boox (with USB debugging on)
+- Run: ~droidux -l~ to find device
+- Run: ~droidux "onyx_emp_Wacom I2C Digitizer"~
+- Use Xournal++ for PDF annotation
+- Install: ~sudo apt install xournalpp~
 ** SRWC errors
 Upon checking:
 #+begin_src bash :results verbatim
