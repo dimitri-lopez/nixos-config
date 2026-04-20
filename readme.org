@@ -243,6 +243,7 @@ super + shift + h
     wmenu
     foot
     alacritty
+    xfce.xfce4-taskmanager
   ];
 
   home.file = {
@@ -281,7 +282,7 @@ super + shift + h
       "alt+return" = "exec foot"
 
       # Task Manager
-      "super+escape" = "exec foot btm"
+      "super+escape" = "exec xfce4-taskmanager"
 
       # Zoom controls
       "super+equal" = "zoom-in"
@@ -505,6 +506,7 @@ imports = [
   ./modules/brave.nix
   ./modules/minecraft.nix
   ./modules/watchy.nix
+  ./modules/mcp-nixos.nix
 ];
 #+end_src
 
@@ -518,6 +520,7 @@ imports = [
 {
   description = "dimitril's flake";
   <<flake.nix--inputs>>
+  # outputs = inputs@{ self, nixpkgs, home-manager, neomacs, ... }:
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
@@ -546,6 +549,7 @@ imports = [
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
       packages.x86_64-linux = {
+        # neomacs = inputs.neomacs.packages.x86_64-linux.default;
       };
       legacyPackages.x86_64-linux = {
       };
@@ -594,6 +598,12 @@ inputs = {
   nixpkgs-unstable = {
     url = "github:NixOS/nixpkgs/nixos-unstable";
   };
+
+  mcp-nixos = {
+    url = "github:utensils/mcp-nixos";
+  };
+
+  # neomacs.url = "github:eval-exec/neomacs";
 };
 #+end_src
 * configuration.nix
@@ -915,9 +925,20 @@ See [[*home.nix modules][home.nix modules]].
 #+end_src
 ** home.nix packages inbox
 # Packages go to their own modules now - see modules/*.nix
-# #+begin_src nix
-#   home.packages = [ ];
-# #+end_src
+** mcp-nixos (MCP server for NixOS data)
+- [ ] [[elisp:(org-babel-tangle)]]
+- [ ] [[git add -A ./modules/mcp-nixos.nix]]
+- [ ] Test: ~uvx mcp-nixos --help~ or via MCP client config
+- [ ] Move to permanent module if working
+#+begin_src nix :tangle ./modules/mcp-nixos.nix :noweb-ref mcp-nixos
+{ pkgs, inputs, ... }:
+
+{
+  home.packages = [
+    inputs.mcp-nixos.packages.${pkgs.system}.default
+  ];
+}
+#+end_src
 ** home.nix dotfiles
 #+begin_src nix
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -1301,6 +1322,10 @@ echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new ha
 
     mu
     ((emacsPackagesFor emacs-pgtk).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+
+    # Neomacs (GPU-accelerated Emacs - for testing)
+    # inputs.neomacs.packages.${pkgs.system}.default
+
     # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.etags ]))
     isync
     offlineimap
