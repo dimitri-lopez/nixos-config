@@ -166,8 +166,9 @@
 
     ".xprofile".text = ''
       #!/bin/sh
-      # Wayland session - xprofile runs before compositor
-      # Start xdg-desktop-portal after compositor is ready
+      # srwc autostart - runs after compositor starts
+      sleep 2
+      ~/.local/bin/common-autostart &
     '';
   };
 
