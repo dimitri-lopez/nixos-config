@@ -521,8 +521,7 @@ imports = [
 {
   description = "dimitril's flake";
   <<flake.nix--inputs>>
-  # outputs = inputs@{ self, nixpkgs, home-manager, neomacs, ... }:
-  outputs = inputs@{ self, nixpkgs, home-manager, ... }:
+  outputs = inputs@{ self, nixpkgs, home-manager, neomacs, ... }:
     let
       system = "x86_64-linux";
       lib = nixpkgs.lib;
@@ -550,7 +549,7 @@ imports = [
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
       packages.x86_64-linux = {
-        # neomacs = inputs.neomacs.packages.x86_64-linux.default;
+        neomacs = inputs.neomacs.packages.x86_64-linux.default;
       };
       legacyPackages.x86_64-linux = {
       };
@@ -604,7 +603,7 @@ inputs = {
     url = "github:utensils/mcp-nixos";
   };
 
-  # neomacs.url = "github:eval-exec/neomacs";
+  neomacs.url = "github:eval-exec/neomacs";
 };
 #+end_src
 * configuration.nix
@@ -885,7 +884,11 @@ nix.settings.auto-optimise-store = true;
 # Before changing this value read the documentation for this option
 # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
 system.stateVersion = "25.05"; # Did you read the comment?
-nix.settings.experimental-features = [ "nix-command" "flakes" ];
+nix.settings = {
+  experimental-features = [ "nix-command" "flakes" ];
+  substituters = [ "https://nix-wpe-webkit.cachix.org" ];
+  trusted-public-keys = [ "nix-wpe-webkit.cachix.org-1:ItCjHkz1Y5QcwqI9cTGNWHzcox4EqcXqKvOygxpwYHE=" ];
+};
 #+end_src
 * home.nix
 :PROPERTIES:
@@ -1352,7 +1355,7 @@ echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new ha
     ((emacsPackagesFor emacs-pgtk).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
 
     # Neomacs (GPU-accelerated Emacs - for testing)
-    # inputs.neomacs.packages.${pkgs.system}.default
+    inputs.neomacs.packages.${pkgs.system}.default
 
     # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.etags ]))
     isync

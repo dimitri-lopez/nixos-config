@@ -27,10 +27,9 @@
       url = "github:utensils/mcp-nixos";
     };
   
-    # neomacs.url = "github:eval-exec/neomacs";
+    neomacs.url = "github:eval-exec/neomacs";
   };
-  # outputs = inputs@{ self, nixpkgs, home-manager, neomacs, ... }:
-  outputs = inputs@{ self, nixpkgs, home-manager, ... }:
+  outputs = inputs@{ self, nixpkgs, home-manager, neomacs, ... }:
     let
       system = "x86_64-linux";
       lib = nixpkgs.lib;
@@ -69,7 +68,7 @@
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
       packages.x86_64-linux = {
-        # neomacs = inputs.neomacs.packages.x86_64-linux.default;
+        neomacs = inputs.neomacs.packages.x86_64-linux.default;
       };
       legacyPackages.x86_64-linux = {
       };

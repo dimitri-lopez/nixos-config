@@ -99,7 +99,7 @@ echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new ha
     ((emacsPackagesFor emacs-pgtk).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
 
     # Neomacs (GPU-accelerated Emacs - for testing)
-    # inputs.neomacs.packages.${pkgs.system}.default
+    inputs.neomacs.packages.${pkgs.system}.default
 
     # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.etags ]))
     isync

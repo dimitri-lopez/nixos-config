@@ -3,6 +3,11 @@
 
 
 * TODO Items
+** DONE Install xfce4
+** DONE disabled neomacs
+** DONE nix mcp
+** TODO kanata
+
 * Plans
 * Other notes
 * Current Ideas

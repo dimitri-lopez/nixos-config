@@ -1,0 +1,30 @@
+#+title: Kanta
+
+Wants:
+
+*** Tap dance
+Endgame uses:
+- Caps Lock → escape, hold → control
+
+And an example of:
+- Symbol key → quickly cycle through variations
+
+  
+*** Mouse Actions
+Move cursor, scroll, click - useful forno mouse setup.
+
+#+begin_src lisp
+(deflayer mouse
+  _    @mwu @mwd @mwl @mwr _    _    _    _    _    @maup _
+  _    mlft mmid mrgt _    _    _    _    _    _    _
+  _    @mltp @mrtp @mmtp _    _    _    _    _    _    _
+  _    _   @ms← @ms↓ @ms→ _    _    _    _    _    _    _)
+
+;; mwu/mwd = wheel up/down
+;; mlft/mmid/mrgt = left/middle/right
+;; mltp/rtp/mmtp = left/right/middle press
+;; ms←/↓/→ = mouse movement
+#+end_src
+  
+
+Can I have it activate if I hold down m, at the same time? so m, (keychord maybe? Or layer activation while it is held?) And then do that. That sounds pretty good
