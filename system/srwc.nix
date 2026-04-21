@@ -8,7 +8,7 @@
     enable = true;
     settings = {
       default_session = {
-        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --cmd 'uwsm start -S srwc'";
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --cmd 'uwsm start'";
         user = "greeter";
       };
     };
@@ -23,9 +23,6 @@
         binPath = "${pkgs.writeShellScript "srwc-uwsm-wrapper" "exec ${inputs.srwc.packages.${pkgs.stdenv.system}.default}/bin/srwc start"}";
       };
     };
-  };
-  services.displayManager = {
-    defaultSession = "srwc-uwsm";
   };
   services.seatd.enable = true;
   services.dbus.enable = true;
