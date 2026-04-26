@@ -3204,12 +3204,10 @@ in
     fuzzel
     swaynotificationcenter
     swayosd
-    swaylock
+    swaylock-effects
     swayidle
     wlrctl
     alacritty
-    grim
-    ffmpeg
     vorta
     polkit_gnome
     elementary-xfce-icon-theme
@@ -3530,9 +3528,25 @@ in
     ".local/share/driftwm-sample/scripts/lock.sh" = {
       text = ''
       #!/bin/sh
-      ${pkgs.grim}/bin/grim -l 0 /tmp/lockscreen.png
-      ${pkgs.ffmpeg}/bin/ffmpeg -y -i /tmp/lockscreen.png -vf "boxblur=8:2" /tmp/lockblur.png 2>/dev/null
-      ${pkgs.swaylock}/bin/swaylock -f -i /tmp/lockblur.png
+      ${pkgs.swaylock-effects}/bin/swaylock \
+        --screenshots \
+        --clock \
+        --indicator-radius 50 \
+        --indicator-thickness 4 \
+        --effect-blur 8x4 \
+        --effect-vignette 0.3:0.3 \
+        --ring-color "#A7C08080" \
+        --key-hl-color "#83C092" \
+        --line-color "#00000000" \
+        --inside-color "#00000000" \
+        --separator-color "#00000000" \
+        --text-color "#E6E1E0" \
+        --ring-ver-color "#7FBBB380" \
+        --ring-wrong-color "#E67E8080" \
+        --inside-ver-color "#00000000" \
+        --inside-wrong-color "#00000000" \
+        --grace 2 \
+        --fade-in 0.2
       '';
       executable = true;
     };
