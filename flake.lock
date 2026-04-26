@@ -54,6 +54,26 @@
         "type": "github"
       }
     },
+    "driftwm": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1777036011,
+        "narHash": "sha256-uQku8GhQHi5zmY+5yJgnA819Na8v8FDGAueWX5oN/5k=",
+        "owner": "malbiruk",
+        "repo": "driftwm",
+        "rev": "6e5fbde37ec1bef85d6cb01b2c07a865ef276b16",
+        "type": "github"
+      },
+      "original": {
+        "owner": "malbiruk",
+        "repo": "driftwm",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -730,6 +750,7 @@
     },
     "root": {
       "inputs": {
+        "driftwm": "driftwm",
         "home-manager": "home-manager",
         "hyprland": "hyprland",
         "hyprland-plugins": "hyprland-plugins",
