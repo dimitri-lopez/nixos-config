@@ -47,9 +47,9 @@ in
 
       focus_follows_mouse = false
 
-+     [input.keyboard]
-+     repeat_rate = 75
-+     repeat_delay = 185
+      [input.keyboard]
+      repeat_rate = 75
+      repeat_delay = 185
 
       [env]
       QT_QPA_PLATFORMTHEME = "qt6ct"
@@ -58,14 +58,14 @@ in
       theme = "elementary"
 
       [decorations]
-      bg_color = "#FDF6E3"
-      fg_color = "#5C6A72"
+      bg_color = "#2A2829"
+      fg_color = "#E6E1E0"
 
       [background]
       shader_path = "${driftwmPkg}/share/driftwm/wallpapers/dot_grid.glsl"
 
       [output.outline]
-      color="#FDF6E3"
+      color="#2A2829"
 
       [mouse]
       decoration_resize_snapped = true
@@ -172,6 +172,12 @@ in
       app_id = "Alacritty"
       opacity = 0.8
       blur = true
+
+      [[window_rules]]
+      app_id = "emacs"
+      opacity = 0.90
+      blur = true
+      decoration = "none"
     '';
 
     ".config/waybar/taskbar.jsonc".text = ''

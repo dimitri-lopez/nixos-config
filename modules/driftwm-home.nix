@@ -135,7 +135,7 @@
       app_id = "emacs"
       opacity = 0.85
       blur = true
-      decoration = "client"
+      decoration = "none"
     '';
 
     ".config/waybar/config".text = ''
