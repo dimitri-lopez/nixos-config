@@ -44,7 +44,7 @@
         name = "Dimitri";
         email = "dimitrilopez01@gmail.com";
         dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
-        # Options: "xfce", "vxwm", "hyprland", "srwc", "driftwm" - desktop modules auto-loaded in flake.nix
+        # Options: "xfce", "vxwm", "hyprland", "srwc", "driftwm", "driftwm-sample" - desktop modules auto-loaded in flake.nix
         wm = "driftwm"; 
         # editor = "emacsclient -c -a 'emacs'"
       };
@@ -73,6 +73,10 @@
         driftwm = {
           system = [ ./system/driftwm.nix ];
           home = [ ./modules/driftwm-home.nix ];
+        };
+        driftwm-sample = {
+          system = [ ./rices/driftwm-sample/system.nix ];
+          home = [ ./rices/driftwm-sample/home.nix ];
         };
       }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
