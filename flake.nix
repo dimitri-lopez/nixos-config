@@ -45,7 +45,7 @@
         email = "dimitrilopez01@gmail.com";
         dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
         # Options: "xfce", "vxwm", "hyprland", "srwc", "driftwm", "driftwm-sample" - desktop modules auto-loaded in flake.nix
-        wm = "driftwm"; 
+        wm = "driftwm-sample"; 
         # editor = "emacsclient -c -a 'emacs'"
       };
       systemSettings = {

@@ -24,7 +24,12 @@ in
     gnome-clocks
     brightnessctl
     libnotify
-  ]) ++ [ pythonWithWidgets ];
+    wtype
+    xwayland
+  ]);
+
+  # Disable redshift for this Wayland rice — it crashes because it requires X11/RANDR
+  services.redshift.enable = pkgs.lib.mkForce false;
 
   home.file = {
     ".config/driftwm/config.toml".text = ''
@@ -32,7 +37,6 @@ in
       # https://github.com/malbiruk/driftwm/tree/main/extras
 
       autostart = [
-          "eval $(gnome-keyring-daemon --start --components=secrets,ssh) && systemctl --user import-environment SSH_AUTH_SOCK GNOME_KEYRING_CONTROL && dbus-update-activation-environment SSH_AUTH_SOCK GNOME_KEYRING_CONTROL",
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1",
           "swayosd-server --top-margin 0.95",
           "swaync",
@@ -44,27 +48,27 @@ in
           "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 330 '${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/lock.sh' timeout 600 'systemctl suspend' before-sleep '${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/lock.sh'",
       ]
 
-      focus_follows_mouse = true
+      focus_follows_mouse = false
+
+      [input.keyboard]
+      repeat_rate = 75
+      repeat_delay = 185
 
       [env]
       QT_QPA_PLATFORMTHEME = "qt6ct"
-
-      [input.keyboard]
-      layout = "us,ru"
-      options = "grp:win_space_toggle"
 
       [cursor]
       theme = "elementary"
 
       [decorations]
-      bg_color = "#FDF6E3"
-      fg_color = "#5C6A72"
+      bg_color = "#2A2829"
+      fg_color = "#E6E1E0"
 
       [background]
-      shader_path = "${driftwmPkg}/share/driftwm/wallpapers/pink_cloud.glsl"
+      shader_path = "${driftwmPkg}/share/driftwm/wallpapers/dot_grid.glsl"
 
       [output.outline]
-      color="#FDF6E3"
+      color="#2A2829"
 
       [mouse]
       decoration_resize_snapped = true
@@ -83,6 +87,7 @@ in
       "mod+s" = "exec ${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/window-search.sh"
       "mod+m" = "fit-window-snapped"
       "mod+shift+m" = "fit-window"
+      "super+ctrl+r" = "reload-config"
 
       [gestures.on-window]
       "alt+3-finger-swipe" = "resize-window-snapped"
@@ -170,6 +175,12 @@ in
       app_id = "Alacritty"
       opacity = 0.8
       blur = true
+
+      [[window_rules]]
+      app_id = "emacs"
+      opacity = 0.90
+      blur = true
+      decoration = "none"
     '';
 
     ".config/waybar/taskbar.jsonc".text = ''
@@ -199,7 +210,7 @@ in
       }
 
       window#waybar {
-          background: #FDF6E3;
+          background: #FF0000;
       }
 
       #taskbar {
@@ -213,23 +224,23 @@ in
           border-radius: 0;
           padding: 4px 6px;
           margin: 0;
-          color: #8a9199;
+          color: #8A8274;
       }
 
       #taskbar button:hover {
-          background: rgba(92, 106, 114, 0.12);
+          background: rgba(192, 67, 97, 0.15);
       }
 
       #taskbar button.active {
-          background: #A7C080;
-          color: #FDF6E3;
+          background: #C04361;
+          color: #E6E1E0;
       }
 
       tooltip {
-          background: #FDF6E3;
-          border: 1px solid rgba(92, 106, 114, 0.2);
+          background: #2A2829;
+          border: 1px solid rgba(201, 67, 97, 0.3);
           border-radius: 0;
-          color: #5C6A72;
+          color: #E6E1E0;
           font-size: 10px;
       }
     '';
@@ -257,7 +268,7 @@ in
       }
 
       window#waybar {
-          background: #FDF6E3;
+          background: #FF0000;
       }
 
       #tray {
@@ -274,10 +285,10 @@ in
       }
 
       tooltip {
-          background: #FDF6E3;
-          border: 1px solid rgba(92, 106, 114, 0.2);
+          background: #2A2829;
+          border: 1px solid rgba(201, 67, 97, 0.3);
           border-radius: 0;
-          color: #5C6A72;
+          color: #E6E1E0;
           font-size: 10px;
       }
     '';
@@ -319,21 +330,25 @@ in
 
     ".config/gtk-3.0/settings.ini".text = ''
       [Settings]
-      gtk-theme-name=Everforest-Light
+      gtk-theme-name=Adwaita-dark
       gtk-icon-theme-name=elementary-pastel
       gtk-cursor-theme-name=elementary
-      gtk-application-prefer-dark-theme=0
+      gtk-application-prefer-dark-theme=1
     '';
 
-    ".local/share/driftwm-sample/scripts/lock.sh".text = ''
+    ".local/share/driftwm-sample/scripts/lock.sh" = {
+      text = ''
       #!/bin/sh
       ${pkgs.grim}/bin/grim -l 0 /tmp/lockscreen.png
       ${pkgs.ffmpeg}/bin/ffmpeg -y -i /tmp/lockscreen.png -vf "boxblur=8:2" /tmp/lockblur.png 2>/dev/null
       ${pkgs.swaylock}/bin/swaylock -f -i /tmp/lockblur.png
-    '';
+      '';
+      executable = true;
+    };
 
-    ".local/share/driftwm-sample/scripts/battery_notify.sh".text = ''
-      #!/bin/bash
+    ".local/share/driftwm-sample/scripts/battery_notify.sh" = {
+      text = ''
+      #!/usr/bin/env bash
       BATTERY_LOW=15
       BATTERY_CRITICAL=5
       COOLDOWN=300
@@ -360,19 +375,22 @@ in
 
           if [ -n "$bat" ] && [ "$status" = "Discharging" ]; then
               if [ "$bat" -le "$BATTERY_CRITICAL" ]; then
-                  check_cooldown critical && \\
+                  check_cooldown critical && \
                       notify-send -u critical "Critical Battery" "''${bat}% — plug in immediately"
               elif [ "$bat" -le "$BATTERY_LOW" ]; then
-                  check_cooldown low && \\
+                  check_cooldown low && \
                       notify-send -u normal "Low Battery" "''${bat}% — consider charging soon"
               fi
           fi
 
           sleep 60
       done
-    '';
+      '';
+      executable = true;
+    };
 
-    ".local/share/driftwm-sample/scripts/window-search.sh".text = ''
+    ".local/share/driftwm-sample/scripts/window-search.sh" = {
+      text = ''
       #!/bin/sh
       XDG_DATA_DIRS="''${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 
@@ -430,10 +448,13 @@ in
       sel_title="$(printf '%s' "$match" | cut -f2)"
 
       exec wlrctl toplevel focus "app_id:$sel_app_id" "title:$sel_title"
-    '';
+      '';
+      executable = true;
+    };
 
-    ".local/share/driftwm-sample/widgets/launch.sh".text = ''
-      #!/bin/bash
+    ".local/share/driftwm-sample/widgets/launch.sh" = {
+      text = ''
+      #!/usr/bin/env bash
       DIR="$(cd "$(dirname "$0")" && pwd)"
       export PATH="$HOME/.local/bin:$PATH"
 
@@ -441,12 +462,12 @@ in
 
       launch() {
           local name="$1" cols="$2" lines="$3" script="$4"
-          ${pkgs.alacritty}/bin/alacritty --class "drift-''${name}" \\
-              -o "window.dimensions.columns=''${cols}" \\
-              -o "window.dimensions.lines=''${lines}" \\
-              -o "window.padding.x=8" \\
-              -o "window.padding.y=8" \\
-              -o "window.decorations=\"None\"" \\
+          ${pkgs.alacritty}/bin/alacritty --class "drift-''${name}" \
+              -o "window.dimensions.columns=''${cols}" \
+              -o "window.dimensions.lines=''${lines}" \
+              -o "window.padding.x=8" \
+              -o "window.padding.y=8" \
+              -o "window.decorations=\"None\"" \
               -e "$PYTHON" "$DIR/''${script}" &
       }
 
@@ -458,16 +479,33 @@ in
       launch weather     22 6  weather_widget.py
       launch notif       21 4  notif_widget.py
 
-      ${pkgs.alacritty}/bin/alacritty --class "drift-power" \\
-          -o "window.dimensions.columns=3" \\
-          -o "window.dimensions.lines=1" \\
-          -o "window.padding.x=5" \\
-          -o "window.padding.y=3" \\
-          -o "window.decorations=\"None\"" \\
+      ${pkgs.alacritty}/bin/alacritty --class "drift-power" \
+          -o "window.dimensions.columns=3" \
+          -o "window.dimensions.lines=1" \
+          -o "window.padding.x=5" \
+          -o "window.padding.y=3" \
+          -o "window.decorations=\"None\"" \
           -e "$PYTHON" "$DIR/power_widget.py" &
 
       wait
-    '';
+      '';
+      executable = true;
+    };
+
+    ".local/bin/driftwm-reload" = {
+      text = ''
+      #!/bin/sh
+      # Trigger driftwm config reload via keybinding
+      # Useful after home-manager switch since driftwm's file watcher
+      # follows symlinks and doesn't detect store path changes.
+      if [ -z "$WAYLAND_DISPLAY" ]; then
+          echo "Error: not in a Wayland session" >&2
+          exit 1
+      fi
+      ${pkgs.wtype}/bin/wtype -M logo -M ctrl -k r
+      '';
+      executable = true;
+    };
 
     ".local/share/driftwm-sample/widgets/common.py".source = "${inputs.driftwm}/extras/widgets/common.py";
     ".local/share/driftwm-sample/widgets/clock_widget.py".source = "${inputs.driftwm}/extras/widgets/clock_widget.py";
