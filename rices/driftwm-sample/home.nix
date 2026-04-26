@@ -24,7 +24,7 @@ in
     gnome-clocks
     brightnessctl
     libnotify
-  ]) ++ [ pythonWithWidgets ];
+  ]);
 
   home.file = {
     ".config/driftwm/config.toml".text = ''

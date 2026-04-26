@@ -485,7 +485,7 @@ userSettings = {
   email = "dimitrilopez01@gmail.com";
   dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
   # Options: "xfce", "vxwm", "hyprland", "srwc", "driftwm", "driftwm-sample" - desktop modules auto-loaded in flake.nix
-  wm = "driftwm"; 
+  wm = "driftwm-sample"; 
   # editor = "emacsclient -c -a 'emacs'"
 };
 #+end_src
@@ -3177,7 +3177,7 @@ Loaded via flake's selectedDesktop when userSettings.wm = "driftwm"
 #+end_src
 * driftwm-sample
 ** system.nix
-Loaded via flake's selectedDesktop when userSettings.wm = "driftwm-sample". Imports the base driftwm system module.
+Loaded via flake's selectedDesktop when userSettings.wm = "driftwm-sample".     Imports the base driftwm system module.
 #+begin_src nix :tangle ./rices/driftwm-sample/system.nix
 { config, pkgs, inputs, ... }:
 
