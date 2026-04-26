@@ -380,7 +380,8 @@ in
       done
     '';
 
-    ".local/share/driftwm-sample/scripts/window-search.sh".text = ''
+    ".local/share/driftwm-sample/scripts/window-search.sh" = {
+      text = ''
       #!/bin/sh
       XDG_DATA_DIRS="''${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 
@@ -438,10 +439,10 @@ in
       sel_title="$(printf '%s' "$match" | cut -f2)"
 
       exec wlrctl toplevel focus "app_id:$sel_app_id" "title:$sel_title"
-    '';
+      '';
+      executable = true;
+    };
 
-    ".local/share/driftwm-sample/widgets/launch.sh".text = ''
-      #!/bin/bash
       DIR="$(cd "$(dirname "$0")" && pwd)"
       export PATH="$HOME/.local/bin:$PATH"
 
