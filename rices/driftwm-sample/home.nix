@@ -333,14 +333,18 @@ in
       gtk-application-prefer-dark-theme=0
     '';
 
-    ".local/share/driftwm-sample/scripts/lock.sh".text = ''
+    ".local/share/driftwm-sample/scripts/lock.sh" = {
+      text = ''
       #!/bin/sh
       ${pkgs.grim}/bin/grim -l 0 /tmp/lockscreen.png
       ${pkgs.ffmpeg}/bin/ffmpeg -y -i /tmp/lockscreen.png -vf "boxblur=8:2" /tmp/lockblur.png 2>/dev/null
       ${pkgs.swaylock}/bin/swaylock -f -i /tmp/lockblur.png
-    '';
+      '';
+      executable = true;
+    };
 
-    ".local/share/driftwm-sample/scripts/battery_notify.sh".text = ''
+    ".local/share/driftwm-sample/scripts/battery_notify.sh" = {
+      text = ''
       #!/bin/bash
       BATTERY_LOW=15
       BATTERY_CRITICAL=5
@@ -378,7 +382,9 @@ in
 
           sleep 60
       done
-    '';
+      '';
+      executable = true;
+    };
 
     ".local/share/driftwm-sample/scripts/window-search.sh" = {
       text = ''
@@ -443,6 +449,9 @@ in
       executable = true;
     };
 
+    ".local/share/driftwm-sample/widgets/launch.sh" = {
+      text = ''
+      #!/usr/bin/env bash
       DIR="$(cd "$(dirname "$0")" && pwd)"
       export PATH="$HOME/.local/bin:$PATH"
 
@@ -476,7 +485,9 @@ in
           -e "$PYTHON" "$DIR/power_widget.py" &
 
       wait
-    '';
+      '';
+      executable = true;
+    };
 
     ".local/share/driftwm-sample/widgets/common.py".source = "${inputs.driftwm}/extras/widgets/common.py";
     ".local/share/driftwm-sample/widgets/clock_widget.py".source = "${inputs.driftwm}/extras/widgets/clock_widget.py";
