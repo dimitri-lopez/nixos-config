@@ -26,4 +26,8 @@
   };
   services.seatd.enable = true;
   services.dbus.enable = true;
+
+  # PAM services for screen lockers
+  security.pam.services.swaylock = {};
+  security.pam.services.hyprlock = {};
 }

@@ -2967,6 +2967,10 @@ Loaded via flake's selectedDesktop when userSettings.wm = "driftwm"
   };
   services.seatd.enable = true;
   services.dbus.enable = true;
+
+  # PAM services for screen lockers
+  security.pam.services.swaylock = {};
+  security.pam.services.hyprlock = {};
 }
 #+end_src
 ** driftwm home config
