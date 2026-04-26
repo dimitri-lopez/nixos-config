@@ -32,18 +32,35 @@
       repeat_rate = 75
       repeat_delay = 185
 
+      [input.mouse]
+      accel_speed = 0.0           # pointer acceleration (-1.0 to 1.0)
+      accel_profile = "flat"      # "flat" or "adaptive"
+      natural_scroll = false      # reverse scroll direction
+
       [cursor]
+      theme = "Adwaita"           # sets XCURSOR_THEME
+      size = 24                   # sets XCURSOR_SIZE
+      inactive_opacity = 0.5      # cursor opacity on non-active outputs (0.0–1.0)
+
+      [decorations]
+      bg_color = "#242223"           # title bar background (default: dark gray)
+      fg_color = "00000"           # close button × color (default: white)
+      corner_radius = 8              # clip window corners to this radius (no effect if client rounds more)
 
       [background]
+
+      shader_path = "~/srwc/resources/extras/wallpapers/dark_sea.glsl"
       # shader_path = "~/.config/srwc/bg.glsl"
       # or use tiled image:
       # tile_path = "~/.config/srwc/tile.png"
 
       [effects]
-      blur_radius = 5
-      blur_strength = 0.5
+      blur_radius = 2
+      blur_strength = 1.1
 
       [keybindings]
+      "super+ctrl+r" = "reload-config"
+
       # Maximize (fit window to viewport)
       "alt+w" = "fit-window"
       "super+m" = "fit-window"
@@ -91,6 +108,8 @@
       "super+shift+left" = "nudge-window left"
       "super+shift+right" = "nudge-window right"
 
+
+
       # Quit
       "super+ctrl+shift+q" = "quit"
 
@@ -104,9 +123,10 @@
 
       [[window_rules]]
       app_id = "emacs"
-      opacity = 0.95
+      # title = "*Emacs*"
+      opacity = 0.85
       blur = true
-      decoration = "none"
+      decoration = "client"
     '';
 
     ".config/waybar/config".text = ''
@@ -166,9 +186,8 @@
 
     ".xprofile".text = ''
       #!/bin/sh
-      # srwc autostart - runs after compositor starts
-      sleep 2
-      ~/.local/bin/common-autostart &
+      # Wayland session - xprofile runs before compositor
+      # Start xdg-desktop-portal after compositor is ready
     '';
   };
 

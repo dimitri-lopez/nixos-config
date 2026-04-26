@@ -22,118 +22,230 @@ Srwc is a spatial Wayland compositor built on the Smithay library. Unlike tradit
   - Center on Window: Super + Ctrl + Left Click
 
 * Keyboard Shortcuts
+
 | Action            | Keybinding                               |
-| :---              | :---                                     |
-| *Terminal*        | `Super + Return`                         |
-| *App Launcher*    | `Super + Space`                          |
-| *Emacs*           | `Alt + e`                                |
-| *Task Manager*    | `Super + Escape`                         |
-| *Hibernate*       | `Super + h`                              |
-| *Cycle Windows*   | `Alt + Tab` / `Alt + Shift + Tab`        |
-| *Close Window*    | `Super + q`                              |
-| *Maximize (Fit)*  | `Super + m` / `Alt + w`                  |
-| *Fullscreen*      | `Super + f`                              |
-| *Center Focused*  | `Super + c`                              |
-| *Zoom In / Out*   | `Super + =` / `Super + -`                |
-| *Zoom Reset*      | `Super + 0` / `Super + z`                |
-| *Zoom to Fit All* | `Super + w`                              |
-| *Pan Viewport*    | `Super + Ctrl + Arrow Keys`              |
-| *Snap Camera*     | `Super + Arrow Keys` (to nearest window) |
-| *Nudge Window*    | `Super + Shift + Arrow Keys`             |
-| *Quit Session*    | `Super + Ctrl + Shift + q`               |
+| :---             | :---                                    |
+| *Terminal*        | ~Super + Return~                         |
+| *App Launcher*    | ~Super + Space~                          |
+| *Emacs*           | ~Alt + e~                               |
+| *Task Manager*    | ~Super + Escape~                        |
+| *Hibernate*       | ~Super + h~                             |
+| *Cycle Windows*   | ~Alt + Tab~ / ~Alt + Shift + Tab~        |
+| *Close Window*    | ~Super + q~                             |
+| *Maximize (Fit)*  | ~Super + m~ / ~Alt + w~                 |
+| *Fullscreen*      | ~Super + f~                             |
+| *Center Focused*  | ~Super + c~                             |
+| *Zoom In / Out*   | ~Super + =~ / ~Super + -~              |
+| *Zoom Reset*      | ~Super + 0~ / ~Super + z~               |
+| *Zoom to Fit All* | ~Super + w~                            |
+| *Pan Viewport*    | ~Super + Ctrl + Arrow Keys~            |
+| *Snap Camera*     | ~Super + Arrow Keys~ (to nearest window) |
+| *Nudge Window*    | ~Super + Shift + Arrow Keys~           |
+| *Quit Session*    | ~Super + Ctrl + Shift + q~             |
 
-* Configuration Reference (~/.config/srwc/config.toml)
+* Configuration (~/.config/srwc/config.toml)
 
-This section documents all available configuration options supported by the `srwc` compositor.
+#+begin_src toml :tangle ~/.config/srwc/config.toml
+# Top-Level Options
+# mod_key: String ("Super" or "Alt"). Default: "Super".
+mod_key = "Super"
+# cycle_modifier: String ("Alt" or "Ctrl"). Modifier held during window cycling.
+cycle_modifier = "Alt"
+# focus_follows_mouse: Boolean.
+focus_follows_mouse = true
+# autostart: Array of strings. Commands to run on startup.
+autostart = []
+# env: Table of key-value pairs for environment variables.
+env = {}
 
-* Top-Level Options
-- `mod_key`: String ("Super" or "Alt"). Default: "Super".
-- `cycle_modifier`: String ("Alt" or "Ctrl"). Modifier held during window cycling.
-- `focus_follows_mouse`: Boolean.
-- `autostart`: Array of strings. Commands to run on startup.
-- `env`: Table of key-value pairs for environment variables.
-- `keybindings`: Table mapping strings (e.g., "Mod+Return") to actions (e.g., "exec foot").
+# [keybindings]: Table mapping strings (e.g., "Mod+Return") to actions (e.g., "exec foot").
+[keybindings]
+# Terminal = "Mod+Return"
+# App Launcher = "Mod+Space"
+#+end_src
 
-* [input] Section
-- [input.keyboard]
-  - `repeat_rate`: Integer.
-  - `repeat_delay`: Integer.
-  - `layout`: String (e.g., "us").
-  - `variant`: String.
-  - `options`: String (XKB options).
-  - `model`: String.
-  - `layout_independent`: Boolean.
-- [input.trackpad]
-  - `tap_to_click`: Boolean.
-  - `natural_scroll`: Boolean.
-  - `tap_and_drag`: Boolean.
-  - `accel_speed`: Float (-1.0 to 1.0).
-  - `accel_profile`: String ("adaptive" or "flat").
-  - `click_method`: String ("button-areas" or "clickfinger").
-- [input.mouse]
-  - `accel_speed`: Float.
-  - `accel_profile`: String.
-  - `natural_scroll`: Boolean.
-- [input.scroll]
-  - `speed`: Float.
-  - `friction`: Float (momentum decay).
+** [input] Section
 
-[navigation] Section:
-- `animation_speed`: Float. Speed of camera transitions (lower is faster).
-- `nudge_step`: Integer. Pixels to move window per nudge.
-- `pan_step`: Float. Base panning speed for keyboard.
-- `trackpad_speed`: Float.
-- `mouse_speed`: Float.
-- `friction`: Float. Momentum decay for flings.
-- [navigation.edge_pan]
-  - `zone`: Float. Distance from screen edge to trigger auto-panning.
-  - `speed_min`: Float.
-  - `speed_max`: Float.
+#+begin_src toml :tangle ~/.config/srwc/config.toml
+# [input.keyboard]
+# repeat_rate: Integer.
+# repeat_delay: Integer.
+# layout: String (e.g., "us").
+# variant: String.
+# options: String (XKB options).
+# model: String.
+# layout_independent: Boolean.
+[input.keyboard]
+repeat_rate = 40
+repeat_delay = 400
+layout = "us"
+variant = ""
+options = ""
+model = ""
+layout_independent = false
 
-* [zoom] Section
-- `step`: Float. Factor per zoom increment (e.g., 1.1).
-- `fit_padding`: Float. Padding used for "Zoom to Fit" actions.
+# [input.trackpad]
+# tap_to_click: Boolean.
+# natural_scroll: Boolean.
+# tap_and_drag: Boolean.
+# accel_speed: Float (-1.0 to 1.0).
+# accel_profile: String ("adaptive" or "flat").
+# click_method: String ("button-areas" or "clickfinger").
+[input.trackpad]
+tap_to_click = true
+natural_scroll = true
+tap_and_drag = true
+accel_speed = 0.5
+accel_profile = "adaptive"
+click_method = "clickfinger"
 
-* [background] Section
-- `shader_path`: String. Path to a GLSL fragment shader for the background.
-- `wallpaper_path`: String. Path to a static PNG/JPG image.
+# [input.mouse]
+# accel_speed: Float.
+# accel_profile: String.
+# natural_scroll: Boolean.
+[input.mouse]
+accel_speed = 0.5
+accel_profile = "adaptive"
+natural_scroll = false
 
-* [effects] Section
-- `blur_radius`: Integer.
-- `blur_strength`: Float.
+# [input.scroll]
+# speed: Float.
+# friction: Float (momentum decay).
+[input.scroll]
+speed = 1.0
+friction = 0.9
+#+end_src
 
-* [decorations] Section
-- `bg_color`: String (Hex or Color name).
-- `fg_color`: String.
-- `corner_radius`: Integer.
+** [navigation] Section
 
-* [xwayland] Section
-- `enabled`: Boolean. Default: true.
+#+begin_src toml :tangle ~/.config/srwc/config.toml
+# [navigation]
+# animation_speed: Float. Speed of camera transitions (lower is faster).
+# nudge_step: Integer. Pixels to move window per nudge.
+# pan_step: Float. Base panning speed for keyboard.
+# trackpad_speed: Float.
+# mouse_speed: Float.
+# friction: Float. Momentum decay for flings.
+[navigation]
+animation_speed = 1.0
+nudge_step = 10
+pan_step = 1.0
+trackpad_speed = 1.0
+mouse_speed = 1.0
+friction = 0.9
 
-* [[window_rules]] (List of Tables)
-- `app_id`: String (regex match).
-- `title`: String (regex match).
-- `position`: [Integer, Integer].
-- `size`: [Integer, Integer].
-- `widget`: Boolean (pins window to background, excludes from focus cycle).
-- `decoration`: String ("client", "server", or "none").
-- `blur`: Boolean.
-- `opacity`: Float (0.0 to 1.0).
+# [navigation.edge_pan]
+# zone: Float. Distance from screen edge to trigger auto-panning.
+# speed_min: Float.
+# speed_max: Float.
+[navigation.edge_pan]
+zone = 50.0
+speed_min = 0.5
+speed_max = 10.0
+#+end_src
 
-* [[outputs]] (List of Tables)
-- `name`: String (e.g., "eDP-1").
-- `scale`: Float.
-- `transform`: String ("normal", "90", "180", "270", "flipped", etc.).
-- `position`: "auto" or [Integer, Integer].
-- `mode`: String (e.g., "1920x1080@60").
+** [zoom] Section
+
+#+begin_src toml :tangle ~/.config/srwc/config.toml
+# [zoom]
+# step: Float. Factor per zoom increment (e.g., 1.1).
+# fit_padding: Float. Padding used for "Zoom to Fit" actions.
+[zoom]
+step = 1.1
+fit_padding = 0.1
+#+end_src
+
+** [background] Section
+
+#+begin_src toml :tangle ~/.config/srwc/config.toml
+# [background]
+# shader_path: String. Path to a GLSL fragment shader for the background.
+# wallpaper_path: String. Path to a static PNG/JPG image.
+[background]
+shader_path = ""
+wallpaper_path = ""
+#+end_src
+
+** [effects] Section
+
+#+begin_src toml :tangle ~/.config/srwc/config.toml
+# [effects]
+# blur_radius: Integer.
+# blur_strength: Float.
+[effects]
+blur_radius = 0
+blur_strength = 0.0
+#+end_src
+
+** [decorations] Section
+
+#+begin_src toml :tangle ~/.config/srwc/config.toml
+# [decorations]
+# bg_color: String (Hex or Color name).
+# fg_color: String.
+# corner_radius: Integer.
+[decorations]
+bg_color = "#1e1e2e"
+fg_color = "#cdd6f4"
+corner_radius = 8
+#+end_src
+
+** [xwayland] Section
+
+#+begin_src toml :tangle ~/.config/srwc/config.toml
+# [xwayland]
+# enabled: Boolean. Default: true.
+[xwayland]
+enabled = true
+#+end_src
+
+** [[window_rules]]
+
+#+begin_src toml :tangle ~/.config/srwc/config.toml
+# [[window_rules]]
+# app_id: String (regex match).
+# title: String (regex match).
+# position: [Integer, Integer].
+# size: [Integer, Integer].
+# widget: Boolean (pins window to background, excludes from focus cycle).
+# decoration: String ("client", "server", or "none").
+# blur: Boolean.
+# opacity: Float (0.0 to 1.0).
+[[window_rules]]
+app_id = ""
+title = ""
+position = [0, 0]
+size = [800, 600]
+widget = false
+decoration = "client"
+blur = false
+opacity = 1.0
+#+end_src
+
+** [[outputs]]
+
+#+begin_src toml :tangle ~/.config/srwc/config.toml
+# [[outputs]]
+# name: String (e.g., "eDP-1").
+# scale: Float.
+# transform: String ("normal", "90", "180", "270", "flipped", etc.).
+# position: "auto" or [Integer, Integer].
+# mode: String (e.g., "1920x1080@60").
+[[outputs]]
+name = "eDP-1"
+scale = 1.0
+transform = "normal"
+position = "auto"
+mode = "1920x1080@60"
+#+end_src
 
 * History & Setup (Archived)
 
-* Investigation findings (2026-04-18)
+** Investigation findings (2026-04-18)
 The "Unable to start session" error was resolved by switching from LightDM to greetd/tuigreet and using UWSM to manage the session lifecycle.
 
-* Fix Applied
-- Enabled `programs.uwsm` in NixOS.
-- Wrapped `srwc` with a `start` argument.
-- Switched to `emacs-pgtk` for native Wayland support.
-- Disabled `services.xserver` to resolve GPU/DRM conflicts.
+** Fix Applied
+- Enabled ~programs.uwsm~ in NixOS.
+- Wrapped ~srwc~ with a ~start~ argument.
+- Switched to ~emacs-pgtk~ for native Wayland support.
+- Disabled ~services.xserver~ to resolve GPU/DRM conflicts.
