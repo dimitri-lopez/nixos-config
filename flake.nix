@@ -31,8 +31,19 @@
       url = "github:utensils/mcp-nixos";
     };
   
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+  
     # neomacs.url = "github:eval-exec/neomacs";
   };
+
+  nixConfig = {
+    extra-substituters = [ "https://noctalia.cachix.org" ];
+    extra-trusted-public-keys = [ "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=" ];
+  };
+
   # outputs = inputs@{ self, nixpkgs, home-manager, neomacs, ... }:
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let

@@ -542,6 +542,12 @@ imports = [
 {
   description = "dimitril's flake";
   <<flake.nix--inputs>>
+
+  nixConfig = {
+    extra-substituters = [ "https://noctalia.cachix.org" ];
+    extra-trusted-public-keys = [ "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=" ];
+  };
+
   # outputs = inputs@{ self, nixpkgs, home-manager, neomacs, ... }:
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
@@ -635,6 +641,11 @@ inputs = {
 
   mcp-nixos = {
     url = "github:utensils/mcp-nixos";
+  };
+
+  noctalia = {
+    url = "github:noctalia-dev/noctalia-shell";
+    inputs.nixpkgs.follows = "nixpkgs-unstable";
   };
 
   # neomacs.url = "github:eval-exec/neomacs";
@@ -3193,27 +3204,29 @@ Loaded via flake's selectedDesktop when userSettings.wm = "driftwm-sample".     
 
 {
   imports = [ ../../system/driftwm.nix ];
+
+  services.upower.enable = true;
+  services.power-profiles-daemon.enable = true;
 }
 #+end_src
 ** home.nix
-Example rice based on driftwm extras — widgets, waybar, swaync, Everforest Light theme.
+DriftWM + Noctalia shell. Replaces waybar, swaync, swayosd, and custom widgets with Noctalia's built-in bar, launcher, notifications, and OSD.
 #+begin_src nix :tangle ./rices/driftwm-sample/home.nix
 { config, pkgs, inputs, ... }:
 
 let
-  pythonWithWidgets = pkgs.python3.withPackages (ps: [ ps.rich ps.art ]);
   driftwmPkg = inputs.driftwm.packages.${pkgs.stdenv.system}.default;
 in
 {
-  home.packages = (with pkgs; [
-    waybar
+  imports = [ inputs.noctalia.homeModules.default ];
+  home.packages = with pkgs; [
     fuzzel
-    swaynotificationcenter
-    swayosd
-    swaylock-effects
+    swaylock
     swayidle
     wlrctl
     alacritty
+    grim
+    ffmpeg
     vorta
     polkit_gnome
     elementary-xfce-icon-theme
@@ -3224,7 +3237,62 @@ in
     libnotify
     wtype
     xwayland
-  ]);
+    cliphist
+    wl-clipboard
+  ];
+
+  programs.noctalia-shell = {
+    enable = true;
+    settings = {
+      settingsVersion = 0;
+      bar = {
+        position = "right";
+        displayMode = "auto_hide";
+        autoHideDelay = 500;
+        autoShowDelay = 150;
+        widgets = {
+          left = [
+            { id = "Launcher"; }
+            { id = "Clock"; }
+            { id = "SystemMonitor"; }
+            { id = "ActiveWindow"; }
+            { id = "MediaMini"; }
+          ];
+          center = [ ];
+          right = [
+            { id = "Tray"; }
+            { id = "NotificationHistory"; }
+            { id = "Battery"; }
+            { id = "Volume"; }
+            { id = "Brightness"; }
+            { id = "ControlCenter"; }
+          ];
+        };
+      };
+      general = {
+        radiusRatio = 0.2;
+        enableBlurBehind = true;
+        showScreenCorners = false;
+      };
+      colorSchemes = {
+        predefinedScheme = "Noctalia (default)";
+        darkMode = true;
+        syncGsettings = true;
+      };
+      appLauncher = {
+        enableWindowsSearch = true;
+        enableSettingsSearch = true;
+        enableSessionSearch = true;
+        enableClipboardHistory = true;
+        clipboardWatchTextCommand = "wl-paste --type text --watch cliphist store";
+        clipboardWatchImageCommand = "wl-paste --type image --watch cliphist store";
+      };
+      notifications.enabled = true;
+      osd.enabled = true;
+      dock.enabled = false;
+      desktopWidgets.enabled = false;
+    };
+  };
 
   home.file = {
     ".config/driftwm/config.toml".text = ''
@@ -3232,16 +3300,14 @@ in
       # https://github.com/malbiruk/driftwm/tree/main/extras
 
       autostart = [
+          "noctalia-shell",
+          "wl-paste --type text --watch cliphist store",
+          "wl-paste --type image --watch cliphist store",
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1",
-          "swayosd-server --top-margin 0.95",
-          "swaync",
-          "waybar -c ~/.config/waybar/taskbar.jsonc -s ~/.config/waybar/taskbar.css",
-          "sleep 1 && waybar -c ~/.config/waybar/tray.jsonc -s ~/.config/waybar/tray.css",
           "vorta -d",
-          "${config.home.homeDirectory}/.local/share/driftwm-sample/widgets/launch.sh",
           "${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/battery_notify.sh",
           "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 330 '${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/lock.sh' timeout 600 'systemctl suspend' before-sleep '${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/lock.sh'",
-     ]
+      ]
 
       focus_follows_mouse = false
 
@@ -3271,15 +3337,17 @@ in
 
       [keybindings]
       "mod+return" = "exec ptyxis -s"
-      "mod+d" = "exec fuzzel"
-      "mod+l" = "spawn ${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/lock.sh"
-      "mod+n" = "spawn swaync-client -t"
-      "XF86AudioRaiseVolume" = "spawn swayosd-client --output-volume raise"
-      "XF86AudioLowerVolume" = "spawn swayosd-client --output-volume lower"
-      "XF86AudioMute" = "spawn swayosd-client --output-volume mute-toggle"
-      "XF86MonBrightnessUp" = "spawn swayosd-client --brightness raise"
-      "XF86MonBrightnessDown" = "spawn swayosd-client --brightness lower"
+      "mod+d" = "exec noctalia-shell ipc call launcher toggle"
+      "mod+shift+s" = "exec noctalia-shell ipc call launcher toggle"
       "mod+s" = "exec ${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/window-search.sh"
+      "mod+l" = "exec noctalia-shell ipc call lockScreen lock"
+      "mod+shift+l" = "spawn ${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/lock.sh"
+      "mod+n" = "exec noctalia-shell ipc call notificationHistory toggle"
+      "XF86AudioRaiseVolume" = "exec noctalia-shell ipc call volume increase"
+      "XF86AudioLowerVolume" = "exec noctalia-shell ipc call volume decrease"
+      "XF86AudioMute" = "exec noctalia-shell ipc call volume muteOutput"
+      "XF86MonBrightnessUp" = "exec noctalia-shell ipc call brightness increase"
+      "XF86MonBrightnessDown" = "exec noctalia-shell ipc call brightness decrease"
       "mod+m" = "fit-window-snapped"
       "mod+shift+m" = "fit-window"
       "super+ctrl+r" = "reload-config"
@@ -3289,86 +3357,8 @@ in
       "alt+shift+3-finger-swipe" = "resize-window"
 
       [[outputs]]
-      name = "eDP-1"
-      scale = 1.5
-
-      [[outputs]]
       name = "HDMI-A-1"
       transform = "90"
-
-      [[window_rules]]
-      app_id = "drift-*"
-      widget = true
-      decoration = "none"
-
-      [[window_rules]]
-      app_id = "drift-clock"
-      position = [-93, 205]
-
-      [[window_rules]]
-      app_id = "drift-stats"
-      position = [-93, 0]
-
-      [[window_rules]]
-      app_id = "drift-canvas"
-      position = [-129, -185]
-
-      [[window_rules]]
-      app_id = "drift-layout"
-      position = [42, -185]
-
-      [[window_rules]]
-      app_id = "drift-calendar"
-      position = [186, 0]
-
-      [[window_rules]]
-      app_id = "drift-weather"
-      position = [186, 205]
-
-      [[window_rules]]
-      app_id = "drift-notif"
-      position = [190, -185]
-
-      [[window_rules]]
-      app_id = "drift-power"
-      position = [274, -259]
-
-      [[window_rules]]
-      app_id = "drift-power-menu"
-      position = [274, -370]
-      decoration = "server"
-
-      [[window_rules]]
-      app_id = "waybar"
-      position = [-289, 21]
-      widget = true
-      decoration = "none"
-
-      [[window_rules]]
-      app_id = "waybar"
-      position = [126, -259]
-      widget = true
-      decoration = "none"
-
-      [[window_rules]]
-      title = "winit window"
-      widget = true
-
-      [[window_rules]]
-      app_id = "com.system76.CosmicSettings"
-      size=[500, 725]
-
-      [[window_rules]]
-      app_id = "org.telegram.desktop"
-      decoration = "server"
-
-      [[window_rules]]
-      app_id = "swaync-control-center"
-      blur = true
-
-      [[window_rules]]
-      app_id = "swaync-notification-window"
-      blur = true
 
       [[window_rules]]
       app_id = "Alacritty"
@@ -3382,125 +3372,7 @@ in
       decoration = "none"
     '';
 
-    ".config/waybar/taskbar.jsonc".text = ''
-      {
-          "output": "eDP-1",
-          "layer": "top",
-          "position": "left",
-          "width": 48,
-          "height": 511,
-          "modules-center": ["wlr/taskbar"],
 
-          "wlr/taskbar": {
-              "format": "{icon}",
-              "icon-size": 36,
-              "sort-by-app-id": true,
-              "tooltip-format": "{title}",
-              "on-click": "activate",
-              "on-click-middle": "close"
-          }
-      }
-    '';
-
-    ".config/waybar/taskbar.css".text = ''
-      ,* {
-          font-family: sans-serif;
-          font-size: 14px;
-      }
-
-      window#waybar {
-          background: #FDF6E3;
-      }
-
-      #taskbar {
-          background: transparent;
-          padding: 0;
-      }
-
-      #taskbar button {
-          background: transparent;
-          border: none;
-          border-radius: 0;
-          padding: 4px 6px;
-          margin: 0;
-          color: #8a9199;
-      }
-
-      #taskbar button:hover {
-          background: rgba(92, 106, 114, 0.12);
-      }
-
-      #taskbar button.active {
-          background: #A7C080;
-          color: #FDF6E3;
-      }
-
-      tooltip {
-          background: #FDF6E3;
-          border: 1px solid rgba(92, 106, 114, 0.2);
-          border-radius: 0;
-          color: #5C6A72;
-          font-size: 10px;
-      }
-    '';
-
-    ".config/waybar/tray.jsonc".text = ''
-      {
-        "output": "eDP-1",
-        "layer": "top",
-        "position": "bottom",
-        "width": 239,
-        "height": 27,
-        "modules-center": ["tray"],
-
-        "tray": {
-          "icon-size": 16,
-          "spacing": 4,
-        },
-      }
-    '';
-
-    ".config/waybar/tray.css".text = ''
-      ,* {
-          font-family: sans-serif;
-          font-size: 10px;
-      }
-
-      window#waybar {
-          background: #FDF6E3;
-      }
-
-      #tray {
-          background: transparent;
-          padding: 2px 4px;
-      }
-
-      #tray > .passive {
-          -gtk-icon-effect: dim;
-      }
-
-      #tray > .needs-attention {
-          -gtk-icon-effect: highlight;
-      }
-
-      tooltip {
-          background: #FDF6E3;
-          border: 1px solid rgba(92, 106, 114, 0.2);
-          border-radius: 0;
-          color: #5C6A72;
-          font-size: 10px;
-      }
-    '';
-
-    ".config/fuzzel/fuzzel.ini".text = ''
-      [main]
-      font=monospace:size=14
-      dpi-aware=no
-      icon-theme=elementary-pastel
-    '';
-
-    ".config/swaync/config.json".source = "${inputs.driftwm}/extras/swaync/config.json";
-    ".config/swaync/style.css".source = "${inputs.driftwm}/extras/swaync/style.css";
 
     ".local/share/icons/elementary-pastel/index.theme".text = ''
       [Icon Theme]
@@ -3529,34 +3401,18 @@ in
 
     ".config/gtk-3.0/settings.ini".text = ''
       [Settings]
-      gtk-theme-name=Everforest-Light
+      gtk-theme-name=Adwaita-dark
       gtk-icon-theme-name=elementary-pastel
       gtk-cursor-theme-name=elementary
-      gtk-application-prefer-dark-theme=0
+      gtk-application-prefer-dark-theme=1
     '';
 
     ".local/share/driftwm-sample/scripts/lock.sh" = {
       text = ''
       #!/bin/sh
-      ${pkgs.swaylock-effects}/bin/swaylock \
-        --screenshots \
-        --clock \
-        --indicator-radius 50 \
-        --indicator-thickness 4 \
-        --effect-blur 8x4 \
-        --effect-vignette 0.3:0.3 \
-        --ring-color "#A7C08080" \
-        --key-hl-color "#83C092" \
-        --line-color "#00000000" \
-        --inside-color "#00000000" \
-        --separator-color "#00000000" \
-        --text-color "#E6E1E0" \
-        --ring-ver-color "#7FBBB380" \
-        --ring-wrong-color "#E67E8080" \
-        --inside-ver-color "#00000000" \
-        --inside-wrong-color "#00000000" \
-        --grace 2 \
-        --fade-in 0.2
+      ${pkgs.grim}/bin/grim -l 0 /tmp/lockscreen.png
+      ${pkgs.ffmpeg}/bin/ffmpeg -y -i /tmp/lockscreen.png -vf "boxblur=8:2" /tmp/lockblur.png 2>/dev/null
+      ${pkgs.swaylock}/bin/swaylock -f -i /tmp/lockblur.png
       '';
       executable = true;
     };
@@ -3667,56 +3523,7 @@ in
       executable = true;
     };
 
-    ".local/share/driftwm-sample/widgets/launch.sh" = {
-      text = ''
-      #!/usr/bin/env bash
-      DIR="$(cd "$(dirname "$0")" && pwd)"
-      export PATH="$HOME/.local/bin:$PATH"
 
-      PYTHON="${pythonWithWidgets}/bin/python"
-
-      launch() {
-          local name="$1" cols="$2" lines="$3" script="$4"
-          ${pkgs.alacritty}/bin/alacritty --class "drift-''${name}" \
-              -o "window.dimensions.columns=''${cols}" \
-              -o "window.dimensions.lines=''${lines}" \
-              -o "window.padding.x=8" \
-              -o "window.padding.y=8" \
-              -o "window.decorations=\"None\"" \
-              -e "$PYTHON" "$DIR/''${script}" &
-      }
-
-      launch clock       34 6  clock_widget.py
-      # launch stats       34 11 stats_widget.py
-      launch canvas      26 4  canvas_widget.py
-      # launch layout      6 4  layout_widget.py
-      launch calendar    22 11  calendar_widget.py
-      launch weather     22 6  weather_widget.py
-      launch notif       21 4  notif_widget.py
-
-      # ${pkgs.alacritty}/bin/alacritty --class "drift-power" \\
-      #     -o "window.dimensions.columns=3" \\
-      #     -o "window.dimensions.lines=1" \\
-      #     -o "window.padding.x=5" \\
-      #     -o "window.padding.y=3" \\
-      #     -o "window.decorations=\"None\"" \\
-      #     -e "$PYTHON" "$DIR/power_widget.py" &
-
-      # wait
-      '';
-      executable = true;
-    };
-
-    ".local/share/driftwm-sample/widgets/common.py".source = "${inputs.driftwm}/extras/widgets/common.py";
-    ".local/share/driftwm-sample/widgets/clock_widget.py".source = "${inputs.driftwm}/extras/widgets/clock_widget.py";
-    ".local/share/driftwm-sample/widgets/stats_widget.py".source = "${inputs.driftwm}/extras/widgets/stats_widget.py";
-    ".local/share/driftwm-sample/widgets/canvas_widget.py".source = "${inputs.driftwm}/extras/widgets/canvas_widget.py";
-    ".local/share/driftwm-sample/widgets/layout_widget.py".source = "${inputs.driftwm}/extras/widgets/layout_widget.py";
-    ".local/share/driftwm-sample/widgets/calendar_widget.py".source = "${inputs.driftwm}/extras/widgets/calendar_widget.py";
-    ".local/share/driftwm-sample/widgets/weather_widget.py".source = "${inputs.driftwm}/extras/widgets/weather_widget.py";
-    ".local/share/driftwm-sample/widgets/notif_widget.py".source = "${inputs.driftwm}/extras/widgets/notif_widget.py";
-    ".local/share/driftwm-sample/widgets/power_widget.py".source = "${inputs.driftwm}/extras/widgets/power_widget.py";
-    ".local/share/driftwm-sample/widgets/power_menu.py".source = "${inputs.driftwm}/extras/widgets/power_menu.py";
   };
 }
 #+end_src

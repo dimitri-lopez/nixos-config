@@ -70,6 +70,7 @@ The following window managers are configured and selectable:
 | `hyprland` | Wayland tiling | `system/hyprland.nix` | `modules/wm/hyprland-minimal.nix` | Hyprland with waybar, hyprpaper, hyprlock, hypridle |
 | `srwc` | Wayland infinite canvas | `system/srwc.nix` | `modules/srwc-home.nix` | Custom Wayland compositor via `infraflakes/srwc` flake input |
 | `driftwm` | Wayland infinite canvas | `system/driftwm.nix` | `modules/driftwm-home.nix` | Trackpad-first infinite canvas via `malbiruk/driftwm` flake input |
+| `driftwm-sample` | Wayland infinite canvas | `rices/driftwm-sample/system.nix` | `rices/driftwm-sample/home.nix` | DriftWM + Noctalia shell (replaces waybar/swaync/swayosd) |
 
 ### Currently Selected Window Manager
 The active window manager is set in **`readme.org`** under the section `* Configuration Entry Point > ** User Settings (flake.nix)`.
@@ -78,8 +79,8 @@ Look for:
 ```nix
 userSettings = {
   # ...
-  # Options: "xfce", "vxwm", "hyprland", "srwc", "driftwm"
-  wm = "driftwm";
+  # Options: "xfce", "vxwm", "hyprland", "srwc", "driftwm", "driftwm-sample"
+  wm = "driftwm-sample";
 };
 ```
 
@@ -92,6 +93,7 @@ selectedDesktop = {
   hyprland = { system = [ ./system/hyprland.nix ]; home = [ ./modules/wm/hyprland-minimal.nix ]; };
   srwc = { system = [ ./system/srwc.nix ]; home = [ ./modules/srwc-home.nix ]; };
   driftwm = { system = [ ./system/driftwm.nix ]; home = [ ./modules/driftwm-home.nix ]; };
+  driftwm-sample = { system = [ ./rices/driftwm-sample/system.nix ]; home = [ ./rices/driftwm-sample/home.nix ]; };
 }.${userSettings.wm};
 ```
 
