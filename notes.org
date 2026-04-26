@@ -3,6 +3,38 @@
 
 
 * TODO Items
+** TODO redshift issue
+[dimitril@nixos:~/.dotfiles]$ redshift
+Trying location provider `geoclue2'...
+Using provider `geoclue2'.
+`RANDR Query Version' returned error -1
+Initialization of randr failed.
+Trying next method...
+X request failed: XOpenDisplay
+Initialization of vidmode failed.
+Trying next method...
+No more methods to try.
+** TODO neomacs
+
+home-manager switch --flake . && sudo nixos-rebuild switch --flake .
+```
+
+**Note:** If Nix complains about "untrusted-substituter," you may need to run the `nixos-rebuild` command first (with sudo) to apply the system-level cache settings, or temporarily add the substituter to your user's `~/.config/nix/nix.conf`:
+```
+extra-substituters = https://nix-wpe-webkit.cachix.org
+extra-trusted-public-keys = nix-wpe-webkit.cachix.org-1:ItCjHkz1Y5QcwqI9cTGNWHzcox4EqcXqKvOygxpwYHE=
+* TODO SRWC
+** TODO
+#+begin_src 
+
+[input.trackpad]
+tap_to_click = true
+natural_scroll = true
+tap_and_drag = true
+accel_speed = 1.0
+accel_profile = "flat"
+click_method = "clickfinger"
+#+end_src
 * Plans
 * Other notes
 * Current Ideas
