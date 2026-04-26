@@ -89,6 +89,10 @@ in
       "alt+shift+3-finger-swipe" = "resize-window"
 
       [[outputs]]
+      name = "eDP-1"
+      scale = 1.5
+
+      [[outputs]]
       name = "HDMI-A-1"
       transform = "90"
 

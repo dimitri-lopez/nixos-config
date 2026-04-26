@@ -126,6 +126,10 @@
 
       "super+h" = "exec systemctl hibernate"
 
+      [[outputs]]
+      name = "eDP-1"
+      scale = 1.5
+
       [[window_rules]]
       app_id = ".*"
       opacity = 0.95

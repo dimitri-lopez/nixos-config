@@ -3106,6 +3106,10 @@ Loaded via flake's selectedDesktop when userSettings.wm = "driftwm"
 
       "super+h" = "exec systemctl hibernate"
 
+      [[outputs]]
+      name = "eDP-1"
+      scale = 1.5
+
       [[window_rules]]
       app_id = ".*"
       opacity = 0.95
@@ -3283,6 +3287,10 @@ in
       [gestures.on-window]
       "alt+3-finger-swipe" = "resize-window-snapped"
       "alt+shift+3-finger-swipe" = "resize-window"
+
+      [[outputs]]
+      name = "eDP-1"
+      scale = 1.5
 
       [[outputs]]
       name = "HDMI-A-1"
