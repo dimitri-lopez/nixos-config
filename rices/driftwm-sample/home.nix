@@ -24,6 +24,8 @@ in
     gnome-clocks
     brightnessctl
     libnotify
+    wtype
+    xwayland
   ]);
 
   home.file = {
@@ -32,7 +34,6 @@ in
       # https://github.com/malbiruk/driftwm/tree/main/extras
 
       autostart = [
-          "eval $(gnome-keyring-daemon --start --components=secrets,ssh) && systemctl --user import-environment SSH_AUTH_SOCK GNOME_KEYRING_CONTROL && dbus-update-activation-environment SSH_AUTH_SOCK GNOME_KEYRING_CONTROL",
           "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1",
           "swayosd-server --top-margin 0.95",
           "swaync",
@@ -42,16 +43,16 @@ in
           "${config.home.homeDirectory}/.local/share/driftwm-sample/widgets/launch.sh",
           "${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/battery_notify.sh",
           "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 330 '${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/lock.sh' timeout 600 'systemctl suspend' before-sleep '${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/lock.sh'",
-      ]
+     ]
 
-      focus_follows_mouse = true
+      focus_follows_mouse = false
+
++     [input.keyboard]
++     repeat_rate = 75
++     repeat_delay = 185
 
       [env]
       QT_QPA_PLATFORMTHEME = "qt6ct"
-
-      [input.keyboard]
-      layout = "us,ru"
-      options = "grp:win_space_toggle"
 
       [cursor]
       theme = "elementary"
@@ -61,7 +62,7 @@ in
       fg_color = "#5C6A72"
 
       [background]
-      shader_path = "${driftwmPkg}/share/driftwm/wallpapers/pink_cloud.glsl"
+      shader_path = "${driftwmPkg}/share/driftwm/wallpapers/dot_grid.glsl"
 
       [output.outline]
       color="#FDF6E3"
@@ -83,6 +84,7 @@ in
       "mod+s" = "exec ${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/window-search.sh"
       "mod+m" = "fit-window-snapped"
       "mod+shift+m" = "fit-window"
+      "super+ctrl+r" = "reload-config"
 
       [gestures.on-window]
       "alt+3-finger-swipe" = "resize-window-snapped"
