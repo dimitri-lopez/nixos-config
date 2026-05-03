@@ -225,7 +225,7 @@ let
     # All defaults written out. Your overrides replace the relevant defaults.
     
     [keybindings]
-    "mod+d" = "exec noctalia-shell ipc call launcher toggle"
+    "mod+d" = "exec noctalia-shell ipc --any-display call launcher toggle"
     "mod+q" = "close-window"
     "mod+f" = "toggle-fullscreen"
     "mod+m" = "fit-window-snapped"
@@ -262,17 +262,17 @@ let
     "mod+alt+left" = "send-to-output left"
     "mod+alt+right" = "send-to-output right"
     "mod+s" = "exec /home/dimitril/.local/share/driftwm-sample/scripts/window-search.sh"
-    "mod+l" = "exec noctalia-shell ipc call lockScreen lock"
+    "mod+l" = "exec noctalia-shell ipc --any-display call lockScreen lock"
     "mod+semicolon" = "spawn /home/dimitril/.local/share/driftwm-sample/scripts/lock.sh"
-    "mod+n" = "exec noctalia-shell ipc call notificationHistory toggle"
+    "mod+n" = "exec noctalia-shell ipc --any-display call notificationHistory toggle"
     "mod+r" = "reload-config"
     "mod+period" = "fit-window"
     "mod+ctrl+shift+q" = "quit"
-    "XF86AudioRaiseVolume" = "exec noctalia-shell ipc call volume increase"
-    "XF86AudioLowerVolume" = "exec noctalia-shell ipc call volume decrease"
-    "XF86AudioMute" = "exec noctalia-shell ipc call volume muteOutput"
-    "XF86MonBrightnessUp" = "exec noctalia-shell ipc call brightness increase"
-    "XF86MonBrightnessDown" = "exec noctalia-shell ipc call brightness decrease"
+    "XF86AudioRaiseVolume" = "exec noctalia-shell ipc --any-display call volume increase"
+    "XF86AudioLowerVolume" = "exec noctalia-shell ipc --any-display call volume decrease"
+    "XF86AudioMute" = "exec noctalia-shell ipc --any-display call volume muteOutput"
+    "XF86MonBrightnessUp" = "exec noctalia-shell ipc --any-display call brightness increase"
+    "XF86MonBrightnessDown" = "exec noctalia-shell ipc --any-display call brightness decrease"
     "Print" = "spawn grim - | wl-copy"
     "shift+Print" = "spawn grim -g \"$(slurp -d)\" - | wl-copy"
     
