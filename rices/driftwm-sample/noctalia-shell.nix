@@ -14,15 +14,15 @@
         showCapsule = false;
         capsuleOpacity = 1;
         capsuleColorKey = "none";
-        widgetSpacing = 30;
-        contentPadding = 10;
+        widgetSpacing = 21;
+        contentPadding = 0;
         fontScale = 3;
         enableExclusionZoneInset = true;
         backgroundOpacity = 0.93;
         useSeparateOpacity = false;
         marginVertical = 4;
         marginHorizontal = 4;
-        frameThickness = 30;
+        frameThickness = 19;
         frameRadius = 5;
         outerCorners = true;
         hideOnOverview = false;
@@ -61,7 +61,7 @@
               colorizeIcons = false;
               hideMode = "hidden";
               id = "ActiveWindow";
-              maxWidth = 300;
+              # maxWidth = 145;
               scrollingMode = "hover";
               showIcon = true;
               showText = true;
@@ -74,7 +74,7 @@
               compactMode = false;
               hideMode = "visible";
               id = "MediaMini";
-              maxWidth = 400;
+              # maxWidth = 200;
               panelShowAlbumArt = true;
               scrollingMode = "hover";
               showAlbumArt = true;
@@ -89,7 +89,7 @@
               colorName = "primary";
               hideWhenIdle = true;
               id = "AudioVisualizer";
-              width = 400;
+              width = 300;
             }
             {
               displayMode = "alwaysShow";
