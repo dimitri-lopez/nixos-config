@@ -3619,6 +3619,7 @@ in
         set -e
         SRC="${config.home.homeDirectory}/.config/noctalia/settings.json"
         DST="${config.home.homeDirectory}/.dotfiles/rices/driftwm-sample/noctalia.json"
+        chmod +w "$DST" 2>/dev/null || true
         cp "$SRC" "$DST"
         cd "${config.home.homeDirectory}/.dotfiles"
         git add "rices/driftwm-sample/noctalia.json" 2>/dev/null || true
