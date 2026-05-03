@@ -124,10 +124,12 @@ let
   '';
 in
 {
+  # check config on home-manager actiavation
   home.activation.checkDriftwmConfig = lib.hm.dag.entryBefore ["copyDriftwmConfig"] ''
     /run/current-system/sw/bin/driftwm --config ${driftwmConfig} --check-config || true
   '';
 
+  # Write to the home directory, so auto hotloading works. 
   home.activation.copyDriftwmConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
     if [ ! -f "${config.home.homeDirectory}/.config/driftwm/config.toml" ]; then
       mkdir -p "${config.home.homeDirectory}/.config/driftwm"
