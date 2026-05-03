@@ -6,8 +6,9 @@ let
       # driftwm-sample — config managed via Nix, editable at ~/.config/driftwm/config.toml
 
       autostart = [
-        "wl-paste --type text --watch cliphist store",
-        "wl-paste --type image --watch cliphist store",
+        # Using noctalia's for now
+        # "wl-paste --type text --watch cliphist store",
+        # "wl-paste --type image --watch cliphist store",
         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1",
         "vorta -d",
         "${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/battery_notify.sh",
@@ -278,8 +279,7 @@ let
     [keybindings]
     "mod+return" = "exec ptyxis -s"
     "mod+d" = "exec noctalia-shell ipc call launcher toggle"
-    # "mod+s" = "exec 
-${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/window-search.sh"
+    "mod+s" = "exec ${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/sync-noctalia.sh"
     "mod+l" = "exec ${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/lock.sh"
     "mod+semicolon" = "spawn ${config.home.homeDirectory}/.local/share/driftwm-sample/scripts/lock.sh"
     "mod+n" = "exec noctalia-shell ipc call notificationHistory toggle"
@@ -398,6 +398,20 @@ in
       executable = true;
     };
 
+    ".local/share/driftwm-sample/scripts/sync-noctalia.sh" = {
+      text = ''
+        #!/bin/sh
+        set -e
+        SRC="${config.home.homeDirectory}/.config/noctalia/settings.json"
+        DST="${config.home.homeDirectory}/.dotfiles/rices/driftwm-sample/noctalia.json"
+        cp "$SRC" "$DST"
+        cd "${config.home.homeDirectory}/.dotfiles"
+        git add "rices/driftwm-sample/noctalia.json" 2>/dev/null || true
+        echo "noctalia.json synced from GUI settings"
+      '';
+      executable = true;
+    };
+
     # ".local/share/driftwm-sample/scripts/battery_notify.sh" = {
     #   text = ''
     #   #!/bin/bash
@@ -505,7 +519,19 @@ in
     #   executable = true;
     # };
 
+      # while true; do
+      #     bat=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -1)
+      #     status=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -1)
 
+      #     if [ -n "$bat" ] && [ "$status" = "Discharging" ]; then
+      #         if [ "$bat" -le "$BATTERY_CRITICAL" ]; then
+      #             check_cooldown critical && \\
+      #                 notify-send -u critical "Critical Battery" "''${bat}% — plug in immediately"
+      #         elif [ "$bat" -le "$BATTERY_LOW" ]; then
+      #             check_cooldown low && \\
+      #                 notify-send -u normal "Low Battery" "''${bat}% — consider charging soon"
+      #         fi
+      #     fi
   };
 
   systemd.user.startServices = "sd-switch";
