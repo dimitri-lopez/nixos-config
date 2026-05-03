@@ -1,6 +1,7 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, inputs, lib, ... }:
 
 let
+  driftwmPkg = inputs.driftwm.packages.${pkgs.stdenv.system}.default;
   driftwmConfig = pkgs.writeText "driftwm-config.toml" ''
       # driftwm — config managed via Nix, editable at ~/.config/driftwm/config.toml
 
@@ -126,10 +127,10 @@ in
 {
   # check config on home-manager actiavation
   home.activation.checkDriftwmConfig = lib.hm.dag.entryBefore ["copyDriftwmConfig"] ''
-    /run/current-system/sw/bin/driftwm --config ${driftwmConfig} --check-config || true
+    ${driftwmPkg}/bin/driftwm --config ${driftwmConfig} --check-config || true
   '';
 
-  # Write to the home directory, so auto hotloading works. 
+  # Write to the home directory, so auto hotloading works.
   home.activation.copyDriftwmConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
     if [ ! -f "${config.home.homeDirectory}/.config/driftwm/config.toml" ]; then
       mkdir -p "${config.home.homeDirectory}/.config/driftwm"

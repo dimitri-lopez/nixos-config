@@ -305,7 +305,7 @@ in
   imports = [ inputs.noctalia.homeModules.default ./noctalia-shell.nix ];
 
   home.activation.checkDriftwmConfig = lib.hm.dag.entryBefore ["copyDriftwmConfig"] ''
-    /run/current-system/sw/bin/driftwm --config ${driftwmConfig} --check-config || true
+    ${driftwmPkg}/bin/driftwm --config ${driftwmConfig} --check-config || true
   '';
 
   home.activation.copyDriftwmConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''

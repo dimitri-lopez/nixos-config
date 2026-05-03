@@ -1,8 +1,11 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
+let
+  srwcPkg = inputs.srwc.packages.${pkgs.stdenv.system}.default;
+in
 {
   home.activation.checkSrwcConfig = ''
-    /run/current-system/sw/bin/srwc check-config || true
+    ${srwcPkg}/bin/srwc check-config || true
   '';
 
   home.packages = with pkgs; [
