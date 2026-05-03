@@ -29,7 +29,7 @@
 dl-caps-lock-to-control &
 
 # Emacs daemon
-sleep 1 && restart-emacs-daemon &
+sleep 3 && restart-emacs-daemon &
 
 case "$XDG_SESSION_TYPE" in
   x11)
