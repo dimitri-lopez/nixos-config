@@ -70,7 +70,7 @@ sed -i "s/npmDepsHash = \".*\";/npmDepsHash = \"sha256-0000000000000000000000000
 echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new hashes."
 '')
     
-    # emacs     
+    # emacs30-gtk3
     ripgrep
     # optional dependencies
     coreutils # basic GNU utilities
@@ -158,6 +158,8 @@ else
     # echo "Emacs daemon is not running"
     notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/.dotfiles/images/BWEmacsIcon.png -t 3000
 fi
+    sleep 1
+    rm -f "''${XDG_RUNTIME_DIR:-/run/user/$(id - u)}/emacs/server"
 
 emacs --daemon
 notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/.dotfiles/images/EmacsIcon.png -t 3000

@@ -1456,6 +1456,8 @@ else
     # echo "Emacs daemon is not running"
     notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/.dotfiles/images/BWEmacsIcon.png -t 3000
 fi
+    sleep 1
+    rm -f "''${XDG_RUNTIME_DIR:-/run/user/$(id - u)}/emacs/server"
 
 emacs --daemon
 notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/.dotfiles/images/EmacsIcon.png -t 3000
