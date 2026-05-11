@@ -145,7 +145,7 @@ let
     # ── XWayland ──────────────────────────────────────────────────────
     
     [xwayland]
-    # enabled = true
+    enabled = true
     path = "xwayland-satellite"
     
     # ── Mouse decoration propagation ──────────────────────────────────
@@ -316,6 +316,7 @@ in
   '';
 
   home.packages = with pkgs; [
+    driftwmPkg
     fuzzel
     swaylock
     swayidle
@@ -333,6 +334,8 @@ in
     libnotify
     wtype
     xwayland
+    xwayland-satellite
+    xfce.xfce4-taskmanager
     cliphist
     wl-clipboard
   ];

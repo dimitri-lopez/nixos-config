@@ -96,7 +96,7 @@ echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new ha
     playwright-test # CLI for running playwright tests
 
     mu
-    ((emacsPackagesFor emacs-pgtk).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    ((emacsPackagesFor emacs30-gtk3).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
 
     # Neomacs (GPU-accelerated Emacs - for testing)
     # inputs.neomacs.packages.${pkgs.system}.default
@@ -161,7 +161,7 @@ fi
     sleep 1
     rm -f "''${XDG_RUNTIME_DIR:-/run/user/$(id - u)}/emacs/server"
 
-emacs --daemon
+GDK_BACKEND=x11 emacs --daemon
 notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/.dotfiles/images/EmacsIcon.png -t 3000
     '')
     (pkgs.writeScriptBin "dl-jumpapp-emacs" ''
@@ -172,7 +172,7 @@ EMACSSTATE=$(emacsclient -a false -e 't')
 if [ "$EMACSRUNNING" != "$EMACSSTATE" ]; then
     # echo "Emacs daemon is not running"
     notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/.dotfiles/images/BWEmacsIcon.png -t 3000
-    emacs --daemon
+    GDK_BACKEND=x11 emacs --daemon
 fi
 
 VAR1=$(jumpapp -m emacs --daemon 2>&1 >/dev/null)

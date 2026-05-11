@@ -1,9 +1,9 @@
 { config, pkgs, inputs, ... }:
 
 {
-  imports = [ ./pipewire.nix ./dbus.nix ];
+  imports = [ ./wayland.nix ];
 
-  services.xserver.enable = false;
+  services.xserver.enable = true;
   services.greetd = {
     enable = true;
     settings = {
