@@ -3,6 +3,7 @@
 {
   home.packages = [
     pkgs.git
+    pkgs.git-lfs
     pkgs.git-credential-manager
     pkgs.gh
                   ];

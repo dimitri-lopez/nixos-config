@@ -663,6 +663,7 @@ in
     gleamviz
 
     # Other system packages
+    tectonic # pdf something or other
     zlib
     libxmlb
     libxml2
@@ -1166,6 +1167,7 @@ buildNpmPackage rec {
 {
   home.packages = [
     pkgs.git
+    pkgs.git-lfs
     pkgs.git-credential-manager
     pkgs.gh
                   ];
@@ -1205,7 +1207,17 @@ let
     python3 = pkgs.python312;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
-  
+  epydemix = import ./python-packages/epydemix.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+    fetchurl = pkgs.fetchurl;
+  };
+  evalidate = import ./python-packages/evalidate.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchurl = pkgs.fetchurl;
+  };
 in
 # let
 #   pytrends = import ./python-packages/pytrends.nix {
@@ -1265,6 +1277,10 @@ in
       # network science 2 class
       powerlaw
       tailestim
+      epydemix
+
+      pyyaml
+      streamlit
     ]))
   ];
 }
@@ -1578,7 +1594,87 @@ python3.pkgs.buildPythonPackage rec {
   };
 }
 #+end_src
+*** epydemix.nix
+#+begin_src nix :tangle ./modules/python-packages/epydemix.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+  fetchurl,
+}:
+let
+  evalidate = import ./evalidate.nix { inherit lib python3 fetchurl; };
+in
+python3.pkgs.buildPythonPackage rec {
+  pname = "epydemix";
+  version = "1.1.0";
+  pyproject = true;
 
+  src = fetchFromGitHub {
+    owner = "epistorm";
+    repo = "epydemix";
+    rev = "v${version}";
+    hash = "sha256-BFzL4MPfWhAfNIyCxFZ/UrgQKz3n0REWeYivLrBAj0E=";
+  };
+
+  build-system = [
+    python3.pkgs.setuptools
+    python3.pkgs.wheel
+  ];
+
+  propagatedBuildInputs = with python3.pkgs; [
+    evalidate
+    matplotlib
+    numpy
+    pandas
+    scipy
+    seaborn
+  ];
+
+  pythonImportsCheck = [
+    "epydemix"
+  ];
+
+  meta = {
+    description = "A Python package for epidemic modeling, simulation, and calibration";
+    homepage = "https://github.com/epistorm/epydemix";
+    license = lib.licenses.gpl3;
+    maintainers = with lib.maintainers; [ ];
+  };
+}
+#+end_src
+
+**** evalidate.nix
+#+begin_src nix :tangle ./modules/python-packages/evalidate.nix
+{
+  lib,
+  python3,
+  fetchurl,
+}:
+
+python3.pkgs.buildPythonPackage rec {
+  pname = "evalidate";
+  version = "2.1.4";
+
+  src = fetchurl {
+    url = "https://files.pythonhosted.org/packages/7a/a3/651a90aa0b4cc1dc3c7905de3a8f2173ecc6dfb997318f042957521d4e8a/evalidate-${version}-py3-none-any.whl";
+    hash = "sha256-4pUJjn9+6vHHfILzFRgO7xUigL2U9GTtouCTQl+X//s=";
+  };
+
+  format = "wheel";
+
+  pythonImportsCheck = [
+    "evalidate"
+  ];
+
+  meta = {
+    description = "Python library for evaluating expressions";
+    homepage = "https://github.com/gradefoot/evalidate";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ];
+  };
+}
+#+end_src
 *** Try out python package
 #+begin_src emacs-lisp
 (dl/nixos-send-string-to-nixos-vterm "nix-shell -p python312Packages.scikit-learn")
