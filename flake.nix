@@ -8,7 +8,6 @@
     hyprland = {
       url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
     };
     hyprland-plugins = {
       url = "github:hyprwm/Hyprland-Plugins";
@@ -16,7 +15,36 @@
     };
     raise.url = "github:knarkzel/raise";
     opencode.url = "github:AodhanHayter/opencode-flake";
+    srwc = {
+      url = "github:infraflakes/srwc";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+    driftwm = {
+      url = "github:malbiruk/driftwm";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+    nixpkgs-unstable = {
+      url = "github:NixOS/nixpkgs/nixos-unstable";
+    };
+  
+    mcp-nixos = {
+      url = "github:utensils/mcp-nixos";
+    };
+  
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+  
+    # neomacs.url = "github:eval-exec/neomacs";
   };
+
+  nixConfig = {
+    extra-substituters = [ "https://noctalia.cachix.org" ];
+    extra-trusted-public-keys = [ "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=" ];
+  };
+
+  # outputs = inputs@{ self, nixpkgs, home-manager, neomacs, ... }:
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
@@ -27,24 +55,58 @@
         name = "Dimitri";
         email = "dimitrilopez01@gmail.com";
         dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
-        # wm = "hyprland"; # Selected window manager or desktop environment; must select one in both ./user/wm/ and ./system/wm/
+        # Options: "xfce", "vxwm", "hyprland", "srwc", "driftwm", "driftwm-sample" - desktop modules auto-loaded in flake.nix
+        wm = "driftwm-sample"; 
         # editor = "emacsclient -c -a 'emacs'"
       };
       systemSettings = {
         system = "x86_64-linux"; # system arch
         hostname = "dimitril-hostname";   # hostname
       };
+      
+      selectedDesktop = {
+        xfce = {
+          system = [ ./modules/xfce/xfce.nix ];
+          home = [ ./modules/xfce/xfce-home.nix ];
+        };
+        vxwm = {
+          system = [];
+          home = [ ./modules/vxwm-home.nix ];
+        };
+        hyprland = {
+          system = [ ./system/hyprland.nix ];
+          home = [ ./modules/wm/hyprland-minimal.nix ./modules/hyprland/hyprland-home.nix ];
+        };
+        srwc = {
+          system = [ ./system/srwc.nix ];
+          home = [ ./modules/srwc-home.nix ];
+        };
+        driftwm = {
+          system = [ ./system/driftwm.nix ];
+          home = [ ./modules/driftwm-home.nix ];
+        };
+        driftwm-sample = {
+          system = [ ./rices/driftwm-sample/system.nix ];
+          home = [ ./rices/driftwm-sample/home.nix ];
+        };
+      }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
+      packages.x86_64-linux = {
+        # neomacs = inputs.neomacs.packages.x86_64-linux.default;
+      };
+      legacyPackages.x86_64-linux = {
+      };
       nixosConfigurations = {
         nixos = lib.nixosSystem {
           inherit system;
-          modules = [ ./configuration.nix ];
+          modules = [ ./configuration.nix ] ++ selectedDesktop.system;
+          specialArgs = { inherit inputs; };
         };
       };
       homeConfigurations = {
         "dimitril" = home-manager.lib.homeManagerConfiguration {
           inherit pkgs;
-          modules = [ ./home.nix ];
+          modules = [ ./home.nix ] ++ selectedDesktop.home;
           extraSpecialArgs = {
             inherit userSettings;
             inherit inputs;

@@ -1,0 +1,25 @@
+#+title: Kanata Keyboard Remapping Setup
+
+* Phase 1: Bare Minimum Setup [1/3]
+** IN_PROGRESS Enable system prerequisites in readme.org
+   - Set =hardware.uinput.enable = true;=
+   - Add user =dimitril= to =uinput= and =input= groups.
+   - [X] Edited =readme.org=
+   - [ ] Run =sudo nixos-rebuild switch --flake .=
+** COMPLETED Create modules/kanata.nix Home Manager module
+   CLOSED: [2026-04-20 Mon 19:56]
+   - Basic mapping: =caps= -> =lctl=.
+   - Note: Moved to a NixOS system module instead of Home Manager for better hardware access.
+** COMPLETED Import kanata module in common.nix
+   CLOSED: [2026-04-20 Mon 19:56]
+   - Add to imports list.
+   - Note: Imported in =configuration.nix= instead.
+
+* Backlog / Future Enhancements [0/2]
+** TODO Implement tap-hold-press for Caps Lock (Esc/Control)
+   - Reference logic in todo.org (lines 104, 433-436).
+   - Requires tuning the 200ms timeout for personal preference.
+   - Note: Documentation for this can be found in =todo.org= under "Kanata Features Detailed".
+** TODO Deprecate and remove dl-caps-lock-to-control script
+   - Once Kanata is verified in TTY and Wayland, remove from =common-autostart=.
+   - Remove script definition from =scripting.nix=.

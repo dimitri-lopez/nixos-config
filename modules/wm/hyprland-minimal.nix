@@ -40,18 +40,14 @@ $menu = wofi --show drun
 # Autostart necessary processes (like notifications daemons, status bars, etc.)
 # Or execute your favorite apps at launch like this:
 exec-once = systemctl --user restart gvfs-daemon # needed for tramp emacs
-exec-once = dropbox
+exec-once = ~/.local/bin/common-autostart
 # exec-once = blueman-applet # TODO Need to double check if this is needed
 
-exec-once = hyprsunset
+# Redshift handled by home-manager services.redshift in common.nix
+# hyprsunset commented out - using services.redshift instead
 exec-once = hyprpaper
 exec-once = hypridle
 # exec-once = waybar
-
-exec-once = sleep 1 && restart-emacs-daemon
-# exec-once = $terminal
-# exec-once = nm-applet &
-# exec-once = waybar & hyprpaper & firefox
 # See https://wiki.hyprland.org/Configuring/Environment-variables/
 
 env = XCURSOR_SIZE,24
@@ -355,7 +351,7 @@ windowrule = nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned
     #   # systemd.enable = true;
   };
 
-  home.packages = with pkgs; [
+home.packages = with pkgs; [
     alacritty # fancy terminal
     kitty # default terminal
     waybar # bar, switch to eww later
@@ -374,8 +370,6 @@ windowrule = nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned
     hyprpaper # wallpaper
     # redshift # blue light filter
     # geoclue2 # red shift dependency
-    vim  # basic text editor
-    dropbox # syncing files
     blueman # bluetooth
     xfce.xfce4-taskmanager
     xfce.thunar

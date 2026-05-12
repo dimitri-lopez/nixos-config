@@ -1,11 +1,11 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      ./modules/xfce/xfce.nix
-      # ./system/hyprland.nix
+      
+      ./modules/kanata.nix
       ./modules/steam.nix
       ./system/bluetooth.nix
       ./system/pipewire.nix
@@ -14,6 +14,9 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  # TODO Not fully sure what these next two lines are for
+  boot.resumeDevice = "/dev/disk/by-uuid/667f86cc-c1c9-416b-928b-f08a01bfb12c";
+  boot.kernelParams = [ "resume=UUID=667f86cc-c1c9-416b-928b-f08a01bfb12c" ];
   
   networking.hostName = "nixos"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking
@@ -30,6 +33,7 @@
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   # hardware.enableAllFirmware = true;
+    hardware.uinput.enable = true;
   services.devmon.enable = true;
   services.gvfs.enable = true; # needed for emacs tramp
   services.udisks2.enable = true;
@@ -38,6 +42,7 @@
   # services.pulseaudio.enable = false;
   # TODO moved to ./system/pipewire.nix
   # security.rtkit.enable = true;
+    security.polkit.enable = true;
   # services.pipewire = {
   #   enable = true;
   #   alsa.enable = true;
@@ -89,11 +94,10 @@
   # services.xserver.desktopManager.xfce.enable = true;
   
   # Configure keymap in X11
-  # services.xserver.xkb = {
-  #   layout = "us";
-  #   variant = "";
-  # };
-  
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "";
+  };
   # Enable CUPS to print documents.
   services.printing.enable = true;
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -101,7 +105,7 @@
     isNormalUser = true;
     description = "Dimitri Lopez";
     # adding mlocate to use find file within doom emacs
-    extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" "mlocate" "docker"];
+    extraGroups = [ "networkmanager" "wheel" "storage" "input" "uinput" "dialout" "video" "render" "mlocate" "docker"];
     packages = with pkgs; [
     #  thunderbird
     ];
@@ -132,7 +136,7 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     syncthing
-  
+    inputs.srwc.packages.${pkgs.stdenv.system}.default
   ];
   system.autoUpgrade.enable = true;
   system.autoUpgrade.dates = "weekly";
@@ -170,4 +174,5 @@
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "25.05"; # Did you read the comment?
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.trusted-users = [ "root" "dimitril" ];
 }

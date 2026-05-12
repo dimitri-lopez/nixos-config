@@ -46,7 +46,7 @@ in
     claude-agent-acp
     free-coding-models
     # inputs.opencode.packages.${pkgs.system}.default
-    (pkgs.writeScriptBin "opencode" "npx opencode-ai \"$@\"")
+    (pkgs.writeShellScriptBin "opencode" "exec npx opencode-ai \"$@\"")
     
     # inputs.opencode.packages.${pkgs.system}.default
     gnuplot
@@ -70,7 +70,7 @@ sed -i "s/npmDepsHash = \".*\";/npmDepsHash = \"sha256-0000000000000000000000000
 echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new hashes."
 '')
     
-    # emacs     
+    # emacs30-gtk3
     ripgrep
     # optional dependencies
     coreutils # basic GNU utilities
@@ -96,7 +96,11 @@ echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new ha
     playwright-test # CLI for running playwright tests
 
     mu
-    ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    ((emacsPackagesFor emacs30-gtk3).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+
+    # Neomacs (GPU-accelerated Emacs - for testing)
+    # inputs.neomacs.packages.${pkgs.system}.default
+
     # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.etags ]))
     isync
     offlineimap
@@ -148,15 +152,17 @@ EMACSRUNNING="t"
 EMACSSTATE=$(emacsclient -a false -e 't')
 if [ "$EMACSRUNNING" = "$EMACSSTATE" ]; then
     # echo "Emacs daemon is running"
-    notify-send 'Emacs Daemon' 'Restarting Emacs Daemon' -i ~/bin/BWEmacsIcon.png -t 3000
+    notify-send 'Emacs Daemon' 'Restarting Emacs Daemon' -i ~/.dotfiles/images/BWEmacsIcon.png -t 3000
     emacsclient -e "(kill-emacs)"
 else
     # echo "Emacs daemon is not running"
-    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/bin/BWEmacsIcon.png -t 3000
+    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/.dotfiles/images/BWEmacsIcon.png -t 3000
 fi
+    sleep 1
+    rm -f "''${XDG_RUNTIME_DIR:-/run/user/$(id - u)}/emacs/server"
 
-emacs --daemon
-notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/bin/EmacsIcon.png -t 3000
+GDK_BACKEND=x11 emacs --daemon
+notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/.dotfiles/images/EmacsIcon.png -t 3000
     '')
     (pkgs.writeScriptBin "dl-jumpapp-emacs" ''
 #!/usr/bin/env bash
@@ -165,8 +171,8 @@ EMACSRUNNING="t"
 EMACSSTATE=$(emacsclient -a false -e 't')
 if [ "$EMACSRUNNING" != "$EMACSSTATE" ]; then
     # echo "Emacs daemon is not running"
-    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/bin/BWEmacsIcon.png -t 3000
-    emacs --daemon
+    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/.dotfiles/images/BWEmacsIcon.png -t 3000
+    GDK_BACKEND=x11 emacs --daemon
 fi
 
 VAR1=$(jumpapp -m emacs --daemon 2>&1 >/dev/null)

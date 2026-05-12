@@ -1,0 +1,486 @@
+#+TITLE: Linux Tablet Input Methods & Tools
+#+DESCRIPTION: A comprehensive guide to tablet input, handwriting recognition, and drawing tools on Linux
+#+AUTHOR: Collected from various sources
+#+TOC: true
+
+* Introduction
+
+This document covers everything related to using drawing tablets on Linux: drivers, configuration, handwriting recognition, and drawing/notetaking software.
+
+** Topics Covered:
+- Tablet drivers (Wacom, Huion, XP-Pen, OpenTabletDriver)
+- Configuration tools and methods
+- Handwriting recognition
+- Drawing and notetaking applications
+- Tablet-specific tools
+
+* Tablet Drivers
+
+** OpenTabletDriver (Recommended)
+
+OpenTabletDriver is a cross-platform, open source user-mode tablet driver aiming for highest compatibility.
+
+- Website: https://opentabletdriver.net
+- GitHub: https://github.com/OpenTabletDriver/OpenTabletDriver
+- Stars: 3.7k
+
+*** Why OpenTabletDriver?
+- Works with Wacom, Huion, XP-Pen, Gaomon, and many more
+- Cross-platform (Windows, Linux, macOS)
+- Graphical configuration UI
+- Active development and community support
+- Auto-generates udev rules for permissions
+
+*** Installation (Linux)
+
+#+begin_src bash
+# Arch Linux (AUR)
+yay -S opentabletdriver
+
+# Debian/Ubuntu
+# Download .deb from GitHub Releases
+
+# NixOS
+{ config, lib, pkgs, ... }: {
+  hardware.opentabletdriver.enable = true;
+  hardware.uinput.enable = true;
+}
+
+# Manual
+git clone https://github.com/OpenTabletDriver/OpenTabletDriver
+cd OpenTabletDriver
+./eng/linux/package.sh --package BinaryTarBall
+# Extract to /
+#+end_src
+
+*** Configuration
+
+1. Start the daemon: =otd-daemon=
+2. Open GUI: =otd-gui=
+3. Configure your tablet in the GUI
+4. Set up auto-start:
+   #+begin_src bash
+   systemctl --user enable opentabletdriver.service --now
+   #+end_src
+
+*** Supported Tablets
+
+Full list at: https://opentabletdriver.net/Wiki/Supported-Tablets
+
+*** Usage Tips
+
+- Map tablet to specific monitor: Right-click display area editor → Set to display → Select monitor
+- Artist Mode provides pressure sensitivity in all applications
+- Adjust sensitivity curves in the Pen settings
+- Export/import configurations for backup
+
+** Wacom Drivers (xf86-input-wacom)
+
+The official Linux Wacom driver, included in most distributions.
+
+- Package: =xserver-xorg-input-wacom= (Debian/Ubuntu)
+- Package: =xf86-input-wacom= (Arch)
+- Wiki: https://github.com/linuxwacom/xf86-input-wacom
+
+*** Setup
+
+#+begin_src bash
+# Verify installation
+sudo dmesg | grep -i wacom
+
+# List devices
+xsetwacom list devices
+# Output example:
+# Wacom Intuos5 touch M Pen stylus id: 11 type: STYLUS
+# Wacom Intuos5 touch M Pad pad id: 10 type: PAD
+# Wacom Intuos5 touch M Pen eraser id: 17 type: ERASER
+#+end_src
+
+*** Configuration with xsetwacom
+
+#+begin_src bash
+# Map to specific monitor
+xsetwacom set "Wacom Intuos5 touch M Pen" MapToOutput HEAD-0
+
+# Enable touch
+xsetwacom set "Wacom Intuos5 touch M Finger" touch on
+
+# Rotate tablet (none, cw, ccw, hw)
+xsetwacom set "Wacom Intuos5 touch M Pen" rotate none
+#+end_src
+
+** Huion Tablets
+
+Huion tablets often require extra setup on Linux.
+
+*** Method 1: Native Wacom Driver (Most models)
+Many newer Huion tablets work with the wacom driver:
+#+begin_src bash
+# Add to /etc/X11/xorg.conf.d/52-tablet.conf
+Section "InputClass"
+    Identifier "Huion drawing tablet"
+    MatchProduct "HUION"
+    MatchUSBID "256c:*"
+    Driver "wacom"
+EndSection
+#+end_src
+
+*** Method 2: Userspace Driver Daemon
+
+For tablets not supported by wacom driver:
+- Repo: https://github.com/kurikaesu/userspace-tablet-driver-daemon
+- Supports: XP-Pen, Huion, Gaomon (many models)
+
+** XP-Pen Tablets
+
+*** Official Drivers
+XP-Pen provides official Linux drivers:
+- Download from: https://www.xp-pen.com/server/download/index/categoryid/28.html
+
+*** Using wacom driver
+Most XP-Pen tablets work with the wacom driver:
+#+begin_src bash
+sudo pacman -S xf86-input-wacom libwacom wacomcpl
+xsetwacom list devices
+#+end_src
+
+** Tablet Driver Comparison
+
+| Driver | Wacom | Huion | XP-Pen | Gaomon | Notes |
+|--------|-------|-------|--------|--------|-------|
+| xf86-input-wacom | ✓ | Some | Some | Some | Native, stable |
+| OpenTabletDriver | ✓ | ✓ | ✓ | ✓ | Best compatibility |
+| Userspace daemon | - | ✓ | ✓ | ✓ | For unsupported models |
+
+* Configuration Tools
+
+** Graphical Tools
+
+*** wacomcpl
+GTK-based Wacom configuration tool.
+#+begin_src bash
+# Install
+sudo apt install wacomcpl  # Debian/Ubuntu
+sudo pacman -S wacomcpl    # Arch
+# Run
+wacomcpl
+#+end_src
+
+*** GNOME Tablets Settings
+Built into GNOME Control Center → Devices → Tablets
+
+*** KDE Tablet Settings
+System Settings → Input Devices → Tablet
+
+** Command Line Tools
+
+*** xsetwacom
+Configuration for Wacom devices in X11.
+
+#+begin_src bash
+# List all devices
+xsetwacom list devices
+
+# Get device ID
+xsetwacom list devices | grep "Pen" | grep -oP 'id: \d+'
+
+# Common options
+xsetwacom set "DEVICE" area X1 Y1 X2 Y2      # Set active area
+xsetwacom set "DEVICE" MapToOutput OUTPUT   # Map to monitor
+xsetwacom set "DEVICE" rotate none|cw|ccw   # Rotation
+xsetwacom set "DEVICE" pressurecurve 0 0 100 100  # Pressure curve
+xsetwacom set "DEVICE" button 2 "key a"     # Button mapping
+xsetwacom set "DEVICE" touch on|off         # Enable touch
+xsetwacom get "DEVICE" all                   # Show all settings
+#+end_src
+
+*** xinput
+General input device configuration.
+
+#+begin_src bash
+# List devices
+xinput list
+
+# List properties
+xinput list-props "Device Name"
+
+# Set property
+xinput set-prop "Device Name" "Device Enabled" 1
+
+# Map to output
+xinput map-to-output "Device Name" DP-1
+#+end_src
+
+** Auto-start Script Example
+
+#+begin_src bash
+#!/bin/bash
+# wacom-setup.sh
+
+# Map tablet to primary monitor
+xsetwacom set "Wacom Intuos5 touch M Pen" MapToOutput eDP-1
+
+# Enable touch on pad
+xsetwacom set "Wacom Intuos5 touch M Finger" touch on
+
+# Set button mappings
+xsetwacom set "Wacom Intuos5 touch M Pad" button 1 "key ctrl z"
+xsetwacom set "Wacom Intuos5 touch M Pad" button 3 "key ctrl c"
+#+end_src
+
+* Handwriting Recognition
+
+Handwriting recognition on Linux is limited compared to Windows/macOS, but options exist.
+
+** CellWriter
+
+Grid-based handwriting recognition that learns your writing style.
+
+- Website: https://cellwriter.sourceforge.net/
+- License: GPL-3.0
+- Status: Unmaintained (last update ~2012)
+
+*** Features
+- Grid-based one character at a time input
+- Learns your handwriting style
+- Works with stylus or mouse
+- Always-on-top input window
+
+*** Installation
+#+begin_src bash
+# Debian/Ubuntu
+sudo apt install cellwriter
+
+# Build from source
+git clone https://github.com/mj oleary/cellwriter
+cd cellwriter
+./configure && make && sudo make install
+#+end_src
+
+** Writeboard
+
+Qt6-based virtual handwriting keyboard with Tesseract OCR.
+
+- GitHub: https://github.com/folfcoder/writeboard
+- Status: Archived/WIP
+
+*** Features
+- Tesseract OCR integration
+- Custom trained handwriting models
+- Virtual keyboard mode
+
+*** Requirements
+- Qt 6.2.4+
+- Tesseract
+
+** Qt Virtual Keyboard Handwriting
+
+Qt's built-in handwriting recognition (commercial engines available).
+
+- MyScript SDK integration (commercial)
+- Cerence Handwriting (commercial)
+
+* Drawing & Notetaking Applications
+
+** Xournal++ (Recommended)
+
+Handwriting notetaking with PDF annotation support.
+
+- Website: https://xournalpp.github.io
+- GitHub: https://github.com/xournalpp/xournalpp
+- Stars: 14.5k
+- License: GPL-2.0
+
+*** Features
+- Pressure-sensitive stylus support (Wacom, Huion, XP-Pen)
+- PDF annotation
+- Shape recognition (line, circle, rectangle, arrow)
+- Layer support
+- Various paper backgrounds
+- Audio recording
+- Export to PDF, PNG, SVG
+
+*** Installation
+#+begin_src bash
+# Debian/Ubuntu
+sudo apt install xournalpp
+
+# Arch
+sudo pacman -S xournalpp
+
+# Nightly (Ubuntu)
+sudo add-apt-repository ppa:andreasbutti/xournalpp-master
+sudo apt update && sudo apt install xournalpp
+
+# Flatpak
+flatpak install app.xournalpp.Xournal++
+#+end_src
+
+*** Configuration Tips
+- Enable "Use XInput" for pressure sensitivity
+- Configure stylus buttons in Input settings
+- Adjust pressure curve for better feel
+- Use stabilizer for smoother lines
+
+** Rnote
+
+Rust-based notetaking application for pen input.
+
+- GitHub: https://github.com/flxed/rnote
+- License: GPL-3.0
+
+*** Features
+- PDF annotation
+- Pressure-sensitive drawing
+- Xournal++ file format support
+- Modern UI
+
+*** Installation
+#+begin_src bash
+# NixOS (unstable)
+programs.rnote.enable = true;
+
+# Build from source
+cargo install rnote
+#+end_src
+
+** Krita
+
+Professional digital painting application.
+
+- Website: https://krita.org
+
+*** Features
+- Professional-grade painting
+- Animation support
+- Extensive brush engine
+- Linux support
+
+** GIMP
+
+Image editor with drawing tablet support.
+
+** Inkscape
+
+Vector graphics editor with tablet support.
+
+** Drawing Applications Comparison
+
+| App | Type | PDF Annot. | Tablet Support | Notes |
+|-----|------|------------|----------------|-------|
+| Xournal++ | Notetaking | ✓ | ✓ | Best for notes |
+| Rnote | Notetaking | ✓ | ✓ | Modern, Rust-based |
+| Krita | Painting | - | ✓ | Professional art |
+| GIMP | Image editing | - | ✓ | Photo editing |
+| Inkscape | Vector | - | ✓ | Vector graphics |
+| MyPaint | Painting | - | ✓ | Simple, brush-focused |
+
+* Tablet-Specific Tools
+
+** OpenTabletDriver UX Settings
+
+From https://opentabletdriver.net/Wiki/FAQ/General
+
+*** Area Settings
+- Set absolute area matching your screen
+- Use "Map to Output" to map to specific monitor
+
+*** Pen Settings
+- Pressure sensitivity curves
+- Button mappings (tip, barrel, eraser)
+- Threshold for activation
+
+*** Auxiliary Devices
+- Touch ring/strip configuration
+- Express key mappings
+
+** Wacom Configuration
+
+*** Tablet Settings
+- Screen mapping (full desktop vs single monitor)
+- Orientation
+- Aspect ratio (keep vs stretch)
+- Button functions
+
+*** Stylus Settings
+- Pressure sensitivity
+- Tilt sensitivity
+- Eraser behavior
+
+* Troubleshooting
+
+** Common Issues
+
+*** Tablet not detected
+#+begin_src bash
+# Check kernel messages
+sudo dmesg | grep -i wacom
+sudo dmesg | grep -i usb
+
+# Check X input
+xinput list
+xsetwacom list devices
+#+end_src
+
+*** Pressure sensitivity not working
+- Ensure "Use XInput" is enabled in application
+- Check xsetwacom pressurecurve settings
+- Try different application
+
+*** Cursor mapping wrong monitor
+#+begin_src bash
+xsetwacom set "Your Tablet" MapToOutput HEAD-0
+# or
+xinput map-to-output "Your Tablet" DP-1
+#+end_src
+
+*** Permission denied errors
+#+begin_src bash
+# Add user to input group
+sudo usermod -aG input $USER
+
+# Log out and back in
+
+# For OpenTabletDriver, ensure udev rules are installed
+sudo otd-daemon --generate-rules | sudo tee /etc/udev/rules.d/91-opentabletdriver.rules
+sudo udevadm control --reload-rules
+#+end_src
+
+** Performance Tips
+
+- Use wacom driver when possible (native support)
+- OpenTabletDriver for non-supported tablets
+- Adjust polling rate if experiencing lag
+- Check for conflicting drivers
+
+* Wayland Considerations
+
+Wayland has different tablet handling than X11.
+
+** GNOME on Wayland
+- Native tablet support in GNOME Control Center
+- Some xsetwacom features unavailable
+
+** KDE on Wayland
+- Full tablet configuration in System Settings
+- Some features require X11
+
+** Hyprland
+- OpenTabletDriver works well
+- Use =hyprctl= for some configurations
+
+* Related Resources
+
+** Documentation
+- OpenTabletDriver Wiki: https://opentabletdriver.net
+- Linux Wacom Wiki: https://github.com/linuxwacom/xf86-input-wacom/wiki
+- Xournal++ Manual: https://xournalpp.github.io
+
+** Video Guides
+- "Setting Up Wacom Tablets on Linux" by Hirusha Adikari
+- "How to setup Huion tablets on Linux" by various creators
+
+** Communities
+- r/linux (Reddit)
+- OpenTabletDriver Discord
+- Linux Wacom Project forums

@@ -4,6 +4,7 @@ let
     ll = "ls -la";
     ec = "emacsclient";
     myname = "echo " + userSettings.username;
+    driftwm-check = "driftwm --config ~/.config/driftwm/config.toml --check-config";
   };
 in
 {

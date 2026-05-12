@@ -14,19 +14,454 @@ See my [[install.org]] for installation instructions.
 -----
 - [[*Try out python package][Install python package]]
 
-* TODO List
-** TODO mu4e
-** TODO Fix brave nixos extraOpt
+* Inbox
+** Boox tablet (Weylus - recommended)
+Weylus works better with Boox over WiFi. Install on Boox from Play Store or F-Droid.
+
+Usage:
+1. Run ~weylus-start~ on laptop
+2. On Boox: Open Firefox and go to URL shown (http://:1701)
+3. Accept connection - tablet becomes drawing tablet
+
+USB (no WiFi):
+1. Run: ~adb reverse tcp:1701 tcp:1701 && adb reverse tcp:9001 tcp:9001~
+2. On Boox: Open Firefox and go to http://127.0.0.1:1701
+
+Note: droidux had USB issues with Boox.
+#+begin_src nix :tangle ./modules/droidux.nix
+{ pkgs, ... }:
+
+{
+  home.packages = with pkgs; [
+    xournalpp
+    weylus
+    android-tools
+  ];
+
+  programs.bash = {
+    enable = true;
+shellAliases = {
+      weylus-start = "weylus";
+      weylus-usb = "adb reverse tcp:1701 tcp:1701 && adb reverse tcp:9001 tcp:9001 && weylus";
+    };
+  };
+}
+#+end_src
+** itch.nix
+- [ ] [[*home.nix modules][home.nix modules]]
+- [ ] [[elisp:(org-babel-tangle)]]
+- [ ] [[git add -A ./modules/itch.nix]]
+#+begin_src nix :tangle ./modules/itch.nix
+{ config, lib, pkgs, ... }:
+
+{
+  home.packages = with pkgs; [
+    # itch
+  ];
+}
+#+end_src
+
+** vxwm home config
+#+begin_src nix :tangle ./modules/vxwm-home.nix
+{ config, pkgs, ... }:
+
+{
+  services.picom = {
+    enable = true;
+    package = pkgs.picom-pijulius;
+    backend = "glx";
+    settings = {
+      blur-method = "dual_kawase";
+      blur-strength = 5;
+      blur-background = true;
+      animations = true;
+      animation-stiffness = 500;
+      animation-window-mass = 1;
+      animation-window-open = "effortless EaseInOut";
+      animation-window-close = "effortless EaseInOut";
+      fade = true;
+      fade-in-step = 0.03;
+      fade-out-step = 0.03;
+      no-fading-openclose = false;
+      shadow = true;
+      shadow-opacity = 0.5;
+    };
+  };
+  
+  home.file.".xprofile".text = ''
+#!/bin/sh
+# X resources
+xrdb -merge ~/.Xresources &
+
+# Set key repeat rate (Delay 185ms, Rate 75/s)
+xset r rate 185 75 &
+
+# Source common autostart (caps-lock, emacs, dropbox, syncthing)
+[ -f ~/.local/bin/common-autostart ] && ~/.local/bin/common-autostart &
+
+# Compton (picom) - compositor
+picom -b &
+
+# Tint2 bar
+tint2 &
+
+# sxhkd for keybindings
+sxhkd &
+
+# Set wallpaper
+feh --bg-fill ~/Dropbox/images/Truchas_LopezRanch_MW.jpg &
+'';
+  
+  home.file.".Xresources".text = ''
+    ! Xresources configuration for vxwm
+    
+    ! Cursor theme
+    Xcursor.size: 24
+    
+    ! Window appearance
+    URxvt*font: xft:Iosevka:size=10
+    URxvt*boldFont: xft:Iosevka:bold:size=10
+    URxvt*italicFont: xft:Iosevka:italic:size=10
+    
+    ! Transparency
+    URxvt*depth: 32
+    URxvt*background: [90]#000000
+    
+    ! Colors (Everforest-ish)
+    URxvt*foreground: #d3c6aa
+    URxvt*cursorColor: #a7c080
+  '';
+
+  home.file.".config/sxhkd/sxhkdrc".text = ''
+# Super key
+super = Mod4
+
+# Launch / raise applications (jumpapp-style)
+super + space
+  emenu
+
+super + e
+  dl-jumpapp-emacs
+
+super + t
+  jumpapp urxvt
+
+super + b
+  jumpapp firefox
+
+super + c
+  jumpapp brave
+
+# Window management
+super + q
+  xdotool windowclose
+
+alt + w
+  wmctrl -r :ACTIVE: -b toggle,maximized_vert,maximized_horz
+
+super + f
+  wmctrl -r :ACTIVE: -b toggle,maximized_vert,maximized_horz
+
+super + n
+  xdotool windowminimize
+
+super + m
+  wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz
+
+# Logout
+super + shift + e
+  loginctl terminate-user $USER
+
+super + shift + h
+  systemctl hibernate
+  '';
+
+  home.file.".config/tint2/tint2rc".text = ''
+    # Tint2 configuration
+    
+    # Panel
+    panel = bottom
+    panel_items = LTSC
+    panel_size = 100% 30
+    panel_margin = 0 5
+    panel_padding = 5 0
+    panel_background_id = 1
+    
+    # Battery
+    battery = 1
+    battery_icon = 0
+    battery_tooltip = 1
+    
+    # Clock
+    time1 = %H:%M
+    time2 = %Y-%m-%d
+    time_format = %H:%M
+    tooltip_time_format = %Y-%m-%d
+    
+    # Launcher
+    launcher_item_app = urxvt
+    launcher_item_app = emacs
+    launcher_item_app = emacsclient -c
+  '';
+
+  home.packages = with pkgs; [
+    picom-pijulius
+    lemonbar
+    tint2
+    sxhkd
+    xdotool
+    xorg.xrandr
+    feh
+    arandr
+    jumpapp
+    # xorg.xauth  # TODO: Enable for X11 remote forwarding (ssh -X)
+  ];
+}
+#+end_src
+
+** srwc home config
+- [[~/srwc/resources/config.example.toml][Configuration example]]
+#+begin_src nix :tangle ./modules/srwc-home.nix
+{ config, pkgs, inputs, ... }:
+
+let
+  srwcPkg = inputs.srwc.packages.${pkgs.stdenv.system}.default;
+in
+{
+  home.activation.checkSrwcConfig = ''
+    ${srwcPkg}/bin/srwc check-config || true
+  '';
+
+  home.packages = with pkgs; [
+    waybar
+    xdg-utils
+    libnotify
+    xdg-desktop-portal-gnome
+    xdg-desktop-portal-gtk
+    xdg-desktop-portal
+    wl-clipboard
+    brightnessctl
+    playerctl
+    jumpapp
+    fuzzel
+    wmenu
+    foot
+    alacritty
+    xfce.xfce4-taskmanager
+  ];
+
+  home.file = {
+    ".config/srwc/config.toml".text = ''
+      # srwc configuration
+      # https://github.com/infraflakes/srwc
+
+      [input.keyboard]
+      repeat_rate = 75
+      repeat_delay = 185
+
+      [input.mouse]
+      accel_speed = 0.0           # pointer acceleration (-1.0 to 1.0)
+      accel_profile = "flat"      # "flat" or "adaptive"
+      natural_scroll = false      # reverse scroll direction
+
+      [cursor]
+      theme = "Adwaita"           # sets XCURSOR_THEME
+      size = 24                   # sets XCURSOR_SIZE
+      inactive_opacity = 0.5      # cursor opacity on non-active outputs (0.0–1.0)
+
+      [decorations]
+      bg_color = "#242223"           # title bar background (default: dark gray)
+      fg_color = "00000"           # close button × color (default: white)
+      corner_radius = 8              # clip window corners to this radius (no effect if client rounds more)
+
+      [background]
+
+      shader_path = "~/srwc/resources/extras/wallpapers/dark_sea.glsl"
+      # shader_path = "~/.config/srwc/bg.glsl"
+      # or use tiled image:
+      # tile_path = "~/.config/srwc/tile.png"
+
+      [effects]
+      blur_radius = 2
+      blur_strength = 1.1
+
+      [keybindings]
+      "super+ctrl+r" = "reload-config"
+
+      # Maximize (fit window to viewport)
+      "alt+w" = "fit-window"
+      "super+m" = "fit-window"
+
+      # Open emacs
+      "alt+e" = "exec emacsclient -c -a 'emacs'"
+
+      # emenu (application launcher)
+      "super+space" = "exec fuzzel"
+
+      # Terminal
+      "super+return" = "exec foot"
+      "alt+return" = "exec foot"
+
+      # Task Manager
+      "super+escape" = "exec xfce4-taskmanager"
+
+      # Zoom controls
+      "super+equal" = "zoom-in"
+      "super+minus" = "zoom-out"
+      "super+0" = "zoom-reset"
+
+      # Window navigation
+      "alt+tab" = "cycle-windows forward"
+      "alt+shift+tab" = "cycle-windows backward"
+      "super+q" = "close-window"
+      "super+f" = "toggle-fullscreen"
+      "super+c" = "center-window"
+
+      # Panning
+      "super+ctrl+up" = "pan-viewport up"
+      "super+ctrl+down" = "pan-viewport down"
+      "super+ctrl+left" = "pan-viewport left"
+      "super+ctrl+right" = "pan-viewport right"
+
+      # Center nearest window in direction (Snap Camera)
+      "super+up" = "center-nearest up"
+      "super+down" = "center-nearest down"
+      "super+left" = "center-nearest left"
+      "super+right" = "center-nearest right"
+
+      # Nudge window (pseudo-tiling alignment)
+      "super+shift+up" = "nudge-window up"
+      "super+shift+down" = "nudge-window down"
+      "super+shift+left" = "nudge-window left"
+      "super+shift+right" = "nudge-window right"
+
+
+
+      # Quit
+      "super+ctrl+shift+q" = "quit"
+
+      # Hibernation
+      "super+h" = "exec systemctl hibernate"
+
+      [[window_rules]]
+      app_id = ".*"
+      opacity = 0.95
+      blur = true
+
+      [[window_rules]]
+      app_id = "emacs"
+      # title = "*Emacs*"
+      opacity = 0.85
+      blur = true
+      decoration = "client"
+    '';
+
+    ".config/waybar/config".text = ''
+      {
+        "layer": "top",
+        "position": "top",
+        "height": 30,
+        "modules-left": ["clock"],
+        "modules-center": [],
+        "modules-right": ["battery", "pulseaudio"],
+
+        "clock": {
+          "format": "{:%H:%M}",
+          "tooltip-format": "<big>{:%Y-%m-%d}</big>\n<tt>{:%H:%M:%S}</tt>"
+        },
+
+        "battery": {
+          "format": "{icon} {capacity}%",
+          "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+          "states": {
+            "warning": 30,
+            "critical": 15
+          }
+        },
+
+        "pulseaudio": {
+          "format": "{icon} {volume}%",
+          "format-muted": "󰝟",
+          "format-icons": {
+            "default": ["󰕿", "󰖀", "󰕾"]
+          },
+          "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle"
+        }
+      }
+    '';
+
+    ".config/waybar/style.css".text = ''
+      ,* {
+        border: none;
+        font-family: "Iosevka";
+        font-size: 12px;
+      }
+
+      window#waybar {
+        background: rgba(30, 30, 30, 0.9);
+        color: #d3c6aa;
+      }
+
+      #clock {
+        padding: 0 15px;
+      }
+
+      #battery, #pulseaudio {
+        padding: 0 10px;
+      }
+    '';
+
+    ".xprofile".text = ''
+      #!/bin/sh
+      # Wayland session - xprofile runs before compositor
+      # Start xdg-desktop-portal after compositor is ready
+    '';
+  };
+
+}
+#+end_src
+
 * Resources
-** Switching flakes on the nix level
-#+begin_src bash
+** Common Commands
+- Updating:
+  #+begin_src bash
+# Home manager
+home-manager switch --flake .
+# Switch flakes
 sudo nixos-rebuild switch --flake .
+# Both
+home-manager switch --flake . && sudo nixos-rebuild switch --flake .
+# Upgrade packages
+sudo nixos-rebuild switch --flake . --upgrade
+  #+end_src
+- Conflicting packages: =nix-env -q=
+- Test new package nix-shell -p =python3Pcakges.requests=
+- [[Garbage collection]]: =nix-collect-garbage -d --delete-older-than 10d=
+** Literate Config Organization
+I am going to keep this fairly basic and then organize it a little more over time. This is all powered through emacs org-mode. Running:
+#+begin_src emacs-lisp
+(org-babel-tangle)
 #+end_src
-** Conflicting packages
+
+Will tangle this file into the files that I actually care about. I keep it within org-mode so that I can leverage the better organization and jumping tools.
+
+There are three main sources of files that I am concerned about:
+- configuration.nix: System configuration
+- flake.nix: Flake configuration, this rarely changes
+- home.nix: Home configuration, this changes all the time
+
+Within configuration.nix and home.nix I have a set of modules that I can add and subtract as need be. Each of the modules is usually some modular piece of code that I would like to build my system. As this configuration matures, I am sure that things will change quite a bit over time.
+** Misc
+*** Github
+I fixed most of this with the gh package.
 #+begin_src bash
-nix-env -q
+git config --global user.email "dimitrilopez01@gmail.com"
+git config --global user.name "Dimitri Lopez"
 #+end_src
-** Single command run
+
+#+RESULTS:
+
+*** Single command run
 #+begin_src emacs-lisp
 (defun dl/nixos-tangle-update-home-config ()
   (interactive)
@@ -44,97 +479,62 @@ nix-env -q
 
 #+RESULTS:
 : dl/nixos-tangle-update-home-config
-** Garbage collection from cli
-I have this done automatically within my configuration. See
-[[Garbage collection]]
-
-Garbage college generations older than 10 days.
-#+begin_src bash
-nix-collect-garbage -d --delete-older-than 10d
+* Configuration Entry Point
+** User Settings (flake.nix)
+#+begin_src nix :noweb-ref userSettings
+userSettings = {
+  username = "dimitril";
+  name = "Dimitri";
+  email = "dimitrilopez01@gmail.com";
+  dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
+  # Options: "xfce", "vxwm", "hyprland", "srwc", "driftwm", "driftwm-sample" - desktop modules auto-loaded in flake.nix
+  wm = "driftwm-sample"; 
+  # editor = "emacsclient -c -a 'emacs'"
+};
+#+end_src
+** System Settings (flake.nix)
+#+begin_src nix :noweb-ref systemSettings
+systemSettings = {
+  system = "x86_64-linux"; # system arch
+  hostname = "dimitril-hostname";   # hostname
+};
+#+end_src
+** System base imports (configuration.nix)
+Always included regardless of wm setting:
+#+begin_src nix :noweb-ref configuration.nix-imports
+imports =
+  [ # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+    
+    ./modules/kanata.nix
+    ./modules/steam.nix
+    ./system/bluetooth.nix
+    ./system/pipewire.nix
+    ./system/syncthing.nix
+  ];
 #+end_src
 
-#+RESULTS:
-| 1984 store paths deleted | 1772.57 MiB freed |
-** Updating
-*** Updating home config
-#+begin_src bash
-home-manager switch --flake .
-#+end_src
-*** Updating system config
-#+begin_src bash
-sudo nixos-rebuild switch --flake .
-#+end_src
-Packages can also be updated using the ==--upgrade== flag.
 
-#+begin_src bash
-sudo nixos-rebuild switch --flake . --upgrade
-#+end_src
-
-*** Updating home config and system config
-#+begin_src bash
-home-manager switch --flake . && sudo nixos-rebuild switch --flake .
-#+end_src
-
-#+begin_src bash
-home-manager switch --flake . --update && sudo nixos-rebuild switch --flake . --update
-#+end_src
-** Workflow for testing out new packages
-Use nix-shell where possible.
-
-For example:
-#+begin_src bash
-nix-shell -p python3Packages.requests
+** Home base imports (home.nix)
+Always included regardless of wm setting:
+#+begin_src nix :noweb-ref home.nix.imports
+imports = [
+  ./modules/common.nix
+  ./modules/droidux.nix
+  ./modules/git.nix
+  ./modules/phd.nix
+  ./modules/itch.nix
+  ./modules/python.nix
+  ./modules/sh.nix
+  ./modules/scripting.nix
+  ./modules/emacs.nix
+  ./modules/brave.nix
+  ./modules/minecraft.nix
+  ./modules/watchy.nix
+  ./modules/mcp-nixos.nix
+];
 #+end_src
 
-This will drop you into a shell with the package available. You can then test it out and see if it works as expected. If it does, you can add it to your configuration.nix or home.nix file.
-*** Testing out python packages
-#+begin_src bash
-nix-shell -p python3Packages.scikit-learn
-python -c "import sklearn; print(sklearn.__version__)"
-#+end_src
-
-#+RESULTS:
-
-** Changing permissions for configuration.nix
-#+begin_src bash
-sudo chown root configuration.nix
-sudo chown root hardware-configuration.nix
-#+end_src
-** "File doesn't exist errors"
-Try adding it to the repo and trying again
-** Cleaning up broken packages
-#+begin_src emacs-lisp
-
-(defalias 'dl/nixos-remove-package
-   (kmacro "y y SPC w l i n i x - e n v SPC - e SPC <escape> p a <backspace> ; SPC h o m e - m a n a g e r SPC s w i t c h SPC - - f l a k e  SPC . <escape> <return>"))
-#+end_src
-
-#+RESULTS:
-: dl/nixos-remove-package
-** Github
-I fixed most of this with the gh package.
-#+begin_src bash
-git config --global user.email "dimitrilopez01@gmail.com"
-git config --global user.name "Dimitri Lopez"
-#+end_src
-
-#+RESULTS:
-
-
-* Organization
-I am going to keep this fairly basic and then organize it a little more over time. This is all powered through emacs org-mode. Running:
-#+begin_src emacs-lisp
-(org-babel-tangle)
-#+end_src
-
-Will tangle this file into the files that I actually care about. I keep it within org-mode so that I can leverage the better organization and jumping tools.
-
-There are three main sources of files that I am concerned about:
-- configuration.nix: System configuration
-- flake.nix: Flake configuration, this rarely changes
-- home.nix: Home configuration, this changes all the time
-
-Within configuration.nix and home.nix I have a set of modules that I can add and subtract as need be. Each of the modules is usually some modular piece of code that I would like to build my system. As this configuration matures, I am sure that things will change quite a bit over time.
 
 * flake.nix
 :PROPERTIES:
@@ -145,6 +545,13 @@ Within configuration.nix and home.nix I have a set of modules that I can add and
 {
   description = "dimitril's flake";
   <<flake.nix--inputs>>
+
+  nixConfig = {
+    extra-substituters = [ "https://noctalia.cachix.org" ];
+    extra-trusted-public-keys = [ "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=" ];
+  };
+
+  # outputs = inputs@{ self, nixpkgs, home-manager, neomacs, ... }:
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
@@ -152,17 +559,50 @@ Within configuration.nix and home.nix I have a set of modules that I can add and
       pkgs = nixpkgs.legacyPackages.${system};
       <<userSettings>>
       <<systemSettings>>
+      
+      selectedDesktop = {
+        xfce = {
+          system = [ ./modules/xfce/xfce.nix ];
+          home = [ ./modules/xfce/xfce-home.nix ];
+        };
+        vxwm = {
+          system = [];
+          home = [ ./modules/vxwm-home.nix ];
+        };
+        hyprland = {
+          system = [ ./system/hyprland.nix ];
+          home = [ ./modules/wm/hyprland-minimal.nix ./modules/hyprland/hyprland-home.nix ];
+        };
+        srwc = {
+          system = [ ./system/srwc.nix ];
+          home = [ ./modules/srwc-home.nix ];
+        };
+        driftwm = {
+          system = [ ./system/driftwm.nix ];
+          home = [ ./modules/driftwm-home.nix ];
+        };
+        driftwm-sample = {
+          system = [ ./rices/driftwm-sample/system.nix ];
+          home = [ ./rices/driftwm-sample/home.nix ];
+        };
+      }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
+      packages.x86_64-linux = {
+        # neomacs = inputs.neomacs.packages.x86_64-linux.default;
+      };
+      legacyPackages.x86_64-linux = {
+      };
       nixosConfigurations = {
         nixos = lib.nixosSystem {
           inherit system;
-          modules = [ ./configuration.nix ];
+          modules = [ ./configuration.nix ] ++ selectedDesktop.system;
+          specialArgs = { inherit inputs; };
         };
       };
       homeConfigurations = {
         "dimitril" = home-manager.lib.homeManagerConfiguration {
           inherit pkgs;
-          modules = [ ./home.nix ];
+          modules = [ ./home.nix ] ++ selectedDesktop.home;
           extraSpecialArgs = {
             inherit userSettings;
             inherit inputs;
@@ -183,7 +623,6 @@ inputs = {
   hyprland = {
     url = "github:hyprwm/Hyprland";
     inputs.nixpkgs.follows = "nixpkgs";
-    inputs.home-manager.follows = "home-manager";
   };
   hyprland-plugins = {
     url = "github:hyprwm/Hyprland-Plugins";
@@ -191,24 +630,28 @@ inputs = {
   };
   raise.url = "github:knarkzel/raise";
   opencode.url = "github:AodhanHayter/opencode-flake";
-};
-#+end_src
-** Flake userSettings
-#+begin_src nix :noweb-ref userSettings
-userSettings = {
-  username = "dimitril";
-  name = "Dimitri";
-  email = "dimitrilopez01@gmail.com";
-  dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
-  # wm = "hyprland"; # Selected window manager or desktop environment; must select one in both ./user/wm/ and ./system/wm/
-  # editor = "emacsclient -c -a 'emacs'"
-};
-#+end_src
-** Flake systemSettings
-#+begin_src nix :noweb-ref systemSettings
-systemSettings = {
-  system = "x86_64-linux"; # system arch
-  hostname = "dimitril-hostname";   # hostname
+  srwc = {
+    url = "github:infraflakes/srwc";
+    inputs.nixpkgs.follows = "nixpkgs-unstable";
+  };
+  driftwm = {
+    url = "github:malbiruk/driftwm";
+    inputs.nixpkgs.follows = "nixpkgs-unstable";
+  };
+  nixpkgs-unstable = {
+    url = "github:NixOS/nixpkgs/nixos-unstable";
+  };
+
+  mcp-nixos = {
+    url = "github:utensils/mcp-nixos";
+  };
+
+  noctalia = {
+    url = "github:noctalia-dev/noctalia-shell";
+    inputs.nixpkgs.follows = "nixpkgs-unstable";
+  };
+
+  # neomacs.url = "github:eval-exec/neomacs";
 };
 #+end_src
 * configuration.nix
@@ -218,7 +661,7 @@ systemSettings = {
 Help is available in the configuration.nix(5) man page and in the NixOS manual (accessible by running ‘nixos-help’).
 
 #+begin_src nix :noweb yes :tangle configuration.nix :noweb-ref configuration.nix-setup
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
   <<configuration.nix-imports>>
@@ -233,6 +676,9 @@ See [[*configuration.nix modules][configuration.nix modules]]
 # Bootloader.
 boot.loader.systemd-boot.enable = true;
 boot.loader.efi.canTouchEfiVariables = true;
+# TODO Not fully sure what these next two lines are for
+boot.resumeDevice = "/dev/disk/by-uuid/667f86cc-c1c9-416b-928b-f08a01bfb12c";
+boot.kernelParams = [ "resume=UUID=667f86cc-c1c9-416b-928b-f08a01bfb12c" ];
 
 networking.hostName = "nixos"; # Define your hostname.
 networking.networkmanager.enable = true; # Enable networking
@@ -252,6 +698,7 @@ networking.firewall.allowedUDPPorts = [ 22000 21027 ];
 ** Power issues
 #+begin_src nix
 # hardware.enableAllFirmware = true;
+  hardware.uinput.enable = true;
 #+end_src
 
 ** USB
@@ -268,6 +715,7 @@ services.syncthing.enable = true;
 # services.pulseaudio.enable = false;
 # TODO moved to ./system/pipewire.nix
 # security.rtkit.enable = true;
+  security.polkit.enable = true;
 # services.pipewire = {
 #   enable = true;
 #   alsa.enable = true;
@@ -334,11 +782,61 @@ i18n.extraLocaleSettings = {
 ** X11 Keymap
 #+begin_src nix
 # Configure keymap in X11
-# services.xserver.xkb = {
-#   layout = "us";
-#   variant = "";
-# };
-
+services.xserver.xkb = {
+  layout = "us";
+  variant = "";
+};
+#+end_src
+** vxwm window manager
+#+begin_src nixx
+services.xserver.enable = true;
+services.xserver.displayManager.lightdm = {
+  enable = true;
+  extraConfig = ''
+    logind-check-graphical=true
+  '';
+};
+services.displayManager.sessionPackages = [ 
+  (pkgs.stdenv.mkDerivation {
+    pname = "vxwm";
+    version = "unstable";
+    src = pkgs.fetchgit {
+      url = "https://codeberg.org/wh1tepearl/vxwm.git";
+      rev = "24bbb12074704680edf894ea82a066b3b2662c42";
+      sha256 = "01ggidzvb44m8s179d4had7lrvzrmxapp84dhirbygpxfzn6gsiz";
+    };
+    nativeBuildInputs = [ pkgs.pkg-config ];
+    buildInputs = with pkgs.xorg; [ libX11 libXft libXinerama ];
+    prePatch = ''
+      # Provide a hollowed-out config.def.h that lets sxhkd handle all keys
+      # Find line numbers for keys array start and end
+      START=$(grep -n "static const Key keys" config.def.h | cut -d: -f1)
+      END=$(sed -n "$START,\$p" config.def.h | grep -n "};" | head -n 1 | cut -d: -f1)
+      END=$((START + END - 1))
+      
+      # Replace the keys array with an empty one
+      head -n $((START - 1)) config.def.h > config.def.h.new
+      echo "static const Key keys[] = { { 0, 0, NULL, { .i = 0 } } };" >> config.def.h.new
+      tail -n +$((END + 1)) config.def.h >> config.def.h.new
+      mv config.def.h.new config.def.h
+      
+      # Suppress unused function warnings (since we removed their keybindings)
+      sed -i 's/CFLAGS   = \(.*\)/CFLAGS = \1 -Wno-unused-function/' config.mk
+    '';
+    installPhase = ''
+      make PREFIX=$out install
+      mkdir -p $out/share/xsessions
+      cat > $out/share/xsessions/vxwm.desktop << EOF
+[Desktop Entry]
+Type=Application
+Name=vxwm
+Exec=$out/bin/vxwm
+TryExec=$out/bin/vxwm
+EOF
+    '';
+    passthru.providedSessions = [ "vxwm" ];
+  })
+];
 #+end_src
 ** CUPS printing
 #+begin_src nix
@@ -352,7 +850,7 @@ users.users.dimitril = {
   isNormalUser = true;
   description = "Dimitri Lopez";
   # adding mlocate to use find file within doom emacs
-  extraGroups = [ "networkmanager" "wheel" "storage" "input" "dialout" "video" "render" "mlocate" "docker"];
+  extraGroups = [ "networkmanager" "wheel" "storage" "input" "uinput" "dialout" "video" "render" "mlocate" "docker"];
   packages = with pkgs; [
   #  thunderbird
   ];
@@ -387,7 +885,7 @@ nixpkgs.config.permittedInsecurePackages = [
 # $ nix search wget
 environment.systemPackages = with pkgs; [
   syncthing
-
+  inputs.srwc.packages.${pkgs.stdenv.system}.default
 ];
 #+end_src
 ** Automatic updating
@@ -435,6 +933,7 @@ nix.settings.auto-optimise-store = true;
 # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
 system.stateVersion = "25.05"; # Did you read the comment?
 nix.settings.experimental-features = [ "nix-command" "flakes" ];
+nix.settings.trusted-users = [ "root" "dimitril" ];
 #+end_src
 * home.nix
 :PROPERTIES:
@@ -442,11 +941,12 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
 :END:
 ** Setup
 #+begin_src nix :noweb yes :tangle home.nix :noweb-ref home.nix-setup
-{ config, pkgs, ... }:
+{ config, lib, pkgs, userSettings, ... }:
 
 {
 <<home.nix.imports>>
 <<home.nix>>
+<<vxwm-home>>
 }
 #+end_src
 ** home.nix Imports
@@ -474,27 +974,20 @@ See [[*home.nix modules][home.nix modules]].
   home.stateVersion = "25.05"; # Please read the comment before changing.
 #+end_src
 ** home.nix packages inbox
-#+begin_src nix
-  # The home.packages option allows you to install Nix packages into your
-  # environment.
+# Packages go to their own modules now - see modules/*.nix
+** mcp-nixos (MCP server for NixOS data)
+- [ ] [[elisp:(org-babel-tangle)]]
+- [ ] [[git add -A ./modules/mcp-nixos.nix]]
+- [ ] Test: ~uvx mcp-nixos --help~ or via MCP client config
+- [ ] Move to permanent module if working
+#+begin_src nix :tangle ./modules/mcp-nixos.nix :noweb-ref mcp-nixos
+{ pkgs, inputs, ... }:
+
+{
   home.packages = [
-    # # Adds the 'hello' command to your environment. It prints a friendly
-    # # "Hello, world!" when run.
-    # pkgs.hello
-
-    # # It is sometimes useful to fine-tune packages, for example, by applying
-    # # overrides. You can do that directly here, just don't forget the
-    # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
-    # # fonts?
-    # (pkgs.nerdfonts.override { fonts = [ "FantasqueSansMono" ]; })
-
-    # # You can also create simple shell scripts directly inside your
-    # # configuration. For example, this adds a command 'my-hello' to your
-    # # environment:
-    # (pkgs.writeShellScriptBin "my-hello" ''
-    #   echo "Hello, ${config.home.username}!"
-    # '')
+    inputs.mcp-nixos.packages.${pkgs.system}.default
   ];
+}
 #+end_src
 ** home.nix dotfiles
 #+begin_src nix
@@ -533,7 +1026,7 @@ See [[*home.nix modules][home.nix modules]].
   #  /etc/profiles/per-user/dimitril/etc/profile.d/hm-session-vars.sh
   #
   home.sessionVariables = {
-    # EDITOR = "emacs";
+    EDITOR = "emacsclient";
   };
 #+end_src
 
@@ -543,37 +1036,91 @@ See [[*home.nix modules][home.nix modules]].
   programs.home-manager.enable = true;
 #+end_src
 * Modules
-** configuration.nix modules
-[[*configuration.nix imports][configuration.nix imports]]
-#+begin_src nix :noweb-ref configuration.nix-imports
-imports =
-  [ # Include the results of the hardware scan.
-    ./hardware-configuration.nix
-    ./modules/xfce/xfce.nix
-    # ./system/hyprland.nix
-    ./modules/steam.nix
-    ./system/bluetooth.nix
-    ./system/pipewire.nix
-    ./system/syncthing.nix
+** common.nix
+Common packages, services, and autostart for all desktop environments.
+#+begin_src nix :tangle ./modules/common.nix
+{ config, pkgs, ... }:
+
+{
+  # Packages that work across all desktop environments
+  home.packages = with pkgs; [
+    dropbox
+    redshift
+    syncthing
+    vim
+    htop
+    bottom
   ];
+
+  # Home-manager services (auto-managed by home-manager)
+  services.redshift = {
+    enable = false; # Disabled to prevent premature graphical-session.target activation
+    latitude = "42.36";
+    longitude = "-71.06";
+  };
+  
+  # Unified autostart script - detects session type
+  home.file.".local/bin/common-autostart" = {
+    executable = true;
+    text = ''
+#!/bin/sh
+# Common autostart for all desktop environments
+
+# Caps lock to control (works everywhere)
+dl-caps-lock-to-control &
+
+# Emacs daemon
+sleep 3 && restart-emacs-daemon &
+
+case "$XDG_SESSION_TYPE" in
+  x11)
+    # X11 desktops (vxwm, xfce)
+    dropbox start &
+    syncthing --no-browser &
+    redshift -l 42.361145:-71.057083 &
+    ;;
+  wayland)
+    # Wayland desktops - services handled by home-manager services
+    # but we still need dropbox/syncthing
+    dropbox start &
+    syncthing --no-browser &
+    ;;
+esac
+  '';
+  };
+  home.file.".xprofile".text = ''
+# Source common autostart for X11
+[ -f ~/.local/bin/common-autostart ] && ~/.local/bin/common-autostart &
+  '';
+}
 #+end_src
-** home.nix modules
-#+begin_src nix :noweb-ref home.nix.imports
-  imports = [
-    ./modules/xfce/xfce-home.nix
-    ./modules/git.nix
-    ./modules/phd.nix
-    # ./modules/wm/hyprland-minimal.nix
-    # ./modules/hyprland/hyprland-home.nix
-    ./modules/python.nix
-    ./modules/sh.nix
-    ./modules/scripting.nix
-    ./modules/emacs.nix
-    ./modules/brave.nix
-    ./modules/minecraft.nix
-    ./modules/watchy.nix
-  ];
+
+** kanata.nix
+#+begin_src nix :tangle ./modules/kanata.nix
+{ config, pkgs, ... }:
+
+{
+  services.kanata = {
+    enable = true;
+    keyboards = {
+      default = {
+        # Empty devices list allows kanata to auto-detect all keyboards
+        devices = [ ];
+        config = ''
+          (defsrc
+            caps
+          )
+
+          (deflayer base
+            lctl
+          )
+        '';
+      };
+    };
+  };
+}
 #+end_src
+
 ** phd.nix
 
 #+begin_src bash
@@ -801,7 +1348,7 @@ in
     claude-agent-acp
     free-coding-models
     # inputs.opencode.packages.${pkgs.system}.default
-    (pkgs.writeScriptBin "opencode" "npx opencode-ai \"$@\"")
+    (pkgs.writeShellScriptBin "opencode" "exec npx opencode-ai \"$@\"")
     
     # inputs.opencode.packages.${pkgs.system}.default
     gnuplot
@@ -825,7 +1372,7 @@ sed -i "s/npmDepsHash = \".*\";/npmDepsHash = \"sha256-0000000000000000000000000
 echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new hashes."
 '')
     
-    # emacs     
+    # emacs30-gtk3
     ripgrep
     # optional dependencies
     coreutils # basic GNU utilities
@@ -851,7 +1398,11 @@ echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new ha
     playwright-test # CLI for running playwright tests
 
     mu
-    ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    ((emacsPackagesFor emacs30-gtk3).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+
+    # Neomacs (GPU-accelerated Emacs - for testing)
+    # inputs.neomacs.packages.${pkgs.system}.default
+
     # ((emacsPackagesFor emacs).emacsWithPackages (epkgs: [ epkgs.etags ]))
     isync
     offlineimap
@@ -903,15 +1454,17 @@ EMACSRUNNING="t"
 EMACSSTATE=$(emacsclient -a false -e 't')
 if [ "$EMACSRUNNING" = "$EMACSSTATE" ]; then
     # echo "Emacs daemon is running"
-    notify-send 'Emacs Daemon' 'Restarting Emacs Daemon' -i ~/bin/BWEmacsIcon.png -t 3000
+    notify-send 'Emacs Daemon' 'Restarting Emacs Daemon' -i ~/.dotfiles/images/BWEmacsIcon.png -t 3000
     emacsclient -e "(kill-emacs)"
 else
     # echo "Emacs daemon is not running"
-    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/bin/BWEmacsIcon.png -t 3000
+    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/.dotfiles/images/BWEmacsIcon.png -t 3000
 fi
+    sleep 1
+    rm -f "''${XDG_RUNTIME_DIR:-/run/user/$(id - u)}/emacs/server"
 
-emacs --daemon
-notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/bin/EmacsIcon.png -t 3000
+GDK_BACKEND=x11 emacs --daemon
+notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/.dotfiles/images/EmacsIcon.png -t 3000
     '')
     (pkgs.writeScriptBin "dl-jumpapp-emacs" ''
 #!/usr/bin/env bash
@@ -920,8 +1473,8 @@ EMACSRUNNING="t"
 EMACSSTATE=$(emacsclient -a false -e 't')
 if [ "$EMACSRUNNING" != "$EMACSSTATE" ]; then
     # echo "Emacs daemon is not running"
-    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/bin/BWEmacsIcon.png -t 3000
-    emacs --daemon
+    notify-send 'Emacs Daemon' 'Starting up Emacs Daemon' -i ~/.dotfiles/images/BWEmacsIcon.png -t 3000
+    GDK_BACKEND=x11 emacs --daemon
 fi
 
 VAR1=$(jumpapp -m emacs --daemon 2>&1 >/dev/null)
@@ -1174,11 +1727,13 @@ buildNpmPackage rec {
   programs.git.enable = true;
   programs.git.userName = userSettings.name;
   programs.git.userEmail = userSettings.email;
-  # programs.git.extraConfig = {
-  #   init.defaultBranch = "main";
-  #   safe.directory = [ ("/home/" + userSettings.username + "/.dotfiles")
-  #                      ("/home/" + userSettings.username + "/.dotfiles/.git") ];
-  # };
+  programs.git.extraConfig = {
+    credential."https://github.com".helper = "!gh auth git-credential";
+    credential."https://gist.github.com".helper = "!gh auth git-credential";
+    # init.defaultBranch = "main";
+    # safe.directory = [ ("/home/" + userSettings.username + "/.dotfiles")
+    #                    ("/home/" + userSettings.username + "/.dotfiles/.git") ];
+  };
 }
 #+end_src
 
@@ -1345,6 +1900,36 @@ python3.pkgs.buildPythonApplication rec {
     license = lib.licenses.lgpl21Only;
     maintainers = with lib.maintainers; [ ];
     mainProgram = "py5";
+  };
+}
+#+end_src
+*** pyobjc.nix
+#+begin_src nix :tangle no
+
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+}:
+
+stdenv.mkDerivation rec {
+  pname = "pyobjc";
+  version = "11.1";
+
+  src = fetchFromGitHub {
+    owner = "ronaldoussoren";
+    repo = "pyobjc";
+    rev = "v${version}";
+    hash = "sha256-vbw9F2CQRykP+042lTUL7hrJ2rVWnjk9JMKnUdPWTGQ=";
+  };
+
+  meta = {
+    description = "The Python <-> Objective-C Bridge with bindings for macOS frameworks";
+    homepage = "https://github.com/ronaldoussoren/pyobjc";
+    license = lib.licenses.unfree; # FIXME: nix-init did not find a license
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "pyobjc";
+    platforms = lib.platforms.all;
   };
 }
 #+end_src
@@ -1675,14 +2260,6 @@ python3.pkgs.buildPythonPackage rec {
   };
 }
 #+end_src
-*** Try out python package
-#+begin_src emacs-lisp
-(dl/nixos-send-string-to-nixos-vterm "nix-shell -p python312Packages.scikit-learn")
-(sleep-for 2)
-(dl/nixos-send-string-to-nixos-vterm "python -c 'import sklearn;'")
-#+end_src
-
-#+RESULTS:
 ** scripting.nix
 #+begin_src nix :tangle ./modules/scripting.nix
 { config, lib, pkgs, ... }:
@@ -1763,6 +2340,7 @@ let
     ll = "ls -la";
     ec = "emacsclient";
     myname = "echo " + userSettings.username;
+    driftwm-check = "driftwm --config ~/.config/driftwm/config.toml --check-config";
   };
 in
 {
@@ -1926,17 +2504,8 @@ in
 { config, pkgs, lib, ... }:
 
 {
-  home.packages = with pkgs; [
-    (pkgs.writeScriptBin "dl-xfce-autostart" ''
-#!/usr/bin/env bash
-dl-caps-lock-to-control &
-dl-restart-emacs-daemon &
-syncthing --no-browser &
-dropbox &
-redshift -l 42.361145:-71.057083 &
-    '')
-
-    ];
+  # Use common autostart - no need for custom script
+  # The common-autostart script handles caps-lock, emacs, dropbox, syncthing
 <<xfce-home>>
 
 
@@ -2449,10 +3018,1671 @@ redshift -l 42.361145:-71.057083 &
   };
 }
 #+end_src
+** srwc.nix
+Loaded via flake's selectedDesktop when userSettings.wm = "srwc"
+#+begin_src nix :tangle ./system/srwc.nix
+{ config, pkgs, inputs, ... }:
+
+{
+  imports = [ ./pipewire.nix ./dbus.nix ];
+
+  services.xserver.enable = false;
+  services.greetd = {
+    enable = true;
+    settings = {
+      default_session = {
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --remember-session --cmd 'uwsm start srwc'";
+        user = "greeter";
+      };
+    };
+  };
+  services.xserver.displayManager.lightdm.enable = false;
+  programs.uwsm = {
+    enable = true;
+    waylandCompositors = {
+      srwc = {
+        prettyName = "srwc";
+        comment = "srwc Wayland compositor managed by UWSM";
+        binPath = "${pkgs.writeShellScript "srwc-uwsm-wrapper" "exec ${inputs.srwc.packages.${pkgs.stdenv.system}.default}/bin/srwc start"}";
+      };
+    };
+  };
+  services.seatd.enable = true;
+  services.dbus.enable = true;
+}
+#+end_src
+* driftwm
+** driftwm.nix
+Loaded via flake's selectedDesktop when userSettings.wm = "driftwm"
+#+begin_src nix :tangle ./system/driftwm.nix
+{ config, pkgs, inputs, ... }:
+
+{
+  imports = [ ./wayland.nix ];
+
+  services.xserver.enable = true;
+  services.greetd = {
+    enable = true;
+    settings = {
+      default_session = {
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --remember-session --cmd 'uwsm start driftwm'";
+        user = "greeter";
+      };
+    };
+  };
+  services.xserver.displayManager.lightdm.enable = false;
+  programs.uwsm = {
+    enable = true;
+    waylandCompositors = {
+      driftwm = {
+        prettyName = "driftwm";
+        comment = "driftwm Wayland compositor managed by UWSM";
+        binPath = "${pkgs.writeShellScript "driftwm-uwsm-wrapper" "exec ${inputs.driftwm.packages.${pkgs.stdenv.system}.default}/bin/driftwm start"}";
+      };
+    };
+  };
+  services.seatd.enable = true;
+  services.dbus.enable = true;
+
+  # PAM services for screen lockers
+  security.pam.services.swaylock = {};
+  security.pam.services.hyprlock = {};
+}
+#+end_src
+** driftwm home config
+- [[~/driftwm/config.example.toml][Configuration example]]
+#+begin_src nix :tangle ./modules/driftwm-home.nix
+{ config, pkgs, inputs, lib, ... }:
+
+let
+  driftwmPkg = inputs.driftwm.packages.${pkgs.stdenv.system}.default;
+  driftwmConfig = pkgs.writeText "driftwm-config.toml" ''
+      # driftwm — config managed via Nix, editable at ~/.config/driftwm/config.toml
+
+    mod_key = "super"
+
+    [input.keyboard]
+    repeat_rate = 75
+    repeat_delay = 185
+
+    [input.trackpad]
+    tap_to_click = true
+    natural_scroll = false
+    tap_and_drag = true
+
+    [input.mouse]
+    accel_speed = 0.0
+    accel_profile = "flat"
+    natural_scroll = false
+
+    [cursor]
+    theme = "Adwaita"
+    size = 24
+    inactive_opacity = 0.5
+
+    [navigation]
+    trackpad_speed = 1.5
+    mouse_speed = 1.0
+    friction = 0.94
+    animation_speed = 0.3
+    nudge_step = 20
+    pan_step = 100.0
+
+    [zoom]
+    step = 1.1
+
+    [snap]
+    enabled = true
+    gap = 12.0
+    distance = 24.0
+    break_force = 32.0
+
+    [decorations]
+    bg_color = "#242223"
+    fg_color = "#FFFFFF"
+    corner_radius = 8
+    default_mode = "client"
+
+    [effects]
+    blur_radius = 2
+    blur_strength = 1.1
+
+    [background]
+    # driftwm ships built-in shaders in its nix package:
+    # shader_path = "/run/current-system/sw/share/driftwm/wallpapers/dot_grid.glsl"
+    # shader_path = "/run/current-system/sw/share/driftwm/wallpapers/animated_squares.glsl"
+
+    [keybindings]
+    "super+ctrl+r" = "reload-config"
+
+    "alt+w" = "fit-window"
+    "super+m" = "fit-window"
+
+    "alt+e" = "exec emacsclient -c -a 'emacs'"
+
+    "super+space" = "exec fuzzel"
+
+    "super+return" = "exec foot"
+    "alt+return" = "exec foot"
+
+    "super+escape" = "exec xfce4-taskmanager"
+
+    "super+equal" = "zoom-in"
+    "super+minus" = "zoom-out"
+    "super+0" = "zoom-reset"
+
+    "alt+tab" = "cycle-windows forward"
+    "alt+shift+tab" = "cycle-windows backward"
+    "super+q" = "close-window"
+    "super+f" = "toggle-fullscreen"
+    "super+c" = "center-window"
+
+    "super+ctrl+up" = "pan-viewport up"
+    "super+ctrl+down" = "pan-viewport down"
+    "super+ctrl+left" = "pan-viewport left"
+    "super+ctrl+right" = "pan-viewport right"
+
+    "super+up" = "center-nearest up"
+    "super+down" = "center-nearest down"
+    "super+left" = "center-nearest left"
+    "super+right" = "center-nearest right"
+
+    "super+shift+up" = "nudge-window up"
+    "super+shift+down" = "nudge-window down"
+    "super+shift+left" = "nudge-window left"
+    "super+shift+right" = "nudge-window right"
+
+    "super+ctrl+shift+q" = "quit"
+
+    "super+h" = "exec systemctl hibernate"
+
+    [[outputs]]
+    name = "eDP-1"
+    scale = 1.5
+
+    [[window_rules]]
+    app_id = ".*"
+    opacity = 0.95
+    blur = true
+
+    [[window_rules]]
+    app_id = "emacs"
+    opacity = 0.85
+    blur = true
+    decoration = "none"
+
+    [[window_rules]]
+    app_id = "Emacs"
+    opacity = 0.85
+    blur = true
+    decoration = "none"
+  '';
+in
+{
+  # check config on home-manager actiavation
+  home.activation.checkDriftwmConfig = lib.hm.dag.entryBefore ["copyDriftwmConfig"] ''
+    ${driftwmPkg}/bin/driftwm --config ${driftwmConfig} --check-config || true
+  '';
+
+  # Write to the home directory, so auto hotloading works.
+  home.activation.copyDriftwmConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    if [ ! -f "${config.home.homeDirectory}/.config/driftwm/config.toml" ]; then
+      mkdir -p "${config.home.homeDirectory}/.config/driftwm"
+      install -m644 "${driftwmConfig}" "${config.home.homeDirectory}/.config/driftwm/config.toml"
+    fi
+  '';
+
+  home.packages = with pkgs; [
+    waybar
+    xdg-utils
+    libnotify
+    xdg-desktop-portal-gnome
+    xdg-desktop-portal-gtk
+    xdg-desktop-portal
+    wl-clipboard
+    brightnessctl
+    playerctl
+    jumpapp
+    fuzzel
+    wmenu
+    foot
+    alacritty
+    xfce.xfce4-taskmanager
+  ];
+
+  home.file = {
+    ".config/waybar/config".text = ''
+      {
+        "layer": "top",
+        "position": "top",
+        "height": 30,
+        "modules-left": ["clock"],
+        "modules-center": [],
+        "modules-right": ["battery", "pulseaudio"],
+
+        "clock": {
+          "format": "{:%H:%M}",
+          "tooltip-format": "<big>{:%Y-%m-%d}</big>\n<tt>{:%H:%M:%S}</tt>"
+        },
+
+        "battery": {
+          "format": "{icon} {capacity}%",
+          "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+          "states": {
+            "warning": 30,
+            "critical": 15
+          }
+        },
+
+        "pulseaudio": {
+          "format": "{icon} {volume}%",
+          "format-muted": "󰝟",
+          "format-icons": {
+            "default": ["󰕿", "󰖀", "󰕾"]
+          },
+          "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle"
+        }
+      }
+    '';
+
+    ".config/waybar/style.css".text = ''
+      ,* {
+        border: none;
+        font-family: "Iosevka";
+        font-size: 12px;
+      }
+
+      window#waybar {
+        background: rgba(30, 30, 30, 0.9);
+        color: #d3c6aa;
+      }
+
+      #clock {
+        padding: 0 15px;
+      }
+
+      #battery, #pulseaudio {
+        padding: 0 10px;
+      }
+    '';
+
+    ".xprofile".text = ''
+      #!/bin/sh
+      # Wayland session - xprofile runs before compositor
+      # Start xdg-desktop-portal after compositor is ready
+    '';
+  };
+}
+#+end_src
+* driftwm-sample
+** system.nix
+Loaded via flake's selectedDesktop when userSettings.wm = "driftwm-sample".     Imports the base driftwm system module.
+#+begin_src nix :tangle ./rices/driftwm-sample/system.nix
+{ config, pkgs, inputs, ... }:
+
+{
+  imports = [ ../../system/driftwm.nix ];
+
+  services.upower.enable = true;
+  services.power-profiles-daemon.enable = true;
+}
+#+end_src
+** home.nix
+DriftWM + Noctalia shell. Replaces waybar, swaync, swayosd, and custom widgets with Noctalia's built-in bar, launcher, notifications, and OSD.
+#+begin_src nix :tangle ./rices/driftwm-sample/home.nix
+{ config, pkgs, inputs, lib, ... }:
+
+let
+  driftwmPkg = inputs.driftwm.packages.${pkgs.stdenv.system}.default;
+  driftwmConfig = pkgs.writeText "driftwm-config.toml" ''
+    # ── All driftwm settings explicitly set ──────────────────────────
+    # Preserves your custom values; fills everything else with defaults.
+    
+    # ── Top-level ─────────────────────────────────────────────────────
+    
+    # Window manager modifier key: "super" (default) or "alt"
+    # mod_key = "super"
+    
+    # Window cycling modifier: "alt" (default) or "ctrl"
+    # cycle_modifier = "alt"
+    
+    # Sloppy focus: keyboard focus follows the pointer to windows
+    # focus_follows_mouse = false
+    
+    # Where new windows spawn when no rule positions them:
+    #   "center" (default) — viewport center
+    #   "cursor"           — centered on cursor (clamped to output)
+    #   "auto"             — snap-place adjacent to focused window's cluster
+    window_placement = "auto"
+    
+    # Commands to run at startup (sh -c), after WAYLAND_DISPLAY is set
+    autostart = [
+        # "noctalia-shell",
+        # "wl-paste --type text --watch cliphist store",
+        # "wl-paste --type image --watch cliphist store",
+        "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1",
+        "vorta -d",
+        # "/home/dimitril/.local/share/driftwm-sample/scripts/battery_notify.sh",
+        "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 330 '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh' timeout 600 'systemctl suspend' before-sleep '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh'",
+    ]
+    
+    # Environment variables set before any clients launch
+    [env]
+    QT_QPA_PLATFORMTHEME = "qt6ct"
+    
+    # ── Input: Keyboard ───────────────────────────────────────────────
+    
+    [input.keyboard]
+    # layout = "us"
+    # variant = ""
+    # options = ""
+    # model = ""
+    repeat_rate = 75
+    repeat_delay = 185
+    # layout_independent = true
+    num_lock = true
+    # caps_lock = false
+    
+    # ── Input: Trackpad ───────────────────────────────────────────────
+    
+    [input.trackpad]
+    tap_to_click = true
+    natural_scroll = true
+    tap_and_drag = true
+    # accel_speed = 0.0
+    # accel_profile = "adaptive"
+    # click_method = "none"
+    # disable_while_typing = true
+    
+    # ── Input: Mouse ──────────────────────────────────────────────────
+    
+    [input.mouse]
+    # accel_speed = 0.0
+    # accel_profile = "flat"
+    # natural_scroll = false
+    
+    # ── Cursor ────────────────────────────────────────────────────────
+    
+    [cursor]
+    theme = "elementary"
+    # size = 24
+    # inactive_opacity = 0.5
+    
+    # ── Navigation ────────────────────────────────────────────────────
+    
+    [navigation]
+    # trackpad_speed = 0.5
+    # mouse_speed = 1.4
+    # friction = 0.92
+    # animation_speed = 0.95
+    # nudge_step = 20
+    # pan_step = 100.0
+    # anchors = [[0, 0]]
+    
+    [navigation.edge_pan]
+    # zone = 100.0
+    # speed_min = 4.0
+    # speed_max = 10.0
+    
+    # ── Zoom ──────────────────────────────────────────────────────────
+    
+    [zoom]
+    # step = 1.1
+    # fit_padding = 80.0
+    # reset_on_new_window = true
+    # reset_on_activation = true
+    
+    # ── Snap ──────────────────────────────────────────────────────────
+    
+    [snap]
+    # enabled = true
+    # gap = 15.0
+    # distance = 24.0
+    # break_force = 32.0
+    # same_edge = false
+    
+    # ── Decorations ───────────────────────────────────────────────────
+    
+    [decorations]
+    bg_color = "#2A2829"
+    fg_color = "#E6E1E0"
+    corner_radius = 10
+    # default_mode = "client"
+    
+    # ── Effects ───────────────────────────────────────────────────────
+    
+    [effects]
+    blur_radius = 1
+    blur_strength = 1.9
+    
+    # ── Backend ───────────────────────────────────────────────────────
+    
+    [backend]
+    # wait_for_frame_completion = false
+    # disable_direct_scanout = false
+    
+    # ── Output outlines ───────────────────────────────────────────────
+    
+    [output.outline]
+    color = "#2A2829"
+    # thickness = 1
+    # opacity = 0.5
+    
+    # ── Background ────────────────────────────────────────────────────
+    
+    [background]
+    type = "shader"
+    path = "/home/dimitril/driftwm/extras/wallpapers/static/dark_sea.glsl"
+    
+    # ── XWayland ──────────────────────────────────────────────────────
+    
+    [xwayland]
+    enabled = true
+    path = "xwayland-satellite"
+    
+    # ── Mouse decoration propagation ──────────────────────────────────
+    
+    [mouse]
+    decoration_resize_snapped = true
+    decoration_fit_snapped = true
+    
+    # ── Mouse bindings: on-window ─────────────────────────────────────
+    
+    [mouse.on-window]
+    "alt+left" = "move-window"
+    "alt+shift+left" = "move-snapped-windows"
+    "alt+right" = "resize-window"
+    "alt+shift+right" = "resize-window-snapped"
+    "alt+middle" = "fit-window"
+    "alt+shift+middle" = "fit-window-snapped"
+    "mod+middle" = "toggle-fullscreen"
+    
+    # ── Mouse bindings: on-canvas ─────────────────────────────────────
+    
+    [mouse.on-canvas]
+    "left" = "pan-viewport"
+    "trackpad-scroll" = "pan-viewport"
+    "wheel-scroll" = "zoom"
+    
+    # ── Mouse bindings: anywhere ──────────────────────────────────────
+    
+    [mouse.anywhere]
+    "mod+left" = "pan-viewport"
+    "mod+ctrl+left" = "center-nearest"
+    "mod+trackpad-scroll" = "pan-viewport"
+    "mod+wheel-scroll" = "zoom"
+    
+    # ── Gesture thresholds ────────────────────────────────────────────
+    
+    [gestures]
+    # swipe_threshold = 12.0
+    # pinch_in_threshold = 0.85
+    # pinch_out_threshold = 1.15
+    
+    # ── Gesture bindings: on-window ───────────────────────────────────
+    
+    [gestures.on-window]
+    "alt+3-finger-swipe" = "resize-window-snapped"
+    "alt+shift+3-finger-swipe" = "resize-window"
+    "3-finger-doubletap-swipe" = "move-window"
+    "alt+2-finger-pinch-in" = "fit-window"
+    "alt+2-finger-pinch-out" = "fit-window"
+    "alt+shift+2-finger-pinch-in" = "fit-window-snapped"
+    "alt+shift+2-finger-pinch-out" = "fit-window-snapped"
+    "alt+3-finger-pinch-in" = "toggle-fullscreen"
+    "alt+3-finger-pinch-out" = "toggle-fullscreen"
+    
+    # ── Gesture bindings: on-canvas ───────────────────────────────────
+    
+    [gestures.on-canvas]
+    "2-finger-pinch" = "zoom"
+    
+    # ── Gesture bindings: anywhere ────────────────────────────────────
+    
+    [gestures.anywhere]
+    "3-finger-swipe" = "pan-viewport"
+    "4-finger-swipe" = "center-nearest"
+    "mod+3-finger-swipe" = "center-nearest"
+    "mod+2-finger-pinch" = "zoom"
+    "3-finger-pinch" = "zoom"
+    "4-finger-pinch-in" = "zoom-to-fit"
+    "4-finger-pinch-out" = "home-toggle"
+    "mod+4-finger-pinch-in" = "zoom-to-fit-snapped"
+    "mod+3-finger-pinch-in" = "zoom-to-fit"
+    "mod+3-finger-pinch-out" = "home-toggle"
+    "4-finger-hold" = "center-window"
+    "mod+3-finger-hold" = "center-window"
+    
+    # ── Keybindings ───────────────────────────────────────────────────
+    # All defaults written out. Your overrides replace the relevant defaults.
+    
+    [keybindings]
+    "mod+d" = "exec noctalia-shell ipc --any-display call launcher toggle"
+    "mod+q" = "close-window"
+    "mod+f" = "toggle-fullscreen"
+    "mod+m" = "fit-window-snapped"
+    "mod+shift+m" = "fit-window-snapped"
+    "mod+c" = "center-window"
+    "mod+x" = "focus-center"
+    "mod+a" = "home-toggle"
+    "mod+up" = "center-nearest up"
+    "mod+down" = "center-nearest down"
+    "mod+left" = "center-nearest left"
+    "mod+right" = "center-nearest right"
+    "mod+shift+up" = "nudge-window up"
+    "mod+shift+down" = "nudge-window down"
+    "mod+shift+left" = "nudge-window left"
+    "mod+shift+right" = "nudge-window right"
+    "mod+ctrl+up" = "pan-viewport up"
+    "mod+ctrl+down" = "pan-viewport down"
+    "mod+ctrl+left" = "pan-viewport left"
+    "mod+ctrl+right" = "pan-viewport right"
+    "alt+tab" = "cycle-windows forward"
+    "alt+shift+tab" = "cycle-windows backward"
+    "mod+equal" = "zoom-in"
+    "mod+minus" = "zoom-out"
+    "mod+0" = "zoom-reset"
+    "mod+z" = "zoom-reset"
+    "mod+w" = "zoom-to-fit"
+    "mod+shift+w" = "zoom-to-fit-snapped"
+    "mod+1" = "go-to -1750 1750"
+    "mod+2" = "go-to 1750 1750"
+    "mod+3" = "go-to 1750 -1750"
+    "mod+4" = "go-to -1750 -1750"
+    "mod+alt+up" = "send-to-output up"
+    "mod+alt+down" = "send-to-output down"
+    "mod+alt+left" = "send-to-output left"
+    "mod+alt+right" = "send-to-output right"
+    "mod+s" = "exec /home/dimitril/.local/share/driftwm-sample/scripts/window-search.sh"
+    "mod+l" = "exec noctalia-shell ipc --any-display call lockScreen lock"
+    "mod+semicolon" = "spawn /home/dimitril/.local/share/driftwm-sample/scripts/lock.sh"
+    "mod+n" = "exec noctalia-shell ipc --any-display call notificationHistory toggle"
+    "mod+r" = "reload-config"
+    "mod+period" = "fit-window"
+    "mod+ctrl+shift+q" = "quit"
+    "XF86AudioRaiseVolume" = "exec noctalia-shell ipc --any-display call volume increase"
+    "XF86AudioLowerVolume" = "exec noctalia-shell ipc --any-display call volume decrease"
+    "XF86AudioMute" = "exec noctalia-shell ipc --any-display call volume muteOutput"
+    "XF86MonBrightnessUp" = "exec noctalia-shell ipc --any-display call brightness increase"
+    "XF86MonBrightnessDown" = "exec noctalia-shell ipc --any-display call brightness decrease"
+    "Print" = "spawn grim - | wl-copy"
+    "shift+Print" = "spawn grim -g \"$(slurp -d)\" - | wl-copy"
+    
+    # ── Output configs ────────────────────────────────────────────────
+    
+    [[outputs]]
+    name = "HDMI-A-1"
+    transform = "90"
+    
+    # ── Window rules ──────────────────────────────────────────────────
+    
+    [[window_rules]]
+    app_id = "Alacritty"
+    opacity = 0.8
+    blur = true
+    
+    [[window_rules]]
+    app_id = "emacs"
+    opacity = 0.95
+    blur = true
+    decoration = "none"
+    
+    [[window_rules]]
+    app_id = "Emacs"
+    decoration = "none"
+    widget = true
+  '';
+in
+{
+  imports = [ inputs.noctalia.homeModules.default ./noctalia-shell.nix ];
+
+  home.activation.checkDriftwmConfig = lib.hm.dag.entryBefore ["copyDriftwmConfig"] ''
+    ${driftwmPkg}/bin/driftwm --config ${driftwmConfig} --check-config || true
+  '';
+
+  home.activation.copyDriftwmConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    if [ ! -f "${config.home.homeDirectory}/.config/driftwm/config.toml" ]; then
+      mkdir -p "${config.home.homeDirectory}/.config/driftwm"
+      install -m644 "${driftwmConfig}" "${config.home.homeDirectory}/.config/driftwm/config.toml"
+    fi
+  '';
+
+  home.packages = with pkgs; [
+    driftwmPkg
+    fuzzel
+    swaylock
+    swayidle
+    wlrctl
+    alacritty
+    grim
+    ffmpeg
+    vorta
+    polkit_gnome
+    elementary-xfce-icon-theme
+    everforest-gtk-theme
+    ptyxis
+    gnome-clocks
+    brightnessctl
+    libnotify
+    wtype
+    xwayland
+    xwayland-satellite
+    xfce.xfce4-taskmanager
+    cliphist
+    wl-clipboard
+  ];
+
+
+  home.file = {
+    ".local/share/icons/elementary-pastel/index.theme".text = ''
+      [Icon Theme]
+      Name=elementary-pastel
+      Comment=Elementary icons with Mignon-pastel app icons
+      Inherits=elementary,Adwaita,hicolor
+
+      Directories=scalable/apps
+      ScaledDirectories=scalable@2x/apps
+
+      [scalable/apps]
+      Context=Applications
+      Size=64
+      MinSize=16
+      MaxSize=512
+      Type=Scalable
+
+      [scalable@2x/apps]
+      Context=Applications
+      Scale=2
+      Size=64
+      MinSize=16
+      MaxSize=512
+      Type=Scalable
+    '';
+
+    ".config/gtk-3.0/settings.ini".text = ''
+      [Settings]
+      gtk-theme-name=Adwaita-dark
+      gtk-icon-theme-name=elementary-pastel
+      gtk-cursor-theme-name=elementary
+      gtk-application-prefer-dark-theme=1
+    '';
+
+    ".local/share/driftwm-sample/scripts/lock.sh" = {
+      text = ''
+      #!/bin/sh
+      ${pkgs.grim}/bin/grim -l 0 /tmp/lockscreen.png
+      ${pkgs.ffmpeg}/bin/ffmpeg -y -i /tmp/lockscreen.png -vf "boxblur=8:2" /tmp/lockblur.png 2>/dev/null
+      ${pkgs.swaylock}/bin/swaylock -f -i /tmp/lockblur.png
+      '';
+      executable = true;
+    };
+
+    ".local/share/driftwm-sample/scripts/sync-noctalia.sh" = {
+      text = ''
+        #!/bin/sh
+        set -e
+        SRC="${config.home.homeDirectory}/.config/noctalia/settings.json"
+        DST="${config.home.homeDirectory}/.dotfiles/rices/driftwm-sample/noctalia.json"
+        chmod +w "$DST" 2>/dev/null || true
+        cp "$SRC" "$DST"
+        cd "${config.home.homeDirectory}/.dotfiles"
+        git add "rices/driftwm-sample/noctalia.json" 2>/dev/null || true
+        echo "noctalia.json synced from GUI settings"
+      '';
+      executable = true;
+    };
+
+    # ".local/share/driftwm-sample/scripts/battery_notify.sh" = {
+    #   text = ''
+    #   #!/bin/bash
+    #   BATTERY_LOW=15
+    #   BATTERY_CRITICAL=5
+    #   COOLDOWN=300
+    #   STATE_DIR="/tmp/driftwm-battery-notify"
+    #   mkdir -p "$STATE_DIR"
+
+    #   check_cooldown() {
+    #       local key="$1"
+    #       local now=$(date +%s)
+    #       local state_file="$STATE_DIR/$key"
+    #       if [ -f "$state_file" ]; then
+    #           local last=$(cat "$state_file")
+    #           [ $((now - last)) -lt $COOLDOWN ] && return 1
+    #       fi
+    #       echo "$now" > "$state_file"
+    #       return 0
+    #   }
+
+    #   trap 'rm -rf "$STATE_DIR"; exit 0' EXIT INT TERM
+
+    #   while true; do
+    #       bat=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -1)
+    #       status=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -1)
+
+    #       if [ -n "$bat" ] && [ "$status" = "Discharging" ]; then
+    #           if [ "$bat" -le "$BATTERY_CRITICAL" ]; then
+    #               check_cooldown critical && \\
+    #                   notify-send -u critical "Critical Battery" "''${bat}% — plug in immediately"
+    #           elif [ "$bat" -le "$BATTERY_LOW" ]; then
+    #               check_cooldown low && \\
+    #                   notify-send -u normal "Low Battery" "''${bat}% — consider charging soon"
+    #           fi
+    #       fi
+
+    #       sleep 60
+    #   done
+    #   '';
+    #   executable = true;
+    # };
+
+    # ".local/share/driftwm-sample/wallpapers/cloudy_fractal.glsl".source = ./assets/wallpapers/cloudy_fractal.glsl;
+    # ".local/share/driftwm-sample/scripts/window-search.sh" = {
+    #   text = ''
+    #   #!/bin/sh
+    #   XDG_DATA_DIRS="''${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+
+    #   lookup_desktop() {
+    #       id="$1"
+    #       for dir in "$HOME/.local/share/applications" $(printf '%s' "$XDG_DATA_DIRS" | tr ':' ' '); do
+    #           for f in "$dir/$id.desktop" "$dir"/*"$id"*.desktop; do
+    #               [ -f "$f" ] || continue
+    #               name=$(grep -m1 '^Name=' "$f" | cut -d= -f2-)
+    #               icon=$(grep -m1 '^Icon=' "$f" | cut -d= -f2-)
+    #               [ -n "$name" ] && printf '%s\t%s' "$name" "''${icon:-$id}" && return
+    #           done
+    #       done
+    #       for dir in "$HOME/.local/share/applications" $(printf '%s' "$XDG_DATA_DIRS" | tr ':' ' '); do
+    #           [ -d "$dir" ] || continue
+    #           f=$(grep -rl "^StartupWMClass=$id$" "$dir"/*.desktop 2>/dev/null | head -1)
+    #           if [ -n "$f" ]; then
+    #               name=$(grep -m1 '^Name=' "$f" | cut -d= -f2-)
+    #               icon=$(grep -m1 '^Icon=' "$f" | cut -d= -f2-)
+    #               [ -n "$name" ] && printf '%s\t%s' "$name" "''${icon:-$id}" && return
+    #           fi
+    #       done
+    #       printf '%s\t%s' "$id" "$id"
+    #   }
+
+    #   display=$(mktemp)
+    #   lookup=$(mktemp)
+    #   trap 'rm -f "$display" "$lookup"' EXIT
+
+    #   i=0
+    #   wlrctl toplevel list | while IFS= read -r line; do
+    #       app_id="''${line%%: *}"
+    #       title="''${line#*: }"
+    #       desktop=$(lookup_desktop "$app_id")
+    #       app_name="''${desktop%%\t*}"
+    #       icon="''${desktop#*\t}"
+    #       printf '%s  %s\0icon\x1f%s\n' "$title" "$app_name" "$icon" >> "$display"
+    #       printf '%s\t%s\n' "$app_id" "$title" >> "$lookup"
+    #       i=$((i + 1))
+    #   done
+
+    #   [ -s "$display" ] || exit 0
+
+    #   selected=$(fuzzel --dmenu \
+    #       --prompt="Window: " \
+    #       --no-run-if-empty \
+    #       --index \
+    #       < "$display")
+
+    #   [ -z "$selected" ] && exit 0
+
+    #   line_num=$((selected + 1))
+    #   match=$(sed -n "''${line_num}p" "$lookup")
+    #   sel_app_id="$(printf '%s' "$match" | cut -f1)"
+    #   sel_title="$(printf '%s' "$match" | cut -f2)"
+
+    #   exec wlrctl toplevel focus "app_id:$sel_app_id" "title:$sel_title"
+    #   '';
+    #   executable = true;
+    # };
+
+      # while true; do
+      #     bat=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -1)
+      #     status=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -1)
+
+      #     if [ -n "$bat" ] && [ "$status" = "Discharging" ]; then
+      #         if [ "$bat" -le "$BATTERY_CRITICAL" ]; then
+      #             check_cooldown critical && \\
+      #                 notify-send -u critical "Critical Battery" "''${bat}% — plug in immediately"
+      #         elif [ "$bat" -le "$BATTERY_LOW" ]; then
+      #             check_cooldown low && \\
+      #                 notify-send -u normal "Low Battery" "''${bat}% — consider charging soon"
+      #         fi
+      #     fi
+  };
+
+  systemd.user.startServices = "sd-switch";
+
+  systemd.user.services.noctalia-shell = {
+    Unit = {
+      Description = "Noctalia Shell";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${config.home.profileDirectory}/bin/noctalia-shell";
+      Restart = "always";
+      RestartSec = 3;
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+}
+#+end_src
+** noctalia-shell.nix
+
+Reads the raw JSON exported by Noctalia's GUI settings (synced via =sync-noctalia.sh=).
+
+#+begin_src nix :tangle ./rices/driftwm-sample/noctalia-shell.nix
+{ config, pkgs, lib, ... }:
+let
+  settings = builtins.fromJSON (builtins.readFile ./noctalia.json);
+in
+{
+  programs.noctalia-shell = {
+    enable = true;
+    inherit settings;
+  };
+}
+#+end_src
+
+*** Bar
+#+begin_src nix :noweb-ref noctalia-bar
+bar = {
+  barType = "framed";
+  position = "right";
+  monitors = [];
+  density = "spacious";
+  showOutline = false;
+  showCapsule = false;
+  capsuleOpacity = 1;
+  capsuleColorKey = "none";
+  widgetSpacing = 21;
+  contentPadding = 0;
+  fontScale = 3;
+  enableExclusionZoneInset = true;
+  backgroundOpacity = 0.93;
+  useSeparateOpacity = false;
+  marginVertical = 4;
+  marginHorizontal = 4;
+  frameThickness = 19;
+  frameRadius = 5;
+  outerCorners = true;
+  hideOnOverview = false;
+  displayMode = "always_visible";
+  autoHideDelay = 200;
+  autoShowDelay = 50;
+  showOnWorkspaceSwitch = true;
+  widgets = {
+    left = [
+      {
+        id = "Launcher";
+      }
+      {
+        compactMode = true;
+        diskPath = "/";
+        iconColor = "none";
+        id = "SystemMonitor";
+        showCpuCores = false;
+        showCpuFreq = false;
+        showCpuTemp = false;
+        showCpuUsage = true;
+        showDiskAvailable = false;
+        showDiskUsage = false;
+        showDiskUsageAsPercent = false;
+        showGpuTemp = false;
+        showLoadAverage = false;
+        showMemoryAsPercent = false;
+        showMemoryUsage = true;
+        showNetworkStats = false;
+        showSwapUsage = false;
+        textColor = "none";
+        useMonospaceFont = true;
+        usePadding = false;
+      }
+      {
+        colorizeIcons = false;
+        hideMode = "hidden";
+        id = "ActiveWindow";
+        # maxWidth = 145;
+        scrollingMode = "hover";
+        showIcon = true;
+        showText = true;
+        textColor = "none";
+        useFixedWidth = false;
+      }
+    ];
+    center = [
+      {
+        compactMode = false;
+        hideMode = "visible";
+        id = "MediaMini";
+        # maxWidth = 200;
+        panelShowAlbumArt = true;
+        scrollingMode = "hover";
+        showAlbumArt = true;
+        showArtistFirst = true;
+        showProgressRing = true;
+        showVisualizer = false;
+        textColor = "none";
+        useFixedWidth = true;
+        visualizerType = "linear";
+      }
+      {
+        colorName = "primary";
+        hideWhenIdle = true;
+        id = "AudioVisualizer";
+        width = 300;
+      }
+      {
+        displayMode = "alwaysShow";
+        iconColor = "none";
+        id = "Bluetooth";
+        textColor = "none";
+      }
+      {
+        displayMode = "onhover";
+        iconColor = "none";
+        id = "Microphone";
+        middleClickCommand = "pwvucontrol || pavucontrol";
+        textColor = "none";
+      }
+    ];
+    right = [
+      {
+        id = "NotificationHistory";
+      }
+      {
+        displayMode = "onhover";
+        iconColor = "none";
+        id = "Network";
+        textColor = "none";
+      }
+      {
+        deviceNativePath = "__default__";
+        displayMode = "icon-only";
+        hideIfIdle = false;
+        hideIfNotDetected = true;
+        id = "Battery";
+        showNoctaliaPerformance = false;
+        showPowerProfiles = false;
+      }
+      {
+        clockColor = "none";
+        customFont = "";
+        formatHorizontal = "HH:mm ddd, MMM dd";
+        formatVertical = "HH mm - MM dd";
+        id = "Clock";
+        tooltipFormat = "HH:mm ddd, MMM dd";
+        useCustomFont = false;
+      }
+      {
+        colorizeSystemIcon = "primary";
+        customIconPath = "";
+        enableColorization = true;
+        icon = "noctalia";
+        id = "ControlCenter";
+        useDistroLogo = true;
+      }
+    ];
+  };
+  mouseWheelAction = "none";
+  reverseScroll = false;
+  mouseWheelWrap = true;
+  middleClickAction = "command";
+  middleClickFollowMouse = false;
+  middleClickCommand = "";
+  rightClickAction = "controlCenter";
+  rightClickFollowMouse = true;
+  rightClickCommand = "";
+  screenOverrides = [];
+};
+#+end_src
+
+*** General
+#+begin_src nix :noweb-ref noctalia-general
+general = {
+  avatarImage = "/home/dimitril/.face";
+  dimmerOpacity = 0.5;
+  showScreenCorners = false;
+  forceBlackScreenCorners = false;
+  scaleRatio = 1.2;
+  radiusRatio = 0.2;
+  iRadiusRatio = 1.6300000000000001;
+  boxRadiusRatio = 1;
+  screenRadiusRatio = 1;
+  animationSpeed = 1;
+  animationDisabled = false;
+  compactLockScreen = true;
+  lockScreenAnimations = true;
+  lockOnSuspend = true;
+  showSessionButtonsOnLockScreen = true;
+  showHibernateOnLockScreen = true;
+  enableLockScreenMediaControls = true;
+  enableShadows = true;
+  enableBlurBehind = true;
+  shadowDirection = "bottom_right";
+  shadowOffsetX = 2;
+  shadowOffsetY = 3;
+  language = "";
+  allowPanelsOnScreenWithoutBar = true;
+  showChangelogOnStartup = true;
+  telemetryEnabled = false;
+  enableLockScreenCountdown = true;
+  lockScreenCountdownDuration = 10000;
+  autoStartAuth = true;
+  allowPasswordWithFprintd = true;
+  clockStyle = "custom";
+  clockFormat = "hh\\nmm";
+  passwordChars = true;
+  lockScreenMonitors = [];
+  lockScreenBlur = 0.53;
+  lockScreenTint = 0;
+  keybinds = {
+    keyUp = [ "Up" ];
+    keyDown = [ "Down" ];
+    keyLeft = [ "Left" ];
+    keyRight = [ "Right" ];
+    keyEnter = [ "Return" "Enter" ];
+    keyEscape = [ "Esc" ];
+    keyRemove = [ "Del" ];
+  };
+  reverseScroll = false;
+  smoothScrollEnabled = true;
+};
+#+end_src
+
+*** UI
+#+begin_src nix :noweb-ref noctalia-ui
+ui = {
+  fontDefault = "DejaVu Math TeX Gyre";
+  fontFixed = "monospace";
+  fontDefaultScale = 1.25;
+  fontFixedScale = 1.25;
+  tooltipsEnabled = true;
+  scrollbarAlwaysVisible = false;
+  boxBorderEnabled = true;
+  panelBackgroundOpacity = 0.93;
+  translucentWidgets = false;
+  panelsAttachedToBar = true;
+  settingsPanelMode = "attached";
+  settingsPanelSideBarCardStyle = false;
+};
+#+end_src
+
+*** Location
+#+begin_src nix :noweb-ref noctalia-location
+location = {
+  name = "Boston";
+  weatherEnabled = true;
+  weatherShowEffects = true;
+  weatherTaliaMascotAlways = false;
+  useFahrenheit = true;
+  use12hourFormat = false;
+  showWeekNumberInCalendar = false;
+  showCalendarEvents = true;
+  showCalendarWeather = true;
+  analogClockInCalendar = false;
+  firstDayOfWeek = -1;
+  hideWeatherTimezone = true;
+  hideWeatherCityName = true;
+  autoLocate = true;
+};
+#+end_src
+
+*** Calendar
+#+begin_src nix :noweb-ref noctalia-calendar
+calendar = {
+  cards = [
+    {
+      enabled = true;
+      id = "calendar-header-card";
+    }
+    {
+      enabled = true;
+      id = "calendar-month-card";
+    }
+    {
+      enabled = true;
+      id = "weather-card";
+    }
+  ];
+};
+#+end_src
+
+*** Wallpaper
+#+begin_src nix :noweb-ref noctalia-wallpaper
+wallpaper = {
+  enabled = false;
+  overviewEnabled = false;
+  directory = "/home/dimitril/Pictures/Wallpapers";
+  monitorDirectories = [];
+  enableMultiMonitorDirectories = false;
+  showHiddenFiles = false;
+  viewMode = "single";
+  setWallpaperOnAllMonitors = true;
+  linkLightAndDarkWallpapers = true;
+  fillMode = "crop";
+  fillColor = "#000000";
+  useSolidColor = false;
+  solidColor = "#1a1a2e";
+  automationEnabled = false;
+  wallpaperChangeMode = "random";
+  randomIntervalSec = 300;
+  transitionDuration = 1500;
+  transitionType = [
+    "fade"
+    "disc"
+    "stripes"
+    "wipe"
+    "pixelate"
+    "honeycomb"
+  ];
+  skipStartupTransition = false;
+  transitionEdgeSmoothness = 0.05;
+  panelPosition = "follow_bar";
+  hideWallpaperFilenames = false;
+  useOriginalImages = false;
+  overviewBlur = 0.4;
+  overviewTint = 0.6;
+  useWallhaven = false;
+  wallhavenQuery = "";
+  wallhavenSorting = "relevance";
+  wallhavenOrder = "desc";
+  wallhavenCategories = "111";
+  wallhavenPurity = "100";
+  wallhavenRatios = "";
+  wallhavenApiKey = "";
+  wallhavenResolutionMode = "atleast";
+  wallhavenResolutionWidth = "";
+  wallhavenResolutionHeight = "";
+  sortOrder = "name";
+  favorites = [];
+};
+#+end_src
+
+*** App Launcher
+#+begin_src nix :noweb-ref noctalia-app-launcher
+appLauncher = {
+  enableClipboardHistory = true;
+  autoPasteClipboard = false;
+  enableClipPreview = true;
+  clipboardWrapText = true;
+  enableClipboardSmartIcons = true;
+  enableClipboardChips = true;
+  clipboardWatchTextCommand = "wl-paste --type text --watch cliphist store";
+  clipboardWatchImageCommand = "wl-paste --type image --watch cliphist store";
+  position = "center";
+  pinnedApps = [];
+  sortByMostUsed = false;
+  terminalCommand = "alacritty -e";
+  customLaunchPrefixEnabled = false;
+  customLaunchPrefix = "";
+  viewMode = "list";
+  showCategories = false;
+  iconMode = "tabler";
+  showIconBackground = false;
+  enableSettingsSearch = true;
+  enableWindowsSearch = true;
+  enableSessionSearch = true;
+  ignoreMouseInput = false;
+  screenshotAnnotationTool = "";
+  overviewLayer = false;
+  density = "comfortable";
+};
+#+end_src
+
+*** Control Center
+#+begin_src nix :noweb-ref noctalia-control-center
+controlCenter = {
+  position = "close_to_bar_button";
+  diskPath = "/";
+  shortcuts = {
+    left = [
+      {
+        id = "Network";
+      }
+      {
+        id = "Bluetooth";
+      }
+      {
+        id = "WallpaperSelector";
+      }
+      {
+        id = "NoctaliaPerformance";
+      }
+    ];
+    right = [
+      {
+        id = "Notifications";
+      }
+      {
+        id = "PowerProfile";
+      }
+      {
+        id = "KeepAwake";
+      }
+      {
+        id = "NightLight";
+      }
+    ];
+  };
+  cards = [
+    {
+      enabled = true;
+      id = "profile-card";
+    }
+    {
+      enabled = true;
+      id = "shortcuts-card";
+    }
+    {
+      enabled = true;
+      id = "audio-card";
+    }
+    {
+      enabled = true;
+      id = "brightness-card";
+    }
+    {
+      enabled = true;
+      id = "weather-card";
+    }
+    {
+      enabled = true;
+      id = "media-sysmon-card";
+    }
+  ];
+};
+#+end_src
+
+*** System Monitor
+#+begin_src nix :noweb-ref noctalia-system-monitor
+systemMonitor = {
+  cpuWarningThreshold = 80;
+  cpuCriticalThreshold = 90;
+  tempWarningThreshold = 80;
+  tempCriticalThreshold = 90;
+  gpuWarningThreshold = 80;
+  gpuCriticalThreshold = 90;
+  memWarningThreshold = 80;
+  memCriticalThreshold = 90;
+  swapWarningThreshold = 80;
+  swapCriticalThreshold = 90;
+  diskWarningThreshold = 80;
+  diskCriticalThreshold = 90;
+  diskAvailWarningThreshold = 20;
+  diskAvailCriticalThreshold = 10;
+  batteryWarningThreshold = 20;
+  batteryCriticalThreshold = 5;
+  enableDgpuMonitoring = false;
+  useCustomColors = false;
+  warningColor = "";
+  criticalColor = "";
+  externalMonitor = "resources || missioncenter || jdsystemmonitor || corestats || system-monitoring-center || gnome-system-monitor || plasma-systemmonitor || mate-system-monitor || ukui-system-monitor || deepin-system-monitor || pantheon-system-monitor";
+};
+#+end_src
+
+*** Noctalia Performance
+#+begin_src nix :noweb-ref noctalia-performance
+noctaliaPerformance = {
+  disableWallpaper = true;
+  disableDesktopWidgets = true;
+};
+#+end_src
+
+*** Dock
+#+begin_src nix :noweb-ref noctalia-dock
+dock = {
+  enabled = true;
+  position = "bottom";
+  displayMode = "auto_hide";
+  dockType = "floating";
+  backgroundOpacity = 1;
+  floatingRatio = 1;
+  size = 2;
+  onlySameOutput = false;
+  monitors = [];
+  pinnedApps = [];
+  colorizeIcons = false;
+  showLauncherIcon = false;
+  launcherPosition = "end";
+  launcherUseDistroLogo = false;
+  launcherIcon = "";
+  launcherIconColor = "none";
+  pinnedStatic = false;
+  inactiveIndicators = false;
+  groupApps = false;
+  groupContextMenuMode = "extended";
+  groupClickAction = "cycle";
+  groupIndicatorStyle = "dots";
+  deadOpacity = 0.6;
+  animationSpeed = 1;
+  sitOnFrame = false;
+  showDockIndicator = false;
+  indicatorThickness = 3;
+  indicatorColor = "primary";
+  indicatorOpacity = 0.6;
+};
+#+end_src
+
+*** Network
+#+begin_src nix :noweb-ref noctalia-network
+network = {
+  bluetoothRssiPollingEnabled = false;
+  bluetoothRssiPollIntervalMs = 60000;
+  networkPanelView = "wifi";
+  wifiDetailsViewMode = "grid";
+  bluetoothDetailsViewMode = "grid";
+  bluetoothHideUnnamedDevices = false;
+  disableDiscoverability = false;
+  bluetoothAutoConnect = false;
+};
+#+end_src
+
+*** Session Menu
+#+begin_src nix :noweb-ref noctalia-session-menu
+sessionMenu = {
+  enableCountdown = true;
+  countdownDuration = 10000;
+  position = "center";
+  showHeader = true;
+  showKeybinds = true;
+  largeButtonsStyle = true;
+  largeButtonsLayout = "single-row";
+  powerOptions = [
+    {
+      action = "lock";
+      command = "";
+      countdownEnabled = true;
+      enabled = false;
+      keybind = "1";
+    }
+    {
+      action = "suspend";
+      command = "";
+      countdownEnabled = true;
+      enabled = true;
+      keybind = "2";
+    }
+    {
+      action = "hibernate";
+      command = "";
+      countdownEnabled = true;
+      enabled = true;
+      keybind = "3";
+    }
+    {
+      action = "reboot";
+      command = "";
+      countdownEnabled = true;
+      enabled = true;
+      keybind = "4";
+    }
+    {
+      action = "logout";
+      command = "";
+      countdownEnabled = true;
+      enabled = true;
+      keybind = "5";
+    }
+    {
+      action = "shutdown";
+      command = "";
+      countdownEnabled = true;
+      enabled = true;
+      keybind = "6";
+    }
+    {
+      action = "rebootToUefi";
+      command = "";
+      countdownEnabled = true;
+      enabled = true;
+      keybind = "7";
+    }
+    {
+      action = "userspaceReboot";
+      command = "";
+      countdownEnabled = true;
+      enabled = false;
+      keybind = "";
+    }
+  ];
+};
+#+end_src
+
+*** Notifications
+#+begin_src nix :noweb-ref noctalia-notifications
+notifications = {
+  enabled = true;
+  enableMarkdown = false;
+  density = "default";
+  monitors = [];
+  location = "top_right";
+  overlayLayer = true;
+  backgroundOpacity = 1;
+  respectExpireTimeout = false;
+  lowUrgencyDuration = 3;
+  normalUrgencyDuration = 8;
+  criticalUrgencyDuration = 15;
+  clearDismissed = true;
+  saveToHistory = {
+    low = true;
+    normal = true;
+    critical = true;
+  };
+  sounds = {
+    enabled = false;
+    volume = 0.5;
+    separateSounds = false;
+    criticalSoundFile = "";
+    normalSoundFile = "";
+    lowSoundFile = "";
+    excludedApps = "discord,firefox,chrome,chromium,edge";
+  };
+  enableMediaToast = false;
+  enableKeyboardLayoutToast = true;
+  enableBatteryToast = true;
+};
+#+end_src
+
+*** OSD
+#+begin_src nix :noweb-ref noctalia-osd
+osd = {
+  enabled = true;
+  location = "top_right";
+  autoHideMs = 2000;
+  overlayLayer = true;
+  backgroundOpacity = 1;
+  enabledTypes = [ 0 1 2 ];
+  monitors = [];
+};
+#+end_src
+
+*** Audio
+#+begin_src nix :noweb-ref noctalia-audio
+audio = {
+  volumeStep = 5;
+  volumeOverdrive = false;
+  spectrumFrameRate = 30;
+  visualizerType = "linear";
+  spectrumMirrored = false;
+  mprisBlacklist = [];
+  preferredPlayer = "";
+  volumeFeedback = true;
+  volumeFeedbackSoundFile = "";
+};
+#+end_src
+
+*** Brightness
+#+begin_src nix :noweb-ref noctalia-brightness
+brightness = {
+  brightnessStep = 5;
+  enforceMinimum = true;
+  enableDdcSupport = false;
+  backlightDeviceMappings = [];
+};
+#+end_src
+
+*** Color Schemes
+#+begin_src nix :noweb-ref noctalia-color-schemes
+colorSchemes = {
+  useWallpaperColors = false;
+  predefinedScheme = "Noctalia (default)";
+  darkMode = true;
+  schedulingMode = "off";
+  manualSunrise = "06:30";
+  manualSunset = "18:30";
+  generationMethod = "tonal-spot";
+  monitorForColors = "";
+  syncGsettings = true;
+};
+#+end_src
+
+*** Templates
+#+begin_src nix :noweb-ref noctalia-templates
+templates = {
+  activeTemplates = [];
+  enableUserTheming = false;
+};
+#+end_src
+
+*** Night Light
+#+begin_src nix :noweb-ref noctalia-night-light
+nightLight = {
+  enabled = true;
+  forced = true;
+  autoSchedule = true;
+  nightTemp = "4517";
+  dayTemp = "6500";
+  manualSunrise = "06:30";
+  manualSunset = "18:30";
+};
+#+end_src
+
+*** Hooks
+#+begin_src nix :noweb-ref noctalia-hooks
+hooks = {
+  enabled = false;
+  wallpaperChange = "";
+  darkModeChange = "";
+  screenLock = "";
+  screenUnlock = "";
+  performanceModeEnabled = "";
+  performanceModeDisabled = "";
+  startup = "";
+  session = "";
+  colorGeneration = "";
+};
+#+end_src
+
+*** Plugins
+#+begin_src nix :noweb-ref noctalia-plugins
+plugins = {
+  autoUpdate = false;
+  notifyUpdates = true;
+};
+#+end_src
+
+*** Idle
+#+begin_src nix :noweb-ref noctalia-idle
+idle = {
+  enabled = true;
+  screenOffTimeout = 600;
+  lockTimeout = 660;
+  suspendTimeout = 1800;
+  fadeDuration = 5;
+  screenOffCommand = "";
+  lockCommand = "";
+  suspendCommand = "";
+  resumeScreenOffCommand = "";
+  resumeLockCommand = "";
+  resumeSuspendCommand = "";
+  customCommands = "[]";
+};
+#+end_src
+
+*** Desktop Widgets
+
+Note from your noctalia.txt: The monitorWidgets section originally contained editor notes around the eDP-1 entry:
+- /MediaMini: Adjust the maxWidth property./
+- /CustomButton: Modify textCommand or icon settings, though horizontal space,/
+
+These notes have been preserved here (outside the code block) so they remain visible in the literate document but do not break the generated .nix file.
+
+#+begin_src nix :noweb-ref noctalia-desktop-widgets
+desktopWidgets = {
+  enabled = false;
+  overviewEnabled = true;
+  gridSnap = false;
+  gridSnapScale = false;
+  monitorWidgets = [
+    {
+      name = "eDP-1";
+      widgets = [
+        {
+          clockColor = "none";
+          clockStyle = "digital";
+          customFont = "";
+          format = "HH:mm\\nd MMMM yyyy";
+          id = "Clock";
+          roundedCorners = true;
+          scale = 2.425796118762843;
+          showBackground = true;
+          useCustomFont = false;
+          x = 991;
+          y = 594;
+        }
+        {
+          hideMode = "visible";
+          id = "MediaPlayer";
+          roundedCorners = true;
+          scale = 2.71826947828331;
+          showAlbumArt = true;
+          showBackground = true;
+          showButtons = true;
+          showVisualizer = true;
+          visualizerType = "linear";
+          x = 1474;
+          y = 331;
+        }
+        {
+          colorName = "tertiary";
+          height = 72;
+          hideWhenIdle = false;
+          id = "AudioVisualizer";
+          roundedCorners = true;
+          scale = 4.795101020193299;
+          showBackground = true;
+          visualizerType = "linear";
+          width = 320;
+          x = 604;
+          y = 968;
+        }
+        {
+          diskPath = "/";
+          id = "SystemStat";
+          layout = "bottom";
+          roundedCorners = true;
+          scale = 2.1080215947280454;
+          showBackground = true;
+          statType = "CPU";
+          x = 384;
+          y = 480;
+        }
+      ];
+    }
+  ];
+};
+#+end_src
 * Hyprland
 ** hyprland.nix
 We want this to be imported within configuration.nix modules:
-- [[*configuration.nix modules][configuration.nix nodules]]
+- [[*configuration.nix modules][configuration.nix modules]]
 #+begin_src nix :tangle ./system/hyprland.nix
 { config, lib, pkgs, ... }:
 
@@ -2556,8 +4786,6 @@ We want this to be enabled within the homemanager imports:
     hyprpaper # wallpaper
     # redshift # blue light filter
     # geoclue2 # red shift dependency
-    vim  # basic text editor
-    dropbox # syncing files
     blueman # bluetooth
     xfce.xfce4-taskmanager
     xfce.thunar
@@ -2593,10 +4821,8 @@ We want this to be enabled within the homemanager imports:
 :END:
 **** Hyprland packages
 
-[[elisp:(save-excursion (evil-next-line) (org-transclusion-add))][transclude-packages]]
-#+transclude: [[id:356dce67-52f8-4ef5-a728-578aa1077031][hyprland packages]]
-
-**** Hyprland Packages
+# [[elisp:(save-excursion (evil-next-line) (org-transclusion-add))][transclude-packages]]
+# #+transclude: [[id:356dce67-52f8-4ef5-a728-578aa1077031][hyprland packages]]
 
 **** Information
 #+begin_src conf
@@ -2639,18 +4865,14 @@ $menu = wofi --show drun
 # Autostart necessary processes (like notifications daemons, status bars, etc.)
 # Or execute your favorite apps at launch like this:
 exec-once = systemctl --user restart gvfs-daemon # needed for tramp emacs
-exec-once = dropbox
+exec-once = ~/.local/bin/common-autostart
 # exec-once = blueman-applet # TODO Need to double check if this is needed
 
-exec-once = hyprsunset
+# Redshift handled by home-manager services.redshift in common.nix
+# hyprsunset commented out - using services.redshift instead
 exec-once = hyprpaper
 exec-once = hypridle
 # exec-once = waybar
-
-exec-once = sleep 1 && restart-emacs-daemon
-# exec-once = $terminal
-# exec-once = nm-applet &
-# exec-once = waybar & hyprpaper & firefox
 #+end_src
 **** Environment variables
 
