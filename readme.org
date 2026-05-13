@@ -2442,6 +2442,14 @@ in
       xorg.xkill
       xsel
       xwinmosaic
+      (pkgs.stdenv.mkDerivation {
+        name = "everforest-dark-soft-theme";
+        src = ./themes/everforest-xfce-now-window-borders;
+        installPhase = ''
+          mkdir -p $out/share/themes/Everforest-Dark-Soft
+          cp -r * $out/share/themes/Everforest-Dark-Soft/
+        '';
+      })
     ];
   };
   hardware = {
@@ -2510,14 +2518,6 @@ in
 
 
 }
-#+end_src
-
-*** Copy theme to appropriate directory
-#+begin_src nix
-  home.file."/home/dimitril/.themes/Everforest-Dark-Soft" = {
-    source = ./themes/everforest-xfce-now-window-borders;
-    recursive = true;
-  };
 #+end_src
 
 *** GTK Configuration
