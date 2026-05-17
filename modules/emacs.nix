@@ -40,6 +40,9 @@ in
     imagemagick
     ffmpeg
     
+    gnupg # for decoding secrets!
+    pinentry # for decoding gpg
+    
     # agent shell
     gemini-cli
     claude-code

@@ -80,10 +80,16 @@ in
     gleamviz
 
     # Other system packages
+    tectonic # pdf something or other
     zlib
     libxmlb
     libxml2
   ];
+  
+  # arbovirus cache
+  home.sessionVariables = {
+    ARBO_CLEANING_CACHE = "${config.xdg.cacheHome}/arbovirus-cleaning";
+  };
 
   # Desktop entry for GLEAMviz
   # Note: Icon will only appear after first run when GLEAMviz is installed

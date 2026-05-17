@@ -15,8 +15,8 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   # TODO Not fully sure what these next two lines are for
-  boot.resumeDevice = "/dev/disk/by-uuid/667f86cc-c1c9-416b-928b-f08a01bfb12c";
-  boot.kernelParams = [ "resume=UUID=667f86cc-c1c9-416b-928b-f08a01bfb12c" ];
+  boot.resumeDevice = "/dev/disk/by-uuid/75bde775-be2a-4135-a34d-c18cd526f54e";
+  boot.kernelParams = [ "resume=UUID=75bde775-be2a-4135-a34d-c18cd526f54e" ];
   
   networking.hostName = "nixos"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking
