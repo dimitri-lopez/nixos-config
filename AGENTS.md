@@ -1,4 +1,7 @@
 # AGENTS.md
+The current window manager is driftwm-sample. If you need to check the driftwm repository, you can find it at:
+
+/mnt/data/driftwm/
 
 ## Repository Type
 NixOS/home-manager dotfiles with literate programming from `readme.org`.
@@ -99,11 +102,9 @@ selectedDesktop = {
 
 **To switch WMs**: edit `readme.org`, change `wm = "...";`, then tangle and rebuild.
 
-### Known Issues
-- `flake.nix` references `./modules/hyprland/hyprland-home.nix` in the `hyprland` home entry, but this file/directory does not currently exist. The actual Hyprland home config lives in `modules/wm/hyprland-minimal.nix`.
 
 ## Workflow
-
+    
 ```bash
 # 1. Edit readme.org with doom +org tangle
 doom +org tangle ~/.dotfiles/readme.org

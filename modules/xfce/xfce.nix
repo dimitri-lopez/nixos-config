@@ -46,6 +46,14 @@
       xorg.xkill
       xsel
       xwinmosaic
+      (pkgs.stdenv.mkDerivation {
+        name = "everforest-dark-soft-theme";
+        src = ./themes/everforest-xfce-now-window-borders;
+        installPhase = ''
+          mkdir -p $out/share/themes/Everforest-Dark-Soft
+          cp -r * $out/share/themes/Everforest-Dark-Soft/
+        '';
+      })
     ];
   };
   hardware = {

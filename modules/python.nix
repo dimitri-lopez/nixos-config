@@ -21,7 +21,17 @@ let
     python3 = pkgs.python312;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
-  
+  epydemix = import ./python-packages/epydemix.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+    fetchurl = pkgs.fetchurl;
+  };
+  evalidate = import ./python-packages/evalidate.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchurl = pkgs.fetchurl;
+  };
 in
 # let
 #   pytrends = import ./python-packages/pytrends.nix {
@@ -81,6 +91,10 @@ in
       # network science 2 class
       powerlaw
       tailestim
+      epydemix
+
+      pyyaml
+      streamlit
     ]))
   ];
 }

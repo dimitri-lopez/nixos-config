@@ -3,10 +3,6 @@
 {
   # Use common autostart - no need for custom script
   # The common-autostart script handles caps-lock, emacs, dropbox, syncthing
-home.file."/home/dimitril/.themes/Everforest-Dark-Soft" = {
-  source = ./themes/everforest-xfce-now-window-borders;
-  recursive = true;
-};
 gtk = {
   enable = true;
     iconTheme = {

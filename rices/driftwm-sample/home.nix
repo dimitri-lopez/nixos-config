@@ -267,6 +267,7 @@ let
     "mod+n" = "exec noctalia-shell ipc --any-display call notificationHistory toggle"
     "mod+r" = "reload-config"
     "mod+period" = "fit-window"
+    "super+escape" = "exec alacritty -e btop"
     "mod+ctrl+shift+q" = "quit"
     "XF86AudioRaiseVolume" = "exec noctalia-shell ipc --any-display call volume increase"
     "XF86AudioLowerVolume" = "exec noctalia-shell ipc --any-display call volume decrease"
@@ -302,7 +303,7 @@ let
   '';
 in
 {
-  imports = [ inputs.noctalia.homeModules.default ./noctalia-shell.nix ];
+  imports = [ inputs.noctalia.homeModules.default ./noctalia-shell.nix ../../modules/btop.nix ];
 
   home.activation.checkDriftwmConfig = lib.hm.dag.entryBefore ["copyDriftwmConfig"] ''
     ${driftwmPkg}/bin/driftwm --config ${driftwmConfig} --check-config || true
@@ -335,11 +336,13 @@ in
     wtype
     xwayland
     xwayland-satellite
-    xfce.xfce4-taskmanager
+    btop
     cliphist
     wl-clipboard
+    xfce.thunar
+    xdg-desktop-portal
+    xdg-desktop-portal-wlr
   ];
-
 
   home.file = {
     ".local/share/icons/elementary-pastel/index.theme".text = ''
@@ -538,5 +541,10 @@ in
     Install = {
       WantedBy = [ "graphical-session.target" ];
     };
+  };
+
+  services.gpg-agent = {
+    enable = true;
+    pinentry.package = pkgs.pinentry-gnome3;
   };
 }
