@@ -334,6 +334,7 @@ python3.pkgs.buildPythonApplication rec {
   };
 }
 #+end_src
+
 #+begin_src nix :tangle ./modules/python-packages/arxivcheck.nix
 {
   lib,
