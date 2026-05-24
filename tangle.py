@@ -78,6 +78,7 @@ def extract_heading_properties(text):
 def collect_refs(text, inherited):
     """Collect all :noweb-ref blocks into a dict {name: body}.
     Multiple blocks with the same ref name are concatenated.
+    Strips common indentation from each ref body (org-babel behavior).
     Explicit block-level :noweb-ref overrides inherited property."""
     refs = {}
     lines = text.split('\n')
@@ -90,7 +91,7 @@ def collect_refs(text, inherited):
             match = re.search(r':noweb-ref\s+(\S+)', inherited[start_line])
         if match:
             name = match.group(1)
-            body = m.group('body')
+            body = strip_common_indent(m.group('body'))
             if name in refs:
                 refs[name] += '\n' + body
             else:
@@ -162,6 +163,8 @@ def tangle(text, base):
         body = strip_common_indent(body)
         if ':noweb yes' in effective_hdr:
             body = expand(body, refs)
+            # Strip again after expansion to match org-babel behavior
+            body = strip_common_indent(body)
         out = base / tangle_match.group(1)
         out.parent.mkdir(parents=True, exist_ok=True)
         # Unlock if read-only (generated .nix files are typically 444)

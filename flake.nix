@@ -1,28 +1,28 @@
 {
   description = "dimitril's flake";
-    inputs = {
-      nixpkgs.url = "nixpkgs/nixos-25.05";
-      home-manager.url = "github:nix-community/home-manager/release-25.05";
-      home-manager.inputs.nixpkgs.follows = "nixpkgs";
+  inputs = {
+    nixpkgs.url = "nixpkgs/nixos-25.05";
+    home-manager.url = "github:nix-community/home-manager/release-25.05";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-      opencode.url = "github:AodhanHayter/opencode-flake";
-      driftwm = {
-        url = "github:malbiruk/driftwm";
-        inputs.nixpkgs.follows = "nixpkgs-unstable";
-      };
-      nixpkgs-unstable = {
-        url = "github:NixOS/nixpkgs/nixos-unstable";
-      };
-
-      mcp-nixos = {
-        url = "github:utensils/mcp-nixos";
-      };
-
-      noctalia = {
-        url = "github:noctalia-dev/noctalia-shell";
-        inputs.nixpkgs.follows = "nixpkgs-unstable";
-      };
+    opencode.url = "github:AodhanHayter/opencode-flake";
+    driftwm = {
+      url = "github:malbiruk/driftwm";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+    nixpkgs-unstable = {
+      url = "github:NixOS/nixpkgs/nixos-unstable";
+    };
+
+    mcp-nixos = {
+      url = "github:utensils/mcp-nixos";
+    };
+
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+  };
 
   nixConfig = {
     extra-substituters = [ "https://noctalia.cachix.org" ];
