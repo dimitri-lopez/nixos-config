@@ -4,7 +4,7 @@
     nixpkgs.url = "nixpkgs/nixos-25.05";
     home-manager.url = "github:nix-community/home-manager/release-25.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
+  
     opencode.url = "github:AodhanHayter/opencode-flake";
     driftwm = {
       url = "github:malbiruk/driftwm";
@@ -13,11 +13,11 @@
     nixpkgs-unstable = {
       url = "github:NixOS/nixpkgs/nixos-unstable";
     };
-
+  
     mcp-nixos = {
       url = "github:utensils/mcp-nixos";
     };
-
+  
     noctalia = {
       url = "github:noctalia-dev/noctalia-shell";
       inputs.nixpkgs.follows = "nixpkgs-unstable";

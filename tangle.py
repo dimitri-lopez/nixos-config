@@ -132,14 +132,11 @@ def expand(body, refs, seen=None):
         else:
             line_start += 1
         indent = body[line_start:m.start()]
-        # Indent each non-empty line of the ref body
+        # Indent each line of the ref body, including empty lines
         lines = ref_body.split('\n')
         indented = lines[0]
         for line in lines[1:]:
-            if line.strip():
-                indented += '\n' + indent + line
-            else:
-                indented += '\n'
+            indented += '\n' + indent + line
         return indented
 
     return re.sub(r'<<([^>]+)>>', repl, body)
