@@ -407,23 +407,3 @@
   services.gpg-agent.enable = true;
 #+end_src
 
-** TODO watchy.nix
-
-- [ ] [[*configuration.nix modules][configuration.nix modules]]
-- [ ] [[*home.nix modules][home.nix modules]]
-- [ ] [[elisp:(org-babel-tangle)]]
-- [ ] [[git add -A ./modules/watchy]]
-#+begin_src nix :tangle ./modules/watchy.nix
-{ config, lib, pkgs, ... }:
-
-{
-  home.packages = with pkgs; [
-    esptool
-    platformio
-    arduino
-
-    vscode-fhs
-    docker
-    docker-buildx
-  ];
-}
