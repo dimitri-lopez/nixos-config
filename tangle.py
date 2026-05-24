@@ -149,7 +149,14 @@ def tangle(text, base):
             body = expand(body, refs)
         out = base / tangle_match.group(1)
         out.parent.mkdir(parents=True, exist_ok=True)
+        # Unlock if read-only (generated .nix files are typically 444)
+        was_readonly = False
+        if out.exists() and not out.stat().st_mode & 0o200:
+            out.chmod(0o644)
+            was_readonly = True
         out.write_text(body.rstrip() + '\n')
+        if was_readonly:
+            out.chmod(0o444)
         print(f"Tangled: {out}")
 
 
