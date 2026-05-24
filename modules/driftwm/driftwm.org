@@ -55,6 +55,10 @@ DriftWM + Noctalia shell. Replaces waybar, swaync, swayosd, and custom widgets w
 
 The full home configuration lives in [[./home.nix][modules/driftwm/home.nix]] (currently maintained as a standalone file).
 
+** Noctalia Shell
+The Noctalia shell component is imported as a reusable module from [[../../modules/noctalia][modules/noctalia/]].
+DriftWM provides its own =noctalia.json= settings file.
+
 ** Noctalia Settings Sync
 Noctalia's settings are edited via its graphical interface. Run this script to sync them back into the repo:
 #+begin_src sh :tangle ./modules/driftwm/sync-noctalia.sh

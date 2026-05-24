@@ -1,0 +1,147 @@
+#+TITLE: DriftWM + Emacs Posframe Compatibility Notes
+#+DATE: 2025-08-12
+
+* Inbox
+** hello
+
+ 1060  nix shell github:nix-community/emacs-overlay#emacs-git --command emacs 
+ 1061  nix-shell -E 'let overlay = import (builtins.fetchTarball "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz"); pkgs = import <nixpkgs> { overlays = [ overlay ]; }; in pkgs.mkShell { buildInputs = [ (pkgs.emacs-git.override { withGTK3 = true; withX = true; withPgtk = false; }) ]; }' --run "GDK_BACKEND=x11 emacs" --keep DISPLAY
+ 1062  nix-shell -E 'let overlay = import (builtins.fetchTarball "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz"); pkgs = import <nixpkgs> { overlays = [ overlay ]; }; in pkgs.mkShell { buildInputs = [ (pkgs.emacs-git.override { withGTK3 = true; withX = true; withPgtk = false; }) ]; }' --run "GDK_BACKEND=x11 emacs" --keep DISPLAY
+ 1063  nix-shell -E 'let overlay = import (builtins.fetchTarball "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz"); pkgs = import <nixpkgs> { overlays = [ overlay ]; }; in pkgs.mkShell { buildInputs = [ (pkgs.emacs-git.override { withGTK3 = true; withX = true; withPgtk = false; }) ]; }' --run "GDK_BACKEND=x11 emacs --debug-init" --keep DISPLAY
+ 1064  nix-shell -E 'let overlay = import (builtins.fetchTarball "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz"); pkgs = import <nixpkgs> { overlays = [ overlay ]; }; in pkgs.mkShell { buildInputs = [ (pkgs.emacs-git.override { withGTK3 = true; withX = true; withPgtk = false; }) ]; }' --run "GDK_BACKEND=x11 ~/.config/emacs/bin/doom sync" --keep DISPLAY
+ 1065  nix-shell -E 'let overlay = import (builtins.fetchTarball "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz"); pkgs = import <nixpkgs> { overlays = [ overlay ]; }; in pkgs.mkShell { buildInputs = [ (pkgs.emacs-git.override { withGTK3 = true; withX = true; withPgtk = false; }) ]; }' --run "GDK_BACKEND=x11 ~/.config/emacs/bin/doom sync" --keep DISPLAY
+ 1066  nix-shell -E 'let overlay = import (builtins.fetchTarball "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz"); pkgs = import <nixpkgs> { overlays = [ overlay ]; }; in pkgs.mkShell { buildInputs = [ (pkgs.emacs-git.override { withGTK3 = true; withX = true; withPgtk = false; }) ]; }' --run "GDK_BACKEND=x11 emacs" --keep DISPLAY
+ 1067  nix-shell -E 'let overlay = import (builtins.fetchTarball "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz"); pkgs = import <nixpkgs> { overlays = [ overlay ]; }; in pkgs.mkShell { buildInputs = [ (pkgs.emacs-git.override { withGTK3 = true; withX = true; withPgtk = false; }) ]; }' --run "GDK_BACKEND=x11 emacs --debug-init" --keep DISPLAY
+** Sun May 10 22:46:16 2026
+another one
+
+: nix shell nixpkgs#emacs30-lucid --command bash -c 'emacs -Q --eval "(progn (package-initialize) (package-install (quote posframe)) (posframe-show \"*test*\" :string \"lucid\" :position (point)))"'
+* Problem Statement
+
+Emacs daemon (with GTK3/XWayland) + posframe child-frames under DriftWM (Wayland compositor) exhibits two issues:
+
+1. *Window cycling*: Posframe windows are treated as top-level windows, causing =Alt-Tab= to cycle into them.
+2. *Disappearing posframes*: Posframes close immediately or fail to display after the first invocation.
+
+The same Emacs configuration works perfectly under XFCE (X11) and under =emacs-pgtk= (native Wayland), but the PGTK build cannot run as a daemon (dies on display disconnect).
+
+* Root Cause Analysis
+
+** DriftWM's XWayland Window Classification
+
+DriftWM classifies XWayland windows in =surface_associated()=:
+- Normal windows without =WM_TRANSIENT_FOR= → top-level managed windows
+- Dialog windows or windows with =WM_TRANSIENT_FOR= → dialogs (not cycled)
+
+** Emacs GTK3/XWayland Inconsistency
+
+Emacs GTK3 under XWayland creates posframe child-frames with alternating =window_type=:
+- First posframe: =Normal= (treated as top-level)
+- Second posframe: =Dialog= (correctly treated as dialog)
+- Third+: =Normal= again
+
+This inconsistency causes DriftWM to apply window decorations to =Normal= posframes and route input incorrectly.
+
+** Why PGTK Works
+
+=emacs-pgtk= uses native Wayland surfaces. Posframes are child surfaces that the compositor correctly associates with the parent. No XWayland =window_type= ambiguity exists.
+
+** Why Daemon Mode Matters
+
+=emacs --daemon= survives display disconnects (lid close, monitor changes). =emacs-pgtk= cannot run as a daemon because GTK's Wayland backend fundamentally requires a display connection at startup.
+
+* Solutions Attempted
+
+** DriftWM Patch (Rejected)
+
+Patching DriftWM's =surface_associated()= to treat all Emacs posframes as dialogs by matching =WM_CLASS= (=emacs= / =emacsclient=) and checking parent relationships.
+
+*Status*: Works, but user prefers not to maintain a compositor fork.
+
+** Emacs-side Fix (Adopted)
+
+Override posframe parameters to force correct X11 behavior:
+
+#+begin_src emacs-lisp
+;; Force override-redirect to prevent window manager management
+(setq vertico-posframe-parameters
+      '((left-fringe . 8)
+        (right-fringe . 8)
+        (override-redirect . t)
+        (window-type . dialog)))
+
+;; Override-redirect causes set-frame-position to use absolute
+;; screen coordinates instead of parent-relative. Convert them.
+(defun dl/posframe--set-frame-position-absolute (orig-fn frame x y &optional force)
+  "Advice to convert relative posframe coordinates to absolute screen coordinates."
+  (if-let* ((parent (or (frame-parameter frame 'parent-frame)
+                        (alist-get 'parent-frame (frame-parameters frame))))
+            (parent-px (frame-parameter parent 'left))
+            (parent-py (frame-parameter parent 'top)))
+      (funcall orig-fn frame
+               (+ x (max parent-px 0))
+               (+ y (max parent-py 0))
+               force)
+    (funcall orig-fn frame x y force)))
+
+(advice-add 'posframe--set-frame-position :around
+            #'dl/posframe--set-frame-position-absolute)
+#+end_src
+
+*How it works*:
+1. =(override-redirect . t)= tells X11 not to manage the window (no decorations, no cycling)
+2. =(window-type . dialog)= is kept for consistency
+3. The advice converts posframe's parent-relative coordinates to absolute screen coordinates, since override-redirect frames receive absolute positioning
+
+* Trade-offs
+
+| Approach                   | Pros                            | Cons                                                               |
+|----------------------------+---------------------------------+--------------------------------------------------------------------|
+| DriftWM patch              | Correct fix at compositor level | Must maintain fork                                                 |
+| override-redirect + advice | No fork; works now              | Slightly hacky; may break with multi-monitor or unusual geometries |
+| emacs-pgtk                 | Perfect posframe behavior       | Cannot run as daemon                                               |
+
+* Current Status
+
+- Emacs daemon with Lucid/Athena build (=emacs= package, not =emacs-pgtk=) under XWayland
+- Posframe parameters set with =override-redirect= and =window-type= dialog
+- Coordinate advice active
+- Testing in progress to verify first-posframe positioning
+
+* Key Files
+
+| File                               | Purpose                                              |
+|------------------------------------+------------------------------------------------------|
+| =~/.config/doom/config.org=          | Doom config source; posframe fix lives here          |
+| =~/.dotfiles/readme.org=             | Nix config source; Emacs package selection           |
+| =~/.dotfiles/modules/emacs.nix=      | Emacs package and wrapper config                     |
+| ~/driftwm/src/handlers/xwayland.rs | DriftWM XWayland handler (has debug logging patches) |
+| ~/driftwm/plan.org                 | Detailed test plan and logs                          |
+
+* Commands
+
+** Test Lucid Emacs
+#+begin_src bash
+nix-shell -p emacs --run "emacs --daemon"
+nix-shell -p emacs --run "emacsclient -c"
+#+end_src
+
+** Tangle configs
+#+begin_src bash
+# Doom config
+doom +org tangle ~/.config/doom/config.org
+
+# Nix config
+doom +org tangle ~/.dotfiles/readme.org
+#+end_src
+
+** Apply Nix changes
+#+begin_src bash
+home-manager switch --flake ~/.dotfiles
+#+end_src
+
+* References
+
+- DriftWM XWayland handler: https://github.com/malbiruk/driftwm/blob/main/src/handlers/xwayland.rs
+- Posframe source: https://github.com/tumashu/posframe
+- Emacs PGTK limitation: GTK Wayland backend requires display at startup
