@@ -1,3 +1,5 @@
+#+title: Home Manager Configuration
+
 * home.nix
 :PROPERTIES:
 :header-args:nix: :noweb-ref home.nix
@@ -11,8 +13,6 @@
 <<home.nix>>
 }
 #+end_src
-** home.nix Imports
-See [[*home.nix modules][home.nix modules]].
 ** Default settings
 #+begin_src nix
   # Home Manager needs a bit of information about you and the paths it should

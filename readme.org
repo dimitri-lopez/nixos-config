@@ -2,13 +2,17 @@
 
 See [[install.org]] for installation instructions.
 
-- [[file:system.org][System config]]
-- [[file:home.org][Home config]]
-- [[file:modules/core.org][Core modules]]
-- [[file:modules/emacs.org][Emacs]]
-- [[file:modules/apps.org][Apps]]
-- [[file:modules/xfce/xfce.org][XFCE]]
-- [[file:modules/driftwm/driftwm.org][DriftWM]]
+* Table of Contents
+- [[file:readme.org][readme.org]]: Master file, user settings, includes
+- [[file:flake.org][flake.org]]: Flake configuration
+- [[file:system.org][system.org]]: System-level NixOS configuration
+- [[file:home.org][home.org]]: Home-manager entry point
+- [[file:modules/core.org][core.org]]: Core shared modules
+- [[file:modules/emacs.org][emacs.org]]: Emacs ecosystem
+- [[file:modules/apps.org][apps.org]]: Applications and development tools
+- [[file:modules/phd.org][phd.org]]: PhD / academic tools
+- [[file:modules/xfce/xfce.org][XFCE]]: XFCE desktop environment
+- [[file:modules/driftwm/driftwm.org][DriftWM]]: DriftWM compositor
 
 * Inbox
 ** Emacs versions
@@ -35,12 +39,14 @@ sudo nixos-rebuild switch --flake . --upgrade
 This is a multi-file literate NixOS configuration powered by Emacs org-mode.
 
 Key files:
-- [[file:readme.org][readme.org]]: Master file, flake.nix, user settings, includes
+- [[file:readme.org][readme.org]]: Master file, user settings, includes
+- [[file:flake.org][flake.org]]: Flake configuration
 - [[file:system.org][system.org]]: System-level NixOS configuration
 - [[file:home.org][home.org]]: Home-manager entry point
 - [[file:modules/core.org][modules/core.org]]: Core shared modules
 - [[file:modules/emacs.org][modules/emacs.org]]: Emacs ecosystem
 - [[file:modules/apps.org][modules/apps.org]]: Applications and development tools
+- [[file:modules/phd.org][modules/phd.org]]: PhD / academic tools
 - [[file:modules/xfce/xfce.org][modules/xfce/xfce.org]]: XFCE desktop environment
 - [[file:modules/driftwm/driftwm.org][modules/driftwm/driftwm.org]]: DriftWM compositor
 
@@ -58,12 +64,23 @@ emacs --batch -l org -f org-babel-tangle-file readme.org
 # With Python (no Emacs)
 python3 tangle.py readme.org
 #+end_src
-** Misc
-*** Github
-I fixed most of this with the gh package.
-#+begin_src bash
-git config --global user.email "dimitrilopez01@gmail.com"
-git config --global user.name "Dimitri Lopez"
+* User Settings
+#+begin_src nix :noweb-ref userSettings
+userSettings = {
+  username = "dimitril";
+  name = "Dimitri";
+  email = "dimitrilopez01@gmail.com";
+  dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
+  # Options: "xfce", "driftwm" - desktop modules auto-loaded in flake.nix
+  wm = "driftwm";
+};
+#+end_src
+* System Settings
+#+begin_src nix :noweb-ref systemSettings
+systemSettings = {
+  system = "x86_64-linux"; # system arch
+  hostname = "dimitril-hostname";   # hostname
+};
 #+end_src
 
 * Configuration Entry Point
@@ -100,114 +117,13 @@ imports = [
 ];
 #+end_src
 
-** User Settings (flake.nix)
-#+begin_src nix :noweb-ref userSettings
-userSettings = {
-  username = "dimitril";
-  name = "Dimitri";
-  email = "dimitrilopez01@gmail.com";
-  dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
-  # Options: "xfce", "driftwm" - desktop modules auto-loaded in flake.nix
-  wm = "driftwm";
-};
-#+end_src
-** System Settings (flake.nix)
-#+begin_src nix :noweb-ref systemSettings
-systemSettings = {
-  system = "x86_64-linux"; # system arch
-  hostname = "dimitril-hostname";   # hostname
-};
-#+end_src
-
-* flake.nix
-:PROPERTIES:
-:header-args:nix: :noweb-ref flake.nix
-:END:
-** Flake.nix main
-#+begin_src nix :tangle flake.nix :noweb-ref flake.nix-setup :noweb yes
-{
-  description = "dimitril's flake";
-  <<flake.nix--inputs>>
-
-  nixConfig = {
-    extra-substituters = [ "https://noctalia.cachix.org" ];
-    extra-trusted-public-keys = [ "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=" ];
-  };
-
-  outputs = inputs@{ self, nixpkgs, home-manager, ... }:
-    let
-      system = "x86_64-linux";
-      lib = nixpkgs.lib;
-      pkgs = nixpkgs.legacyPackages.${system};
-      <<userSettings>>
-      <<systemSettings>>
-
-      selectedDesktop = {
-        xfce = {
-          system = [ ./modules/xfce/xfce.nix ];
-          home = [ ./modules/xfce/xfce-home.nix ];
-        };
-        driftwm = {
-          system = [ ./modules/driftwm/system.nix ];
-          home = [ ./modules/driftwm/home.nix ];
-        };
-      }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
-    in {
-      packages.x86_64-linux = {
-      };
-      legacyPackages.x86_64-linux = {
-      };
-      nixosConfigurations = {
-        nixos = lib.nixosSystem {
-          inherit system;
-          modules = [ ./configuration.nix ] ++ selectedDesktop.system;
-          specialArgs = { inherit inputs; };
-        };
-      };
-      homeConfigurations = {
-        "dimitril" = home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
-          modules = [ ./home.nix ] ++ selectedDesktop.home;
-          extraSpecialArgs = {
-            inherit userSettings;
-            inherit inputs;
-          };
-        };
-      };
-    };
-}
-#+end_src
-** Flake inputs
-#+begin_src nix :noweb-ref flake.nix--inputs
-  inputs = {
-    nixpkgs.url = "nixpkgs/nixos-25.05";
-    home-manager.url = "github:nix-community/home-manager/release-25.05";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
-    opencode.url = "github:AodhanHayter/opencode-flake";
-    driftwm = {
-      url = "github:malbiruk/driftwm";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
-    nixpkgs-unstable = {
-      url = "github:NixOS/nixpkgs/nixos-unstable";
-    };
-
-    mcp-nixos = {
-      url = "github:utensils/mcp-nixos";
-    };
-
-    noctalia = {
-      url = "github:noctalia-dev/noctalia-shell";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
-  };
-#+end_src
-
+* Tangling
+#+INCLUDE: ./flake.org
 #+INCLUDE: ./system.org
 #+INCLUDE: ./home.org
 #+INCLUDE: ./modules/core.org
 #+INCLUDE: ./modules/emacs.org
 #+INCLUDE: ./modules/apps.org
+#+INCLUDE: ./modules/phd.org
 #+INCLUDE: ./modules/xfce/xfce.org
 #+INCLUDE: ./modules/driftwm/driftwm.org

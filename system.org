@@ -1,3 +1,5 @@
+#+title: System Configuration
+
 * configuration.nix
 :PROPERTIES:
 :header-args:nix: :noweb-ref configuration.nix

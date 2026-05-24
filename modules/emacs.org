@@ -1,3 +1,7 @@
+#+title: Emacs Configuration
+
+* Emacs Configuration
+
 ** emacs.nix
 
 #+begin_src nix :tangle ./modules/emacs.nix
