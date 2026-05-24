@@ -136,7 +136,6 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     syncthing
-    inputs.srwc.packages.${pkgs.stdenv.system}.default
   ];
   system.autoUpgrade.enable = true;
   system.autoUpgrade.dates = "weekly";
