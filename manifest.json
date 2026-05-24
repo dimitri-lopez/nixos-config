@@ -69,11 +69,10 @@
     },
     "modules/xfce/xfce.org": {
       "generates": [
-        "./modules/watchy.nix",
         "./modules/xfce/xfce-home.nix",
         "./modules/xfce/xfce.nix"
       ],
-      "description": "Generates 3 file(s)"
+      "description": "Generates 2 file(s)"
     },
     "readme.org": {
       "generates": [

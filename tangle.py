@@ -98,6 +98,20 @@ def collect_refs(text, inherited):
     return refs
 
 
+def strip_common_indent(text):
+    """Strip common leading whitespace from all lines (org-babel behavior)."""
+    lines = text.split('\n')
+    # Find minimum indentation among non-empty lines
+    indents = [len(line) - len(line.lstrip()) for line in lines if line.strip()]
+    if not indents or min(indents) == 0:
+        return text
+    min_indent = min(indents)
+    return '\n'.join(
+        line[min_indent:] if line.strip() else line
+        for line in lines
+    )
+
+
 def expand(body, refs, seen=None):
     """Recursively expand <<name>> references using refs dict.
     Preserves indentation of the reference line."""
@@ -145,6 +159,7 @@ def tangle(text, base):
         if not tangle_match or tangle_match.group(1).lower() == 'no':
             continue
         body = m.group('body')
+        body = strip_common_indent(body)
         if ':noweb yes' in effective_hdr:
             body = expand(body, refs)
         out = base / tangle_match.group(1)
