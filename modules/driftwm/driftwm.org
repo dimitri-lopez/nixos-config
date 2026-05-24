@@ -1,17 +1,3 @@
-{ config, lib, pkgs, ... }:
-
-{
-  home.packages = with pkgs; [
-    esptool
-    platformio
-    arduino
-
-    vscode-fhs
-    docker
-    docker-buildx
-  ];
-}
-
 * DriftWM
 Trackpad-first infinite canvas compositor via [[https://github.com/malbiruk/driftwm][malbiruk/driftwm]].
 
@@ -62,3 +48,22 @@ Base system config (greetd, uwsm, seatd, dbus, PAM):
   services.upower.enable = true;
   services.power-profiles-daemon.enable = true;
 }
+#+end_src
+
+** Home Configuration
+DriftWM + Noctalia shell. Replaces waybar, swaync, swayosd, and custom widgets with Noctalia's built-in bar, launcher, notifications, and OSD.
+
+The full home configuration lives in [[./home.nix][modules/driftwm/home.nix]] (currently maintained as a standalone file).
+
+** Noctalia Settings Sync
+Noctalia's settings are edited via its graphical interface. Run this script to sync them back into the repo:
+#+begin_src sh :tangle ./modules/driftwm/sync-noctalia.sh
+#!/bin/sh
+SRC="$HOME/.config/noctalia/settings.json"
+DST="$HOME/.dotfiles/modules/driftwm/noctalia.json"
+cp "$SRC" "$DST"
+echo "noctalia.json synced from GUI"
+#+end_src
+
+** Assets
+Custom wallpapers, widgets, and scripts live in [[./assets][modules/driftwm/assets/]].

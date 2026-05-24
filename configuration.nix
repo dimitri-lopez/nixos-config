@@ -4,7 +4,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      
+
       ./modules/kanata.nix
       ./modules/steam.nix
       ./system/bluetooth.nix
@@ -17,10 +17,10 @@
   # TODO Not fully sure what these next two lines are for
   boot.resumeDevice = "/dev/disk/by-uuid/75bde775-be2a-4135-a34d-c18cd526f54e";
   boot.kernelParams = [ "resume=UUID=75bde775-be2a-4135-a34d-c18cd526f54e" ];
-  
+
   networking.hostName = "nixos"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking
-  
+
   # Syncthing ports: 8384 for remote access to GUI
   # 22000 TCP and/or UDP for sync traffic
   # 21027/UDP for discovery
@@ -28,7 +28,7 @@
   networking.firewall.allowedTCPPorts = [ 8384 22000 ];
   networking.firewall.allowedUDPPorts = [ 22000 21027 ];
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-  
+
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
@@ -50,7 +50,7 @@
   #   pulse.enable = true;
   #   # If you want to use JACK applications, uncomment this
   #   #jack.enable = true;
-  
+
   #   # use the example session manager (no others are packaged yet so this is enabled by default,
   #   # no need to redefine it in your config for now)
   #   #media-session.enable = true;
@@ -62,10 +62,10 @@
   # ];
   # Set your time zone.
   time.timeZone = "America/New_York";
-  
+
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
-  
+
   i18n.extraLocaleSettings = {
     LC_ADDRESS = "en_US.UTF-8";
     LC_IDENTIFICATION = "en_US.UTF-8";
@@ -77,7 +77,7 @@
     LC_TELEPHONE = "en_US.UTF-8";
     LC_TIME = "en_US.UTF-8";
   };
-  
+
   # Enable the X11 windowing system.
   # services.xserver = {
   #   enable = true;
@@ -88,16 +88,64 @@
   #   };
   # };
   # services.displayManager.defaultSession = "xfce";
-  
+
   # # Enable the XFCE Desktop Environment.
   # services.xserver.displayManager.lightdm.enable = true;
   # services.xserver.desktopManager.xfce.enable = true;
-  
+
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "us";
     variant = "";
   };
+  services.xserver.enable = true;
+  services.xserver.displayManager.lightdm = {
+    enable = true;
+    extraConfig = ''
+      logind-check-graphical=true
+    '';
+  };
+  services.displayManager.sessionPackages = [ 
+    (pkgs.stdenv.mkDerivation {
+      pname = "vxwm";
+      version = "unstable";
+      src = pkgs.fetchgit {
+        url = "https://codeberg.org/wh1tepearl/vxwm.git";
+        rev = "24bbb12074704680edf894ea82a066b3b2662c42";
+        sha256 = "01ggidzvb44m8s179d4had7lrvzrmxapp84dhirbygpxfzn6gsiz";
+      };
+      nativeBuildInputs = [ pkgs.pkg-config ];
+      buildInputs = with pkgs.xorg; [ libX11 libXft libXinerama ];
+      prePatch = ''
+        # Provide a hollowed-out config.def.h that lets sxhkd handle all keys
+        # Find line numbers for keys array start and end
+        START=$(grep -n "static const Key keys" config.def.h | cut -d: -f1)
+        END=$(sed -n "$START,\$p" config.def.h | grep -n "};" | head -n 1 | cut -d: -f1)
+        END=$((START + END - 1))
+
+        # Replace the keys array with an empty one
+        head -n $((START - 1)) config.def.h > config.def.h.new
+        echo "static const Key keys[] = { { 0, 0, NULL, { .i = 0 } } };" >> config.def.h.new
+        tail -n +$((END + 1)) config.def.h >> config.def.h.new
+        mv config.def.h.new config.def.h
+
+        # Suppress unused function warnings (since we removed their keybindings)
+        sed -i 's/CFLAGS   = \(.*\)/CFLAGS = \1 -Wno-unused-function/' config.mk
+      '';
+      installPhase = ''
+        make PREFIX=$out install
+        mkdir -p $out/share/xsessions
+        cat > $out/share/xsessions/vxwm.desktop << EOF
+  [Desktop Entry]
+  Type=Application
+  Name=vxwm
+  Exec=$out/bin/vxwm
+  TryExec=$out/bin/vxwm
+  EOF
+      '';
+      passthru.providedSessions = [ "vxwm" ];
+    })
+  ];
   # Enable CUPS to print documents.
   services.printing.enable = true;
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -112,7 +160,7 @@
   };
   # Install firefox.
   programs.firefox.enable = true;
-  
+
   # Enable nix-ld for dynamically linked executables
   programs.nix-ld.enable = true;
   programs.nix-ld.libraries = with pkgs; [
@@ -125,17 +173,18 @@
     curl
     expat
   ];
-  
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [
     "python3.12-ecdsa-0.19.1"
   ];
-  
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     syncthing
+    inputs.srwc.packages.${pkgs.stdenv.system}.default
   ];
   system.autoUpgrade.enable = true;
   system.autoUpgrade.dates = "weekly";
@@ -145,7 +194,7 @@
   nix.settings.auto-optimise-store = true;
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
-  
+
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
@@ -153,18 +202,18 @@
   #   enable = true;
   #   enableSSHSupport = true;
   # };
-  
+
   # List services that you want to enable:
-  
+
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
-  
+
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
-  
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave

@@ -1,19 +1,20 @@
+* home.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref home.nix
+:END:
+** Setup
+#+begin_src nix :noweb yes :tangle home.nix :noweb-ref home.nix-setup
 { config, lib, pkgs, userSettings, ... }:
 
 {
-imports = [
-  ./modules/common.nix
-  ./modules/git.nix
-  ./modules/phd.nix
-  ./modules/python.nix
-  ./modules/sh.nix
-  ./modules/scripting.nix
-  ./modules/emacs.nix
-  ./modules/brave.nix
-  ./modules/minecraft.nix
-  ./modules/watchy.nix
-  ./modules/mcp-nixos.nix
-];
+<<home.nix.imports>>
+<<home.nix>>
+}
+#+end_src
+** home.nix Imports
+See [[*home.nix modules][home.nix modules]].
+** Default settings
+#+begin_src nix
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = "dimitril";
@@ -33,6 +34,11 @@ imports = [
   # want to update the value, then make sure to first check the Home Manager
   # release notes.
   home.stateVersion = "25.05"; # Please read the comment before changing.
+#+end_src
+** home.nix packages inbox
+# Packages go to their own modules now - see modules/*.nix
+** home.nix dotfiles
+#+begin_src nix
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
   home.file = {
@@ -47,6 +53,10 @@ imports = [
     #   org.gradle.daemon.idletimeout=3600000
     # '';
   };
+#+end_src
+** Environment variables
+
+#+begin_src nix
   # Home Manager can also manage your environment variables through
   # 'home.sessionVariables'. These will be explicitly sourced when using a
   # shell provided by Home Manager. If you don't want to manage your shell
@@ -66,6 +76,10 @@ imports = [
   home.sessionVariables = {
     EDITOR = "emacsclient";
   };
+#+end_src
+
+** home-manager configuration
+#+begin_src nix
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
-}
+#+end_src

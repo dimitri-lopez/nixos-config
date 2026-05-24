@@ -1,3 +1,5 @@
+#+begin_src nix :tangle no
+
 {
   lib,
   python3,

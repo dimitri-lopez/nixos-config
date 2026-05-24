@@ -1,0 +1,432 @@
+* Core Modules
+
+** common.nix
+Common packages, services, and autostart for all desktop environments.
+#+begin_src nix :tangle ./modules/common.nix
+{ config, pkgs, ... }:
+
+{
+  # Packages that work across all desktop environments
+  home.packages = with pkgs; [
+    dropbox
+    redshift
+    syncthing
+    vim
+    htop
+    bottom
+  ];
+
+  # Home-manager services (auto-managed by home-manager)
+  services.redshift = {
+    enable = false; # Disabled to prevent premature graphical-session.target activation
+    latitude = "42.36";
+    longitude = "-71.06";
+  };
+  
+  # Unified autostart script - detects session type
+  home.file.".local/bin/common-autostart" = {
+    executable = true;
+    text = ''
+#!/bin/sh
+# Common autostart for all desktop environments
+
+# Caps lock to control (works everywhere)
+dl-caps-lock-to-control &
+
+# Emacs daemon
+sleep 3 && restart-emacs-daemon &
+
+case "$XDG_SESSION_TYPE" in
+  x11)
+    # X11 desktops (vxwm, xfce)
+    dropbox start &
+    syncthing --no-browser &
+    redshift -l 42.361145:-71.057083 &
+    ;;
+  wayland)
+    # Wayland desktops - services handled by home-manager services
+    # but we still need dropbox/syncthing
+    dropbox start &
+    syncthing --no-browser &
+    ;;
+esac
+  '';
+  };
+  home.file.".xprofile".text = ''
+# Source common autostart for X11
+[ -f ~/.local/bin/common-autostart ] && ~/.local/bin/common-autostart &
+  '';
+}
+#+end_src
+
+** kanata.nix
+#+begin_src nix :tangle ./modules/kanata.nix
+{ config, pkgs, ... }:
+
+{
+  services.kanata = {
+    enable = true;
+    keyboards = {
+      default = {
+        # Empty devices list allows kanata to auto-detect all keyboards
+        devices = [ ];
+        config = ''
+          (defsrc
+            caps
+          )
+
+          (deflayer base
+            lctl
+          )
+        '';
+      };
+    };
+  };
+}
+#+end_src
+
+** git.nix
+#+begin_src nix :tangle ./modules/git.nix
+{ config, pkgs, userSettings, ... }:
+
+{
+  home.packages = [
+    pkgs.git
+    pkgs.git-lfs
+    pkgs.git-credential-manager
+    pkgs.gh
+                  ];
+  programs.git.enable = true;
+  programs.git.userName = userSettings.name;
+  programs.git.userEmail = userSettings.email;
+  programs.git.extraConfig = {
+    credential."https://github.com".helper = "!gh auth git-credential";
+    credential."https://gist.github.com".helper = "!gh auth git-credential";
+    # init.defaultBranch = "main";
+    # safe.directory = [ ("/home/" + userSettings.username + "/.dotfiles")
+    #                    ("/home/" + userSettings.username + "/.dotfiles/.git") ];
+  };
+}
+#+end_src
+
+** scripting.nix
+#+begin_src nix :tangle ./modules/scripting.nix
+{ config, lib, pkgs, ... }:
+
+{
+
+  home.packages = with pkgs; [
+    jumpapp
+    libnotify # forr sending notifcations
+    wmctrl #for window management
+    (pkgs.writeScriptBin "dl-caps-lock-to-control" ''
+setxkbmap -option caps:none && setxkbmap -option ctrl:nocaps && setxkbmap -option caps:ctrl && setxkbmap -option "shift:both_capslock"
+'')
+
+    (pkgs.writeScriptBin "dl-restart-wifi" ''
+nmcli networking off
+nmcli networking on
+'')
+    (pkgs.writeScriptBin "dl-simulate-keystrokes" ''
+#!/bin/sh
+notify-send 'Simulate Keystrokes' 'Will type out current clipboard contents' -i ~/bin/KeyboardIconW.png -t 3500
+notify-send 'Simulate Keystrokes' 'Will type in: 3' -t 1000
+sleep 1
+notify-send 'Simulate Keystrokes' 'Will type in: 2' -t 1000
+sleep 1
+notify-send 'Simulate Keystrokes' 'Will type in: 1' -t 1000
+sleep 1
+xdotool type -- "$(xsel -bo | tr \\n \\r | sed s/\\r*\$//)"
+'')
+
+    (pkgs.writeScriptBin "dl-toggle-dev-workspace" ''
+#!/usr/bin/env bash
+# Toggle between current workspace and workspace 9 (dev/test workspace)
+
+CURRENT=$(${pkgs.wmctrl}/bin/wmctrl -d | grep '\*' | cut -d' ' -f1)
+DEV_WORKSPACE=8  # 0-indexed, so 8 = workspace 9
+
+if [ "$CURRENT" = "$DEV_WORKSPACE" ]; then
+    # Return to previous workspace (stored in file)
+    PREV=$(cat /tmp/prev-workspace 2>/dev/null || echo 0)
+    ${pkgs.wmctrl}/bin/wmctrl -s "$PREV"
+else
+    # Save current and switch to dev
+    echo "$CURRENT" > /tmp/prev-workspace
+    ${pkgs.wmctrl}/bin/wmctrl -s "$DEV_WORKSPACE"
+fi
+'')
+
+    (pkgs.writeScriptBin "dl-visual-test-setup" ''
+#!/usr/bin/env bash
+# Set up isolated visual testing environment
+
+# Switch to dev workspace
+${pkgs.wmctrl}/bin/wmctrl -s 8
+
+# Start test daemon if not running
+if ! emacsclient -s visual-test --eval 't' 2>/dev/null; then
+    doom emacs --daemon=visual-test
+    sleep 2
+fi
+
+# Create frame in dev workspace
+emacsclient -s visual-test -c &
+
+echo "Visual test environment ready on workspace 9"
+echo "Use: emacsclient -s visual-test --eval '...'"
+'')
+
+  ];
+}
+#+end_src
+
+** sh.nix
+#+begin_src nix :tangle ./modules/sh.nix
+{ config, lib, pkgs, userSettings, ... }:
+let
+  myAliases = {
+    ll = "ls -la";
+    ec = "emacsclient";
+    myname = "echo " + userSettings.username;
+    driftwm-check = "driftwm --config ~/.config/driftwm/config.toml --check-config";
+  };
+in
+{
+  programs.zsh = {
+    enable = true;
+    autosuggestion.enable = true;
+    syntaxHighlighting.enable = true;
+    enableCompletion = true;
+    shellAliases = myAliases;
+    initContent = ''
+    PROMPT=" - %U%F{magenta}%n%f%u@%U%F{blue}%m%f%u:%F{yellow}%~%f
+     %F{green}→%f "
+    RPROMPT="%F{red}|%f%F{yellow}|%f%F{green}|%f%F{cyan}|%f%F{blue}|%f%F{magenta}|%f%F{white}|%f"
+    [ $TERM = "dumb" ] && unsetopt zle && PS1='$ '
+    bindkey '^P' history-beginning-search-backward
+    bindkey '^N' history-beginning-search-forward
+    '';
+  };
+
+  programs.bash = {
+    enable = true;
+    enableCompletion = true;
+    shellAliases = myAliases;
+  };
+
+  home.packages = with pkgs; [
+    # disfetch lolcat cowsay onefetch
+    # gnugrep gnused
+    # bat eza bottom fd bc
+    # direnv nix-direnv
+    
+    (pkgs.writeScriptBin "dl-home-manager-sync" ''
+#!/usr/bin/env bash
+cd ~/.dotfiles/
+doom +org tangle readme.org && home-manager switch --flake .
+    '')
+    
+    (pkgs.writeScriptBin "dl-nix-system-sync" ''
+#!/usr/bin/env bash
+cd ~/.dotfiles/
+doom +org tangle readme.org && sudo nixos-rebuild switch --flake .
+    '')
+  ];
+
+  programs.direnv.enable = true;
+  programs.direnv.enableZshIntegration = true;
+  programs.direnv.nix-direnv.enable = true;
+}
+#+end_src
+** steam.nix
+#+begin_src nix :tangle ./modules/steam.nix
+{ config, lib, pkgs, ... }:
+
+{
+  # https://nixos.wiki/wiki/Steam
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+    localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
+  };
+}
+#+end_src
+** brave.nix
+https://github.com/sg-qwt/nixos/blob/1f44e8c1ffa5abdc407040e7035897ee48b5e6dd/modules/profiles/desktop-apps.nix#L28
+
+Bookmarks can be found at: [[./modules/brave-bookmarks.html]]
+#+begin_src nix :tangle ./modules/brave.nix
+{ config, lib, pkgs, ... }:
+# https://stackoverflow.com/questions/8946325/chrome-extension-id-how-to-find-it
+{
+
+  programs.chromium = {
+    enable = true;
+    package = pkgs.brave;
+
+    # https://www.reddit.com/r/NixOS/comments/1bqilmi/how_to_configure_brave_browser_package_to_install/
+    # Look at the url for the id either on the chrome web store or within the brave extensions page
+    extensions = [
+      # https://chromewebstore.google.com/detail/bitwarden-password-manage/nngceckbapebfimnlniiiahkandclblb
+      { id = "nngceckbapebfimnlniiiahkandclblb"; }
+      # https://chromewebstore.google.com/detail/grammarly-ai-writing-and/kbfnbcaeplbcioakkpcpgfkobkghlhen
+      { id = "kbfnbcaeplbcioakkpcpgfkobkghlhen"; }
+      # https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
+      { id = "hfjbmagddngcpeloejdejnfgbamkjaeg"; }
+      # https://chromewebstore.google.com/detail/youtube-ad-accelerator-ea/lmcggcabhocpfkbddekmconplfjmmgmn
+      { id = "lmcggcabhocpfkbddekmconplfjmmgmn"; }
+      # https://chromewebstore.google.com/detail/wallabagger/gbmgphmejlcoihgedabhgjdkcahacjlj?hl=en
+      { id = "gbmgphmejlcoihgedabhgjdkcahacjlj"; }
+      # https://chromewebstore.google.com/detail/everforest-chrome-theme/dlcadbmcfambdjhecipbnolmjchgnode
+      { id = "dlcadbmcfambdjhecipbnolmjchgnode"; }
+
+    ];
+    # extraOpts = {
+    #   BraveRewardsDisabled = true;
+    #   BraveWalletDisabled = true;
+    #   BraveVPNDisabled = true;
+    #   BraveAIChatEnabled = false;
+    #   TorDisabled = true;
+
+    #   PasswordManagerEnabled = false;
+    #   PasswordSharingEnabled = false;
+    #   PasswordLeakDetectionEnabled = false;
+
+    #   MetricsReportingEnabled = false;
+    # };
+    commandLineArgs = [
+      "--disable-features=WebRtcAllowInputVolumeAdjustment"
+    ];
+  };
+  xdg.mimeApps.defaultApplications = {
+    "text/html" = "brave-browser.desktop";
+    "x-scheme-handler/http" = "brave-browser.desktop";
+    "x-scheme-handler/https" = "brave-browser.desktop";
+    "x-scheme-handler/about" = "brave-browser.desktop";
+    "x-scheme-handler/unknown" = "brave-browser.desktop";
+  };
+
+  home.sessionVariables = {
+    DEFAULT_BROWSER = "${pkgs.brave}/bin/brave";
+  };
+}
+#+end_src
+** btop.nix
+:PROPERTIES:
+:header-args:nix: :noweb no
+:END:
+
+- [ ] [[elisp:(org-babel-tangle)]]
+- [ ] [[git add -A ./modules/btop.nix]]
+
+#+begin_src nix :tangle ./modules/btop.nix
+{ config, pkgs, ... }:
+
+{
+  home.packages = with pkgs; [
+    btop
+  ];
+
+  home.file."${config.xdg.configHome}/btop/btop.conf" = {
+    text = ''
+      color_theme = "nord"
+      theme_background = false
+      truecolor = true
+      vim_keys = true
+      rounded_corners = true
+      terminal_sync = true
+      graph_symbol = "braille"
+      shown_boxes = "cpu mem net proc"
+      update_ms = 2000
+      proc_sorting = "cpu lazy"
+      proc_reversed = false
+      proc_tree = false
+      proc_colors = true
+      proc_gradient = true
+      proc_per_core = false
+      proc_mem_bytes = true
+      proc_cpu_graphs = true
+      proc_left = false
+      proc_filter_kernel = false
+      proc_follow_detailed = true
+      proc_aggregate = false
+      keep_dead_proc_usage = false
+      cpu_graph_upper = "Auto"
+      cpu_graph_lower = "Auto"
+      cpu_invert_lower = true
+      cpu_single_graph = false
+      cpu_bottom = false
+      show_uptime = true
+      show_cpu_watts = false
+      check_temp = true
+      cpu_sensor = "Auto"
+      show_coretemp = true
+      temp_scale = "celsius"
+      base_10_sizes = false
+      show_cpu_freq = true
+      freq_mode = "first"
+      clock_format = "%X"
+      background_update = true
+      custom_cpu_name = ""
+      disks_filter = ""
+      mem_graphs = true
+      mem_below_net = false
+      show_swap = true
+      swap_disk = true
+      show_disks = true
+      only_physical = true
+      use_fstab = true
+      show_io_stat = true
+      io_mode = false
+      io_graph_combined = false
+      net_auto = true
+      show_battery = true
+    '';
+  };
+
+  home.file."${config.xdg.configHome}/btop/themes/nord.theme" = {
+    text = ''
+      # Nord theme for btop (https://www.nordtheme.com)
+      theme[main_bg]="#2E3440"
+      theme[main_fg]="#D8DEE9"
+      theme[title]="#8FBCBB"
+      theme[hi_fg]="#5E81AC"
+      theme[selected_bg]="#4C566A"
+      theme[selected_fg]="#ECEFF4"
+      theme[inactive_fg]="#4C566A"
+      theme[proc_misc]="#5E81AC"
+      theme[cpu_box]="#4C566A"
+      theme[mem_box]="#4C566A"
+      theme[net_box]="#4C566A"
+      theme[proc_box]="#4C566A"
+      theme[div_line]="#4C566A"
+      theme[temp_start]="#81A1C1"
+      theme[temp_mid]="#88C0D0"
+      theme[temp_end]="#ECEFF4"
+      theme[cpu_start]="#81A1C1"
+      theme[cpu_mid]="#88C0D0"
+      theme[cpu_end]="#ECEFF4"
+      theme[free_start]="#81A1C1"
+      theme[free_mid]="#88C0D0"
+      theme[free_end]="#ECEFF4"
+      theme[cached_start]="#81A1C1"
+      theme[cached_mid]="#88C0D0"
+      theme[cached_end]="#ECEFF4"
+      theme[available_start]="#81A1C1"
+      theme[available_mid]="#88C0D0"
+      theme[available_end]="#ECEFF4"
+      theme[used_start]="#81A1C1"
+      theme[used_mid]="#88C0D0"
+      theme[used_end]="#ECEFF4"
+      theme[download_start]="#81A1C1"
+      theme[download_mid]="#88C0D0"
+      theme[download_end]="#ECEFF4"
+      theme[upload_start]="#81A1C1"
+      theme[upload_mid]="#88C0D0"
+      theme[upload_end]="#ECEFF4"
+    '';
+  };
+}
+#+end_src

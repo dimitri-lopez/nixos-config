@@ -1,0 +1,112 @@
+{
+  "version": "1",
+  "source_of_truth": "org",
+  "tangle_command": "python3 tangle.py readme.org",
+  "sync_command": "./sync.sh",
+  "window_managers": {
+    "active": "driftwm",
+    "available": [
+      [
+        "\n        ",
+        "xfce"
+      ]
+    ]
+  },
+  "files": {
+    "home.org": {
+      "generates": [
+        "home.nix"
+      ],
+      "description": "Generates 1 file(s)"
+    },
+    "modules/apps.org": {
+      "generates": [
+        "./modules/droidux.nix",
+        "./modules/itch.nix",
+        "./modules/mcp-nixos.nix",
+        "./modules/minecraft.nix",
+        "./modules/phd.nix",
+        "./modules/python-packages/epidatpy.nix",
+        "./modules/python-packages/epiweeks.nix",
+        "./modules/python-packages/epydemix.nix",
+        "./modules/python-packages/evalidate.nix",
+        "./modules/python-packages/powerlaw.nix",
+        "./modules/python-packages/pytrends.nix",
+        "./modules/python-packages/tailestim.nix",
+        "./modules/python.nix"
+      ],
+      "description": "Generates 13 file(s)"
+    },
+    "modules/core.org": {
+      "generates": [
+        "./modules/brave.nix",
+        "./modules/btop.nix",
+        "./modules/common.nix",
+        "./modules/git.nix",
+        "./modules/kanata.nix",
+        "./modules/scripting.nix",
+        "./modules/sh.nix",
+        "./modules/steam.nix"
+      ],
+      "description": "Generates 8 file(s)"
+    },
+    "modules/driftwm/driftwm.org": {
+      "generates": [
+        "./modules/driftwm/system.nix"
+      ],
+      "description": "Generates 1 file(s)"
+    },
+    "modules/emacs.org": {
+      "generates": [
+        "./modules/emacs.nix",
+        "./modules/npm-packages/claude-agent-acp.nix",
+        "./modules/npm-packages/free-coding-models.nix",
+        "./modules/python-packages/arxivcheck.nix",
+        "./modules/python-packages/doi2bib.nix",
+        "./modules/python-packages/title2bib.nix"
+      ],
+      "description": "Generates 6 file(s)"
+    },
+    "modules/xfce/xfce.org": {
+      "generates": [
+        "./modules/watchy.nix",
+        "./modules/xfce/xfce-home.nix",
+        "./modules/xfce/xfce.nix"
+      ],
+      "description": "Generates 3 file(s)"
+    },
+    "readme.org": {
+      "generates": [
+        "flake.nix"
+      ],
+      "description": "Master config, flake.nix, includes"
+    },
+    "scratch.org": {
+      "generates": [
+        "./modules/hyprland/hyprland-home.nix",
+        "./modules/hyprland/hyprland.nix",
+        "./modules/wm/hyprland.nix"
+      ],
+      "description": "Generates 3 file(s)"
+    },
+    "system.org": {
+      "generates": [
+        "./system/bluetooth.nix",
+        "./system/dbus.nix",
+        "./system/fonts.nix",
+        "./system/gnome-keyring.nix",
+        "./system/pipewire.nix",
+        "./system/wayland.nix",
+        "configuration.nix"
+      ],
+      "description": "Generates 7 file(s)"
+    }
+  },
+  "rules": {
+    "edit_org_only": true,
+    "nix_read_only": true,
+    "exceptions": [
+      "hardware-configuration.nix"
+    ]
+  }
+}
