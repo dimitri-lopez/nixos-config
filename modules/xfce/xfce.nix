@@ -77,6 +77,8 @@
   };
 
   # security.pam.services.gdm.enableGnomeKeyring = true;
+  
+  services.displayManager.defaultSession = "xfce";
 
   services = {
     blueman.enable = true;

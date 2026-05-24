@@ -492,7 +492,7 @@ userSettings = {
   email = "dimitrilopez01@gmail.com";
   dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
   # Options: "xfce", "vxwm", "hyprland", "srwc", "driftwm", "driftwm-sample" - desktop modules auto-loaded in flake.nix
-  wm = "driftwm-sample"; 
+  wm = "xfce"; 
   # editor = "emacsclient -c -a 'emacs'"
 };
 #+end_src
@@ -1442,6 +1442,8 @@ echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new ha
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot
+
+    
     (pkgs.writeScriptBin "emenu"''
 emacsclient -c -F '((name . "emenu-drun") (minibuffer . only) (width . 100) (height . 10) (undecorated . t))' -e '(emenu-drun)'
 '')
@@ -2383,6 +2385,18 @@ in
     # gnugrep gnused
     # bat eza bottom fd bc
     # direnv nix-direnv
+    
+    (pkgs.writeScriptBin "dl-home-manager-sync" ''
+#!/usr/bin/env bash
+cd ~/.dotfiles/
+doom +org tangle readme.org && home-manager switch --flake .
+    '')
+    
+    (pkgs.writeScriptBin "dl-nix-system-sync" ''
+#!/usr/bin/env bash
+cd ~/.dotfiles/
+doom +org tangle readme.org && sudo nixos-rebuild switch --flake .
+    '')
   ];
 
   programs.direnv.enable = true;
@@ -2485,6 +2499,8 @@ in
   };
 
   # security.pam.services.gdm.enableGnomeKeyring = true;
+  
+  services.displayManager.defaultSession = "xfce";
 
   services = {
     blueman.enable = true;
@@ -3618,7 +3634,7 @@ let
     "mod+r" = "reload-config"
     "mod+period" = "fit-window"
     "super+escape" = "exec alacritty -e btop"
-    "mod+ctrl+shift+q" = "quit"
+    "mod+trl+shift+q" = "quit"
     "XF86AudioRaiseVolume" = "exec noctalia-shell ipc --any-display call volume increase"
     "XF86AudioLowerVolume" = "exec noctalia-shell ipc --any-display call volume decrease"
     "XF86AudioMute" = "exec noctalia-shell ipc --any-display call volume muteOutput"

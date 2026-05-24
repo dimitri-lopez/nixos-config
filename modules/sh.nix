@@ -35,6 +35,18 @@ in
     # gnugrep gnused
     # bat eza bottom fd bc
     # direnv nix-direnv
+    
+    (pkgs.writeScriptBin "dl-home-manager-sync" ''
+#!/usr/bin/env bash
+cd ~/.dotfiles/
+doom +org tangle readme.org && home-manager switch --flake .
+    '')
+    
+    (pkgs.writeScriptBin "dl-nix-system-sync" ''
+#!/usr/bin/env bash
+cd ~/.dotfiles/
+doom +org tangle readme.org && sudo nixos-rebuild switch --flake .
+    '')
   ];
 
   programs.direnv.enable = true;

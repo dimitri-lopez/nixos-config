@@ -131,6 +131,8 @@ echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new ha
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot
+
+    
     (pkgs.writeScriptBin "emenu"''
 emacsclient -c -F '((name . "emenu-drun") (minibuffer . only) (width . 100) (height . 10) (undecorated . t))' -e '(emenu-drun)'
 '')
