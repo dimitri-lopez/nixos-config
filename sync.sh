@@ -1,5 +1,6 @@
 #!/bin/sh
 # sync.sh - Single entrypoint for applying dotfile changes.
+# Also available globally as: dl-sync
 # Usage:
 #   ./sync.sh        -> home-manager only (default, fast)
 #   ./sync.sh --full -> home-manager + nixos-rebuild (requires sudo)

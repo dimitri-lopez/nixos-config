@@ -48,12 +48,12 @@ cd ~/.dotfiles/
 doom +org tangle readme.org && sudo nixos-rebuild switch --flake .
     '')
 
-    (pkgs.writeScriptBin "sync-dotfiles" ''
+    (pkgs.writeScriptBin "dl-sync" ''
 #!/usr/bin/env bash
-# sync-dotfiles - global entrypoint for dotfile changes.
+# dl-sync - global entrypoint for dotfile changes.
 # Usage:
-#   sync-dotfiles        -> home-manager only (default, fast)
-#   sync-dotfiles --full -> home-manager + nixos-rebuild (requires sudo)
+#   dl-sync        -> home-manager only (default, fast)
+#   dl-sync --full -> home-manager + nixos-rebuild (requires sudo)
 exec ~/.dotfiles/sync.sh "$@"
     '')
   ];

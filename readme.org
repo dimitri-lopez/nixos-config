@@ -2,11 +2,6 @@
 
 See [[install.org]] for installation instructions.
 
-- [[elisp:(org-babel-tangle)][Tangle file]]
-- [[elisp:(dl/nixos-update-user-config)][Update home config]]
-- [[elisp:(dl/nixos-update-system-config)][Update system config]]
-- [[elisp:(dl/nixos-update-all-config)][Update all config]]
-- [[elisp:(vterm-nixos-config)][Launch terminal for config]]
 - [[file:system.org][System config]]
 - [[file:home.org][Home config]]
 - [[file:modules/core.org][Core modules]]
