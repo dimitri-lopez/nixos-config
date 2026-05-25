@@ -1,7 +1,6 @@
 #+title: Emacs Configuration
 
 * Emacs Configuration
-
 ** emacs.nix
 :PROPERTIES:
 :header-args:nix: :noweb-ref emacs
@@ -131,6 +130,16 @@ in
 #+end_src
 
 *** Scripts
+#+begin_src nix :noweb-ref emacs.scripts
+<<emacs.update-npm-tools>>
+<<emacs.emenu>>
+<<emacs.doom-git-clone-doom-repo-and-install>>
+<<emacs.doom-git-clone-personal-repo-and-install>>
+<<emacs.dl-restart-emacs-daemon>>
+<<emacs.dl-jumpapp-emacs>>
+<<emacs.org-tangle-tools>>
+#+end_src
+
 **** update-npm-tools
 #+begin_src nix :noweb-ref emacs.update-npm-tools
     (pkgs.writeScriptBin "update-npm-tools" ''
@@ -239,9 +248,6 @@ emacs --batch --eval "(progn (find-file \"~/.config/doom/llm-tools/org-subtree-t
 #+end_src
 
 ** free-coding-models.nix
-:PROPERTIES:
-:ID:       525044de-91ab-4a78-aa6d-22dd28bff07c
-:END:
 #+begin_src nix :tangle ./modules/npm-packages/free-coding-models.nix
 {
   lib,

@@ -166,6 +166,14 @@ esac
 #+end_src
 
 *** Scripts
+#+begin_src nix :noweb-ref scripting.scripts
+<<scripting.dl-caps-lock-to-control>>
+<<scripting.dl-restart-wifi>>
+<<scripting.dl-simulate-keystrokes>>
+<<scripting.dl-toggle-dev-workspace>>
+<<scripting.dl-visual-test-setup>>
+#+end_src
+
 **** dl-caps-lock-to-control
 #+begin_src nix :noweb-ref scripting.dl-caps-lock-to-control
     (pkgs.writeScriptBin "dl-caps-lock-to-control" ''
@@ -298,6 +306,12 @@ in
 #+end_src
 
 *** Scripts
+#+begin_src nix :noweb-ref sh.scripts
+<<sh.dl-home-manager-sync>>
+<<sh.dl-nix-system-sync>>
+<<sh.dl-sync>>
+#+end_src
+
 **** dl-home-manager-sync
 #+begin_src nix :noweb-ref sh.dl-home-manager-sync
     (pkgs.writeScriptBin "dl-home-manager-sync" ''
