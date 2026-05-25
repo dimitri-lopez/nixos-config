@@ -3,8 +3,10 @@
 * Emacs Configuration
 
 ** emacs.nix
-
-#+begin_src nix :tangle ./modules/emacs.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref emacs
+:END:
+#+begin_src nix :tangle ./modules/emacs.nix :noweb yes
 { config, lib, pkgs, inputs, ... }:
 
 let
@@ -36,7 +38,12 @@ in
     "${config.home.homeDirectory}/.config/emacs/bin"
   ];
 
-  # services.gvfs.enable = true; # needed for emacs tramp
+  <<emacs.packages>>
+}
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref emacs.packages
   home.packages = with pkgs; [
 
     nix-init
@@ -58,27 +65,9 @@ in
     # inputs.opencode.packages.${pkgs.system}.default
     (pkgs.writeShellScriptBin "opencode" "exec npx opencode-ai \"$@\"")
     
-    # inputs.opencode.packages.${pkgs.system}.default
     gnuplot
     
-    (pkgs.writeScriptBin "update-npm-tools" ''
-#!/usr/bin/env bash
-# usage: update-npm-tools free-coding-models 0.3.26
-TOOL=$1
-VERSION=$2
-TARGET="$HOME/.dotfiles/modules/npm-packages/$TOOL.nix"
-
-if [ -z "$TOOL" ] || [ -z "$VERSION" ]; then
-    echo "Usage: update-npm-tools <tool-name> <version>"
-    exit 1
-fi
-
-sed -i "s/version = \".*\";/version = \"$VERSION\";/" "$TARGET"
-sed -i "s/hash = \".*\";/hash = \"sha256-0000000000000000000000000000000000000000000=\";/" "$TARGET"
-sed -i "s/npmDepsHash = \".*\";/npmDepsHash = \"sha256-0000000000000000000000000000000000000000000=\";/" "$TARGET"
-
-echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new hashes."
-'')
+    <<emacs.scripts>>
     
     # emacs30-gtk3
     ripgrep
@@ -138,18 +127,51 @@ echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new ha
 
     stdenv.cc.cc.lib
     nodejs # needed for github copilot
+  ];
+#+end_src
 
-    
+*** Scripts
+**** update-npm-tools
+#+begin_src nix :noweb-ref emacs.update-npm-tools
+    (pkgs.writeScriptBin "update-npm-tools" ''
+#!/usr/bin/env bash
+# usage: update-npm-tools free-coding-models 0.3.26
+TOOL=$1
+VERSION=$2
+TARGET="$HOME/.dotfiles/modules/npm-packages/$TOOL.nix"
+
+if [ -z "$TOOL" ] || [ -z "$VERSION" ]; then
+    echo "Usage: update-npm-tools <tool-name> <version>"
+    exit 1
+fi
+
+sed -i "s/version = \".*\";/version = \"$VERSION\";/" "$TARGET"
+sed -i "s/hash = \".*\";/hash = \"sha256-0000000000000000000000000000000000000000000=\";/" "$TARGET"
+sed -i "s/npmDepsHash = \".*\";/npmDepsHash = \"sha256-0000000000000000000000000000000000000000000=\";/" "$TARGET"
+
+echo "Updated $TOOL to $VERSION. Now run 'home-manager switch' to get the new hashes."
+'')
+#+end_src
+
+**** emenu
+#+begin_src nix :noweb-ref emacs.emenu
     (pkgs.writeScriptBin "emenu"''
 emacsclient -c -F '((name . "emenu-drun") (minibuffer . only) (width . 100) (height . 10) (undecorated . t))' -e '(emenu-drun)'
 '')
+#+end_src
+
+**** doom-git-clone-doom-repo-and-install
+#+begin_src nix :noweb-ref emacs.doom-git-clone-doom-repo-and-install
     (pkgs.writeScriptBin "doom-git-clone-doom-repo-and-install" ''
 #!/usr/bin/env bash
 rm -rf ~/.config/emacs
 git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
 ~/.config/emacs/bin/doom install
 '')
+#+end_src
 
+**** doom-git-clone-personal-repo-and-install
+#+begin_src nix :noweb-ref emacs.doom-git-clone-personal-repo-and-install
     (pkgs.writeScriptBin "doom-git-clone-personal-repo-and-install"
       ''
 rm -rf ~/.config/doom
@@ -157,6 +179,10 @@ git clone https://github.com/dimitri-lopez/.doom.d.git ~/.config/doom
 ~/.config/emacs/bin/doom sync
 ~/.config/emacs/bin/doom doctor
 echo "Check out ~/.dotfiles/install.org" '')
+#+end_src
+
+**** dl-restart-emacs-daemon
+#+begin_src nix :noweb-ref emacs.dl-restart-emacs-daemon
     (pkgs.writeScriptBin "dl-restart-emacs-daemon" ''
 #!/usr/bin/env bash
 
@@ -176,6 +202,10 @@ fi
 GDK_BACKEND=x11 emacs --daemon
 notify-send 'Emacs Daemon' 'Daemon is now running' -i ~/.dotfiles/images/EmacsIcon.png -t 3000
     '')
+#+end_src
+
+**** dl-jumpapp-emacs
+#+begin_src nix :noweb-ref emacs.dl-jumpapp-emacs
     (pkgs.writeScriptBin "dl-jumpapp-emacs" ''
 #!/usr/bin/env bash
 
@@ -196,17 +226,19 @@ else
     python /home/dimitril/bin/move-windows-to-workspace.py
 fi
     '')
+#+end_src
+
+**** org-tangle-tools
+#+begin_src nix :noweb-ref emacs.org-tangle-tools
     (pkgs.writeScriptBin "org-tangle-tools" ''
 #!/usr/bin/env bash
 # Tangle org-subtree-tools to generate CLI tools
 emacsclient --eval "(progn (find-file \"~/.config/doom/llm-tools/org-subtree-tools.org\") (org-babel-tangle) (kill-buffer))" 2>/dev/null || \
 emacs --batch --eval "(progn (find-file \"~/.config/doom/llm-tools/org-subtree-tools.org\") (org-babel-tangle))"
     '')
-  ];
-}
-
 #+end_src
-*** free-coding-models.nix
+
+** free-coding-models.nix
 :PROPERTIES:
 :ID:       525044de-91ab-4a78-aa6d-22dd28bff07c
 :END:
@@ -242,7 +274,7 @@ buildNpmPackage rec {
 #+end_src
 
 
-*** title2bib.nix
+** title2bib.nix
 
 I used nix-init to create these files and a little help from gptel. Wasn't too bad to figure out thankfully.
 #+begin_src nix :tangle ./modules/python-packages/title2bib.nix
@@ -387,7 +419,7 @@ python3.pkgs.buildPythonApplication rec {
   };
 }
 #+end_src
-*** claude-agent-acp.nix
+** claude-agent-acp.nix
 #+begin_src nix :tangle ./modules/npm-packages/claude-agent-acp.nix
 {
   lib,
@@ -422,5 +454,3 @@ buildNpmPackage rec {
   };
 }
 #+end_src
-
-

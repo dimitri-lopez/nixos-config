@@ -127,9 +127,15 @@
   # Use common autostart - no need for custom script
   # The common-autostart script handles caps-lock, emacs, dropbox, syncthing
 <<xfce-home>>
-
-
 }
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref xfce-home.packages
+  # XFCE-specific packages (most are in the system module)
+  # home.packages = with pkgs; [
+  #   # Add XFCE-specific user packages here
+  # ];
 #+end_src
 
 *** GTK Configuration

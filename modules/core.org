@@ -4,27 +4,47 @@
 
 ** common.nix
 Common packages, services, and autostart for all desktop environments.
-#+begin_src nix :tangle ./modules/common.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref common
+:END:
+#+begin_src nix :tangle ./modules/common.nix :noweb yes
 { config, pkgs, ... }:
 
 {
+  <<common.packages>>
+
+  <<common.services>>
+  
+  <<common.autostart>>
+}
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref common.packages
   # Packages that work across all desktop environments
   home.packages = with pkgs; [
     dropbox
-    redshift
     syncthing
     vim
     htop
     bottom
   ];
+#+end_src
 
+*** Services
+#+begin_src nix :noweb-ref common.services
   # Home-manager services (auto-managed by home-manager)
-  services.redshift = {
+  services.gammastep = {
     enable = false; # Disabled to prevent premature graphical-session.target activation
     latitude = "42.36";
     longitude = "-71.06";
+    provider = "manual";
+    tray = false;
   };
-  
+#+end_src
+
+*** Autostart
+#+begin_src nix :noweb-ref common.autostart
   # Unified autostart script - detects session type
   home.file.".local/bin/common-autostart" = {
     executable = true;
@@ -43,7 +63,6 @@ case "$XDG_SESSION_TYPE" in
     # X11 desktops (vxwm, xfce)
     dropbox start &
     syncthing --no-browser &
-    redshift -l 42.361145:-71.057083 &
     ;;
   wayland)
     # Wayland desktops - services handled by home-manager services
@@ -58,7 +77,6 @@ esac
 # Source common autostart for X11
 [ -f ~/.local/bin/common-autostart ] && ~/.local/bin/common-autostart &
   '';
-}
 #+end_src
 
 ** kanata.nix
@@ -88,16 +106,31 @@ esac
 #+end_src
 
 ** git.nix
-#+begin_src nix :tangle ./modules/git.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref git
+:END:
+#+begin_src nix :tangle ./modules/git.nix :noweb yes
 { config, pkgs, userSettings, ... }:
 
 {
+  <<git.packages>>
+
+  <<git.config>>
+}
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref git.packages
   home.packages = [
     pkgs.git
     pkgs.git-lfs
     pkgs.git-credential-manager
     pkgs.gh
-                  ];
+  ];
+#+end_src
+
+*** Git Config
+#+begin_src nix :noweb-ref git.config
   programs.git.enable = true;
   programs.git.userName = userSettings.name;
   programs.git.userEmail = userSettings.email;
@@ -108,27 +141,48 @@ esac
     # safe.directory = [ ("/home/" + userSettings.username + "/.dotfiles")
     #                    ("/home/" + userSettings.username + "/.dotfiles/.git") ];
   };
-}
 #+end_src
 
 ** scripting.nix
-#+begin_src nix :tangle ./modules/scripting.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref scripting
+:END:
+#+begin_src nix :tangle ./modules/scripting.nix :noweb yes
 { config, lib, pkgs, ... }:
 
 {
+  <<scripting.packages>>
+}
+#+end_src
 
+*** Packages
+#+begin_src nix :noweb-ref scripting.packages
   home.packages = with pkgs; [
     jumpapp
-    libnotify # forr sending notifcations
-    wmctrl #for window management
+    libnotify # for sending notifications
+    wmctrl # for window management
+    <<scripting.scripts>>
+  ];
+#+end_src
+
+*** Scripts
+**** dl-caps-lock-to-control
+#+begin_src nix :noweb-ref scripting.dl-caps-lock-to-control
     (pkgs.writeScriptBin "dl-caps-lock-to-control" ''
 setxkbmap -option caps:none && setxkbmap -option ctrl:nocaps && setxkbmap -option caps:ctrl && setxkbmap -option "shift:both_capslock"
 '')
+#+end_src
 
+**** dl-restart-wifi
+#+begin_src nix :noweb-ref scripting.dl-restart-wifi
     (pkgs.writeScriptBin "dl-restart-wifi" ''
 nmcli networking off
 nmcli networking on
 '')
+#+end_src
+
+**** dl-simulate-keystrokes
+#+begin_src nix :noweb-ref scripting.dl-simulate-keystrokes
     (pkgs.writeScriptBin "dl-simulate-keystrokes" ''
 #!/bin/sh
 notify-send 'Simulate Keystrokes' 'Will type out current clipboard contents' -i ~/bin/KeyboardIconW.png -t 3500
@@ -138,9 +192,12 @@ notify-send 'Simulate Keystrokes' 'Will type in: 2' -t 1000
 sleep 1
 notify-send 'Simulate Keystrokes' 'Will type in: 1' -t 1000
 sleep 1
-xdotool type -- "$(xsel -bo | tr \\n \\r | sed s/\\r*\$//)"
+xdotool type -- "$(xsel -bo | tr \n \r | sed s/\r*$//)"
 '')
+#+end_src
 
+**** dl-toggle-dev-workspace
+#+begin_src nix :noweb-ref scripting.dl-toggle-dev-workspace
     (pkgs.writeScriptBin "dl-toggle-dev-workspace" ''
 #!/usr/bin/env bash
 # Toggle between current workspace and workspace 9 (dev/test workspace)
@@ -158,7 +215,10 @@ else
     ${pkgs.wmctrl}/bin/wmctrl -s "$DEV_WORKSPACE"
 fi
 '')
+#+end_src
 
+**** dl-visual-test-setup
+#+begin_src nix :noweb-ref scripting.dl-visual-test-setup
     (pkgs.writeScriptBin "dl-visual-test-setup" ''
 #!/usr/bin/env bash
 # Set up isolated visual testing environment
@@ -178,13 +238,13 @@ emacsclient -s visual-test -c &
 echo "Visual test environment ready on workspace 9"
 echo "Use: emacsclient -s visual-test --eval '...'"
 '')
-
-  ];
-}
 #+end_src
 
 ** sh.nix
-#+begin_src nix :tangle ./modules/sh.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref sh
+:END:
+#+begin_src nix :tangle ./modules/sh.nix :noweb yes
 { config, lib, pkgs, userSettings, ... }:
 let
   myAliases = {
@@ -217,24 +277,47 @@ in
     shellAliases = myAliases;
   };
 
+  <<sh.packages>>
+
+  programs.direnv.enable = true;
+  programs.direnv.enableZshIntegration = true;
+  programs.direnv.nix-direnv.enable = true;
+}
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref sh.packages
   home.packages = with pkgs; [
     # disfetch lolcat cowsay onefetch
     # gnugrep gnused
     # bat eza bottom fd bc
     # direnv nix-direnv
     
+    <<sh.scripts>>
+  ];
+#+end_src
+
+*** Scripts
+**** dl-home-manager-sync
+#+begin_src nix :noweb-ref sh.dl-home-manager-sync
     (pkgs.writeScriptBin "dl-home-manager-sync" ''
 #!/usr/bin/env bash
 cd ~/.dotfiles/
 doom +org tangle readme.org && home-manager switch --flake .
     '')
-    
+#+end_src
+
+**** dl-nix-system-sync
+#+begin_src nix :noweb-ref sh.dl-nix-system-sync
     (pkgs.writeScriptBin "dl-nix-system-sync" ''
 #!/usr/bin/env bash
 cd ~/.dotfiles/
 doom +org tangle readme.org && sudo nixos-rebuild switch --flake .
     '')
+#+end_src
 
+**** dl-sync
+#+begin_src nix :noweb-ref sh.dl-sync
     (pkgs.writeScriptBin "dl-sync" ''
 #!/usr/bin/env bash
 # dl-sync - global entrypoint for dotfile changes.
@@ -243,13 +326,8 @@ doom +org tangle readme.org && sudo nixos-rebuild switch --flake .
 #   dl-sync --full -> home-manager + nixos-rebuild (requires sudo)
 exec ~/.dotfiles/sync.sh "$@"
     '')
-  ];
-
-  programs.direnv.enable = true;
-  programs.direnv.enableZshIntegration = true;
-  programs.direnv.nix-direnv.enable = true;
-}
 #+end_src
+
 ** steam.nix
 #+begin_src nix :tangle ./modules/steam.nix
 { config, lib, pkgs, ... }:
@@ -264,6 +342,7 @@ exec ~/.dotfiles/sync.sh "$@"
   };
 }
 #+end_src
+
 ** brave.nix
 https://github.com/sg-qwt/nixos/blob/1f44e8c1ffa5abdc407040e7035897ee48b5e6dd/modules/profiles/desktop-apps.nix#L28
 
@@ -324,6 +403,7 @@ Bookmarks can be found at: [[./modules/brave-bookmarks.html]]
   };
 }
 #+end_src
+
 ** btop.nix
 :PROPERTIES:
 :header-args:nix: :noweb no
