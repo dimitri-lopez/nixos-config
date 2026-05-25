@@ -66,7 +66,13 @@ in
     
     gnuplot
     
-    <<emacs.scripts>>
+    <<emacs.update-npm-tools>>
+    <<emacs.emenu>>
+    <<emacs.doom-git-clone-doom-repo-and-install>>
+    <<emacs.doom-git-clone-personal-repo-and-install>>
+    <<emacs.dl-restart-emacs-daemon>>
+    <<emacs.dl-jumpapp-emacs>>
+    <<emacs.org-tangle-tools>>
     
     # emacs30-gtk3
     ripgrep
@@ -130,16 +136,6 @@ in
 #+end_src
 
 *** Scripts
-#+begin_src nix :noweb-ref emacs.scripts
-<<emacs.update-npm-tools>>
-<<emacs.emenu>>
-<<emacs.doom-git-clone-doom-repo-and-install>>
-<<emacs.doom-git-clone-personal-repo-and-install>>
-<<emacs.dl-restart-emacs-daemon>>
-<<emacs.dl-jumpapp-emacs>>
-<<emacs.org-tangle-tools>>
-#+end_src
-
 **** update-npm-tools
 #+begin_src nix :noweb-ref emacs.update-npm-tools
     (pkgs.writeScriptBin "update-npm-tools" ''

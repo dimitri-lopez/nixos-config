@@ -57,12 +57,12 @@ To tangle:
 
 Or manually:
 #+begin_src bash
-# With Doom Emacs
-doom +org tangle readme.org
+# With Python (default)
+python3 tangle.py readme.org
 # With Emacs batch mode
 emacs --batch -l org -f org-babel-tangle-file readme.org
-# With Python (no Emacs)
-python3 tangle.py readme.org
+# With Doom Emacs
+doom +org tangle readme.org
 #+end_src
 * User Settings
 #+begin_src nix :noweb-ref userSettings

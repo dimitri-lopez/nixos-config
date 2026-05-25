@@ -20,13 +20,13 @@ done
 # 1. Unlock generated .nix files so tangler can write
 find . -name "*.nix" ! -name "hardware-configuration.nix" -exec chmod 644 {} +
 
-# 2. Tangle with fallback chain: doom -> emacs batch -> python
-if command -v doom >/dev/null 2>&1; then
-    doom +org tangle readme.org
+# 2. Tangle with fallback chain: python -> emacs batch -> doom
+if command -v python3 >/dev/null 2>&1; then
+    python3 tangle.py readme.org
 elif command -v emacs >/dev/null 2>&1; then
     emacs --batch -l org -f org-babel-tangle-file readme.org
 else
-    python3 tangle.py readme.org
+    doom +org tangle readme.org
 fi
 
 # 3. Regenerate agent manifest
