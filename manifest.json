@@ -13,6 +13,12 @@
     ]
   },
   "files": {
+    "flake.org": {
+      "generates": [
+        "flake.nix"
+      ],
+      "description": "Generates 1 file(s)"
+    },
     "home.org": {
       "generates": [
         "home.nix"
@@ -25,15 +31,15 @@
         "./modules/itch.nix",
         "./modules/mcp-nixos.nix",
         "./modules/minecraft.nix",
-        "./modules/phd.nix",
+        "./modules/noctalia.nix",
         "./modules/python-packages/epidatpy.nix",
         "./modules/python-packages/epiweeks.nix",
         "./modules/python-packages/epydemix.nix",
         "./modules/python-packages/evalidate.nix",
         "./modules/python-packages/powerlaw.nix",
-        "./modules/python-packages/pytrends.nix",
         "./modules/python-packages/tailestim.nix",
-        "./modules/python.nix"
+        "./modules/python.nix",
+        "./modules/watchy.nix"
       ],
       "description": "Generates 13 file(s)"
     },
@@ -52,9 +58,10 @@
     },
     "modules/driftwm/driftwm.org": {
       "generates": [
+        "./modules/driftwm/home.nix",
         "./modules/driftwm/system.nix"
       ],
-      "description": "Generates 1 file(s)"
+      "description": "Generates 2 file(s)"
     },
     "modules/emacs.org": {
       "generates": [
@@ -67,6 +74,12 @@
       ],
       "description": "Generates 6 file(s)"
     },
+    "modules/phd.org": {
+      "generates": [
+        "./modules/phd.nix"
+      ],
+      "description": "Generates 1 file(s)"
+    },
     "modules/xfce/xfce.org": {
       "generates": [
         "./modules/xfce/xfce-home.nix",
@@ -75,9 +88,7 @@
       "description": "Generates 2 file(s)"
     },
     "readme.org": {
-      "generates": [
-        "flake.nix"
-      ],
+      "generates": [],
       "description": "Master config, flake.nix, includes"
     },
     "scratch.org": {
@@ -95,10 +106,11 @@
         "./system/fonts.nix",
         "./system/gnome-keyring.nix",
         "./system/pipewire.nix",
+        "./system/syncthing.nix",
         "./system/wayland.nix",
         "configuration.nix"
       ],
-      "description": "Generates 7 file(s)"
+      "description": "Generates 8 file(s)"
     }
   },
   "rules": {

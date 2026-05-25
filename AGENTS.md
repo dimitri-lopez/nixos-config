@@ -60,7 +60,7 @@ NixOS/home-manager dotfiles with literate programming from multiple `.org` files
 | `modules/npm-packages/*.nix` | Custom npm packages built from source |
 | `modules/xfce/` | XFCE desktop environment home + system modules |
 | `modules/driftwm/` | DriftWM compositor config, noctalia.json, assets |
-| `modules/noctalia/` | Reusable Noctalia shell component |
+| `modules/noctalia.nix` | Reusable Noctalia shell component |
 | `system/*.nix` | System-level NixOS modules (loaded into `configuration.nix`) |
 | `graveyard/` | Archived dead modules (not built) |
 
@@ -78,7 +78,7 @@ NixOS/home-manager dotfiles with literate programming from multiple `.org` files
 | `modules/steam.nix` | Steam gaming config |
 | `modules/kanata.nix` | Keyboard remapping (caps -> control) |
 | `modules/mcp-nixos.nix` | MCP server for NixOS data |
-| `modules/noctalia/default.nix` | Reusable Noctalia shell module (parameterized by settingsFile) |
+| `modules/noctalia.nix` | Reusable Noctalia shell module (parameterized by settingsFile) |
 | `system/pipewire.nix` | Audio system |
 | `system/bluetooth.nix` | Bluetooth |
 | `system/syncthing.nix` | Syncthing daemon and devices |
@@ -186,7 +186,7 @@ sudo nixos-rebuild switch --flake . --upgrade
 ## Module Locations
 - System modules: `~/.dotfiles/system/*.nix`
 - Home modules referenced in `home.nix` imports
-- Reusable components: `~/.dotfiles/modules/<component>/default.nix`
+- Reusable components: `~/.dotfiles/modules/<component>/default.nix` or `~/.dotfiles/modules/<component>.nix`
 
 ## System vs Home-Manager Split
 
