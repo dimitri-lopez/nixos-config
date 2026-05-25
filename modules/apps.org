@@ -2,167 +2,49 @@
 
 * Applications
 
-** mcp-nixos (MCP server for NixOS data)
-- [ ] [[elisp:(org-babel-tangle)]]
-- [ ] [[git add -A ./modules/mcp-nixos.nix]]
-- [ ] Test: ~uvx mcp-nixos --help~ or via MCP client config
-- [ ] Move to permanent module if working
-#+begin_src nix :tangle ./modules/mcp-nixos.nix :noweb-ref mcp-nixos
+** mcp-nixos.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref mcp-nixos
+:END:
+#+begin_src nix :tangle ./modules/mcp-nixos.nix :noweb yes
 { pkgs, inputs, ... }:
 
 {
+  <<mcp-nixos.packages>>
+}
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref mcp-nixos.packages
   home.packages = [
     inputs.mcp-nixos.packages.${pkgs.system}.default
   ];
-}
 #+end_src
 
-#+begin_src nix
-  # Home Manager can also manage your environment variables through
-  # 'home.sessionVariables'. These will be explicitly sourced when using a
-  # shell provided by Home Manager. If you don't want to manage your shell
-  # through Home Manager then you have to manually source 'hm-session-vars.sh'
-  # located at either
-  #
-  #  ~/.nix-profile/etc/profile.d/hm-session-vars.sh
-  #
-  # or
-  #
-  #  ~/.local/state/nix/profiles/profile/etc/profile.d/hm-session-vars.sh
-  #
-  # or
-  #
-  #  /etc/profiles/per-user/dimitril/etc/profile.d/hm-session-vars.sh
-  #
-  home.sessionVariables = {
-    EDITOR = "emacsclient";
-  };
-#+end_src
-
-
-#+begin_src bash
-nix-shell --packages 'rWrapper.override{packages = [ rPackages.tidyverse ];}'
-#+end_src
-
-#+begin_src nix :tangle ./modules/phd.nix
+** python.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref python.nix
+:END:
+#+begin_src nix :tangle ./modules/python.nix :noweb yes
 { config, lib, pkgs, ... }:
 
 let
-  rEnv = pkgs.rWrapper.override {
-    packages = with pkgs.rPackages; [
-      ggcorrplot
-      tidyverse
-      ggplot2
-      openintro
-      infer
-      GGally
-      NHANES
-    ];
-  };
-
-  # GLEAMviz - Global epidemic and mobility simulation tool
-  # Downloaded from: https://www.gleamviz.org/download/
-  # Direct link: https://www.gleamviz.org/simul/bin/GLEAMviz-7.2-linux-x64-installer.run
-  #
-  # This creates a simple wrapper script that downloads and installs GLEAMviz on first run
-  gleamviz = pkgs.writeShellScriptBin "gleamviz" ''
-    INSTALL_DIR="$HOME/.local/share/gleamviz"
-    INSTALLER_URL="https://www.gleamviz.org/simul/bin/GLEAMviz-7.2-linux-x64-installer.run"
-    
-    # Check if GLEAMviz is already installed
-    if [ ! -f "$INSTALL_DIR/gleamviz.sh" ]; then
-      echo "GLEAMviz not found. Installing to $INSTALL_DIR..."
-      mkdir -p "$INSTALL_DIR"
-      
-      # Download the installer to home directory (accessible to steam-run)
-      TEMP_INSTALLER="$HOME/.cache/gleamviz-installer.run"
-      mkdir -p "$HOME/.cache"
-      
-      if [ ! -f "$TEMP_INSTALLER" ]; then
-        echo "Downloading GLEAMviz installer..."
-        ${pkgs.curl}/bin/curl -L -o "$TEMP_INSTALLER" "$INSTALLER_URL"
-        chmod +x "$TEMP_INSTALLER"
-      else
-        echo "Using cached installer..."
-      fi
-      
-      # Run the installer in unattended mode
-      echo "Running installer..."
-      ${pkgs.steam-run}/bin/steam-run "$TEMP_INSTALLER" --mode unattended --prefix "$INSTALL_DIR"
-      EXIT_CODE=$?
-      
-      if [ $EXIT_CODE -ne 0 ] || [ ! -f "$INSTALL_DIR/gleamviz.sh" ]; then
-        echo ""
-        echo "Automatic installation failed or unsupported."
-        echo "Running interactive installer - please click through to install to:"
-        echo "  $INSTALL_DIR"
-        echo ""
-        ${pkgs.steam-run}/bin/steam-run "$TEMP_INSTALLER" --prefix "$INSTALL_DIR"
-      fi
-      
-      if [ -f "$INSTALL_DIR/gleamviz.sh" ]; then
-        echo "Installation complete!"
-        # Clean up installer after successful installation
-        rm -f "$TEMP_INSTALLER"
-      else
-        echo "Error: Installation failed. GLEAMviz not found at $INSTALL_DIR/gleamviz.sh"
-        echo "Installer has been saved to: $TEMP_INSTALLER"
-        exit 1
-      fi
-    fi
-    
-    # Launch GLEAMviz
-    exec ${pkgs.steam-run}/bin/steam-run "$INSTALL_DIR/gleamviz.sh" "$@"
-  '';
+  <<python.nix-let>>
 in
+# let
+#   pytrends = import ./python-packages/pytrends.nix {
+#     lib = lib;
+#     python3 = pkgs.python312;
+#     fetchFromGitHub = pkgs.fetchFromGitHub;
+#   };
+# in
 {
-  home.packages = with pkgs; [
-    gephi
-    gpick
-
-    # Include the R environment
-    rEnv
-
-    # GLEAMviz epidemic simulator
-    gleamviz
-
-    # Other system packages
-    tectonic # pdf something or other
-    zlib
-    libxmlb
-    libxml2
-  ];
-  
-  # arbovirus cache
-  home.sessionVariables = {
-    ARBO_CLEANING_CACHE = "${config.xdg.cacheHome}/arbovirus-cleaning";
-  };
-
-  # Desktop entry for GLEAMviz
-  # Note: Icon will only appear after first run when GLEAMviz is installed
-  xdg.desktopEntries.gleamviz = {
-    name = "GLEAMviz";
-    genericName = "Epidemic Simulator";
-    comment = "Global epidemic and mobility model visualization";
-    exec = "gleamviz";
-    icon = "${config.home.homeDirectory}/.local/share/gleamviz/GLEAMviz64.png";
-    terminal = false;
-    categories = [ "Science" "Education" ];
-  };
-
-  # Ensure R can find its user-installed packages
-  # This might be implicitly handled by rEnv, but explicit is safer
-  # If you encounter issues, you might need to adjust R_LIBS_USER
-  # home.sessionVariables = {
-  #   R_LIBS_USER = "${pkgs.rWrapper}/lib/R/library";
-  # };
+  <<python.nix.packages>>
 }
 #+end_src
 
-#+begin_src nix :tangle ./modules/python.nix
-{ config, lib, pkgs, ... }:
-
-let
+*** Python Package Imports
+#+begin_src nix :noweb-ref python.nix-let
   epidatpy = import ./python-packages/epidatpy.nix {
     lib = lib;
     python3 = pkgs.python312;
@@ -194,15 +76,10 @@ let
     python3 = pkgs.python312;
     fetchurl = pkgs.fetchurl;
   };
-in
-# let
-#   pytrends = import ./python-packages/pytrends.nix {
-#     lib = lib;
-#     python3 = pkgs.python312;
-#     fetchFromGitHub = pkgs.fetchFromGitHub;
-#   };
-# in
-{
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref python.nix.packages
   home.packages = with pkgs; [
     uv
     (python312.withPackages (python3Packages: with python3Packages; [
@@ -259,10 +136,13 @@ in
       streamlit
     ]))
   ];
-}
 #+end_src
-*** py5.nix
-#+begin_src nix :tangle no
+
+**** py5.nix
+:PROPERTIES:
+:header-args:nix: :tangle no
+:END:
+#+begin_src nix
 # ./modules/python-packages/py5.nix
 {
   lib,
@@ -324,9 +204,12 @@ python3.pkgs.buildPythonApplication rec {
   };
 }
 #+end_src
-*** pyobjc.nix
-#+begin_src nix :tangle no
 
+**** pyobjc.nix
+:PROPERTIES:
+:header-args:nix: :tangle no
+:END:
+#+begin_src nix
 {
   lib,
   stdenv,
@@ -354,10 +237,12 @@ stdenv.mkDerivation rec {
   };
 }
 #+end_src
-*** pytrends.nix
-# #+begin_src nix :tangle ./modules/python-packages/pytrends.nix
-#+begin_src nix :tangle no
 
+**** pytrends.nix
+:PROPERTIES:
+:header-args:nix: :tangle no
+:END:
+#+begin_src nix
 {
   lib,
   python3,
@@ -397,9 +282,9 @@ python3.pkgs.buildPythonApplication rec {
     mainProgram = "pytrends";
   };
 }
-
 #+end_src
-*** epidatpy.nix
+
+**** epidatpy.nix
 #+begin_src nix :tangle ./modules/python-packages/epidatpy.nix
 {
   lib,
@@ -466,7 +351,7 @@ python3.pkgs.buildPythonPackage rec {
 }
 #+end_src
 
-#+begin_src nix :tangle ./modules/python-packages/epiweeks.nix 
+#+begin_src nix :tangle ./modules/python-packages/epiweeks.nix
 {
   lib,
   python3,
@@ -503,7 +388,8 @@ python3.pkgs.buildPythonPackage rec {
   };
 }
 #+end_src
-*** tailestim.nix
+
+**** tailestim.nix
 #+begin_src nix :tangle ./modules/python-packages/tailestim.nix
 {
   lib,
@@ -545,7 +431,8 @@ python3.pkgs.buildPythonPackage rec {
   };
 }
 #+end_src
-*** powerlaw.nix
+
+**** powerlaw.nix
 #+begin_src nix :tangle ./modules/python-packages/powerlaw.nix
 {
   lib,
@@ -600,7 +487,8 @@ python3.pkgs.buildPythonPackage rec {
   };
 }
 #+end_src
-*** epydemix.nix
+
+**** epydemix.nix
 #+begin_src nix :tangle ./modules/python-packages/epydemix.nix
 {
   lib,
@@ -650,7 +538,7 @@ python3.pkgs.buildPythonPackage rec {
 }
 #+end_src
 
-**** evalidate.nix
+***** evalidate.nix
 #+begin_src nix :tangle ./modules/python-packages/evalidate.nix
 {
   lib,
@@ -682,65 +570,110 @@ python3.pkgs.buildPythonPackage rec {
 }
 #+end_src
 
-- [ ] [[*configuration.nix modules][configuration.nix modules]]
-- [ ] [[*home.nix modules][home.nix modules]]
-- [ ] [[elisp:(org-babel-tangle)]]
-- [ ] [[git add -A ./modules/minecraft.nix]]
-#+begin_src nix :tangle ./modules/minecraft.nix
+** minecraft.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref minecraft
+:END:
+#+begin_src nix :tangle ./modules/minecraft.nix :noweb yes
 { config, lib, pkgs, ... }:
 
 {
+  <<minecraft.packages>>
+}
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref minecraft.packages
   home.packages = with pkgs; [
     # minecraft
     # atlauncher
     prismlauncher
   ];
-}
 #+end_src
-** Boox tablet (Weylus - recommended)
-Weylus works better with Boox over WiFi. Install on Boox from Play Store or F-Droid.
 
-Usage:
-1. Run ~weylus-start~ on laptop
-2. On Boox: Open Firefox and go to URL shown (http://:1701)
-3. Accept connection - tablet becomes drawing tablet
-
-USB (no WiFi):
-1. Run: ~adb reverse tcp:1701 tcp:1701 && adb reverse tcp:9001 tcp:9001~
-2. On Boox: Open Firefox and go to http://127.0.0.1:1701
-
-Note: droidux had USB issues with Boox.
-#+begin_src nix :tangle ./modules/droidux.nix
+** droidux.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref droidux
+:END:
+#+begin_src nix :tangle ./modules/droidux.nix :noweb yes
 { pkgs, ... }:
 
 {
-  home.packages = with pkgs; [
-    xournalpp
-    weylus
-    android-tools
-  ];
+  <<droidux.packages>>
 
   programs.bash = {
     enable = true;
-shellAliases = {
+    shellAliases = {
       weylus-start = "weylus";
       weylus-usb = "adb reverse tcp:1701 tcp:1701 && adb reverse tcp:9001 tcp:9001 && weylus";
     };
   };
 }
 #+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref droidux.packages
+  home.packages = with pkgs; [
+    xournalpp
+    weylus
+    android-tools
+  ];
+#+end_src
+
 ** itch.nix
-- [ ] [[*home.nix modules][home.nix modules]]
-- [ ] [[elisp:(org-babel-tangle)]]
-- [ ] [[git add -A ./modules/itch.nix]]
-#+begin_src nix :tangle ./modules/itch.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref itch
+:END:
+#+begin_src nix :tangle ./modules/itch.nix :noweb yes
 { config, lib, pkgs, ... }:
 
 {
-  home.packages = with pkgs; [
-    # itch
-  ];
+  <<itch.packages>>
 }
 #+end_src
 
+*** Packages
+#+begin_src nix :noweb-ref itch.packages
+  home.packages = with pkgs; [
+    # itch
+  ];
+#+end_src
 
+** watchy.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref watchy
+:END:
+#+begin_src nix :tangle ./modules/watchy.nix :noweb yes
+{ config, lib, pkgs, ... }:
+
+{
+  <<watchy.packages>>
+}
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref watchy.packages
+  home.packages = with pkgs; [
+    esptool
+    platformio
+    arduino
+
+    vscode-fhs
+    docker
+    docker-buildx
+  ];
+#+end_src
+
+** noctalia.nix
+#+begin_src nix :tangle ./modules/noctalia.nix
+{ config, pkgs, lib, settingsFile, ... }:
+let
+  settings = builtins.fromJSON (builtins.readFile settingsFile);
+in
+{
+  programs.noctalia-shell = {
+    enable = true;
+    inherit settings;
+  };
+}
+#+end_src
