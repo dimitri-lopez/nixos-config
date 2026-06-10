@@ -2,6 +2,7 @@
 
 See my [[install.org]] for installation instructions.
 
+- [[./boox-palma.org]]
 - [[elisp:(org-babel-tangle)][Tangle file]]
 - [[elisp:(dl/nixos-update-user-config)][Update home config]]
 - [[elisp:(dl/nixos-update-system-config)][Update system config]]
@@ -19,6 +20,17 @@ See my [[install.org]] for installation instructions.
 
 This build in particular feels very snappy. Way snappier than what I was using in xfce. Though I haven't figured out to how to get it within the gui.
 GNU Emacs 30.2 (build 1, x86_64-pc-linux-gnu, GTK+ Version 3.24.49, cairo version 1.18.2)
+** Emacs Launchers
+*** How I am deeply integrating emacs - The Universe of Joshua Blais
+:PROPERTIES:
+:URL:      https://joshblais.com/blog/how-i-am-deeply-integrating-emacs/
+:CREATED:  [2026-01-10 Sat 13:04]
+:END:
+
+
+** screen sharing app
+ nix run nixpkgs#deskreen
+
 ** Update a specific package
 #+begin_src bash
 cd ~/.dotfiles
@@ -432,7 +444,6 @@ in
 
 }
 #+end_src
-
 * Resources
 ** Common Commands
 - Updating:
@@ -3117,125 +3128,353 @@ Loaded via flake's selectedDesktop when userSettings.wm = "driftwm"
 let
   driftwmPkg = inputs.driftwm.packages.${pkgs.stdenv.system}.default;
   driftwmConfig = pkgs.writeText "driftwm-config.toml" ''
-      # driftwm — config managed via Nix, editable at ~/.config/driftwm/config.toml
+# ── All driftwm settings explicitly set ──────────────────────────
+# Preserves your custom values; fills everything else with defaults.
 
-    mod_key = "super"
+# ── Top-level ─────────────────────────────────────────────────────
 
-    [input.keyboard]
-    repeat_rate = 75
-    repeat_delay = 185
+# Window manager modifier key: "super" (default) or "alt"
+# mod_key = "super"
 
-    [input.trackpad]
-    tap_to_click = true
-    natural_scroll = false
-    tap_and_drag = true
+# Window cycling modifier: "alt" (default) or "ctrl"
+# cycle_modifier = "alt"
 
-    [input.mouse]
-    accel_speed = 0.0
-    accel_profile = "flat"
-    natural_scroll = false
+# Sloppy focus: keyboard focus follows the pointer to windows
+focus_follows_mouse = true
 
-    [cursor]
-    theme = "Adwaita"
-    size = 24
-    inactive_opacity = 0.5
+# Where new windows spawn when no rule positions them:
+#   "center" (default) — viewport center
+#   "cursor"           — centered on cursor (clamped to output)
+#   "auto"             — snap-place adjacent to focused window's cluster
+window_placement = "auto"
 
-    [navigation]
-    trackpad_speed = 1.5
-    mouse_speed = 1.0
-    friction = 0.94
-    animation_speed = 0.3
-    nudge_step = 20
-    pan_step = 100.0
+# Commands to run at startup (sh -c), after WAYLAND_DISPLAY is set
+autostart = [
+    # "noctalia-shell",
+    # "wl-paste --type text --watch cliphist store",
+    # "wl-paste --type image --watch cliphist store",
+    "/nix/store/qmwghy7zr66avawk6z8wna59qxfk2715-polkit-gnome-0.105/libexec/polkit-gnome-authentication-agent-1",
+    "vorta -d",
+    "dl-restart-emacs-daemon",
+    # "/home/dimitril/.local/share/driftwm-sample/scripts/battery_notify.sh",
+    "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 330 '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh' timeout 600 'systemctl suspend' before-sleep '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh'",
+]
 
-    [zoom]
-    step = 1.1
+# Environment variables set before any clients launch
+[env]
+QT_QPA_PLATFORMTHEME = "qt6ct"
 
-    [snap]
-    enabled = true
-    gap = 12.0
-    distance = 24.0
-    break_force = 32.0
+# ── Input: Keyboard ───────────────────────────────────────────────
 
-    [decorations]
-    bg_color = "#242223"
-    fg_color = "#FFFFFF"
-    corner_radius = 8
-    default_mode = "client"
+[input.keyboard]
+# layout = "us"
+# variant = ""
+# options = ""
+# model = ""
+repeat_rate = 75
+repeat_delay = 185
+# layout_independent = true
+num_lock = true
+# caps_lock = false
 
-    [effects]
-    blur_radius = 2
-    blur_strength = 1.1
+# ── Input: Trackpad ───────────────────────────────────────────────
 
-    [background]
-    # driftwm ships built-in shaders in its nix package:
-    # shader_path = "/run/current-system/sw/share/driftwm/wallpapers/dot_grid.glsl"
-    # shader_path = "/run/current-system/sw/share/driftwm/wallpapers/animated_squares.glsl"
+[input.trackpad]
+tap_to_click = true
+natural_scroll = true
+tap_and_drag = true
+# accel_speed = 0.0
+# accel_profile = "adaptive"
+# click_method = "none"
+# disable_while_typing = true
 
-    [keybindings]
-    "super+ctrl+r" = "reload-config"
+# ── Input: Mouse ──────────────────────────────────────────────────
 
-    "alt+w" = "fit-window"
-    "super+m" = "fit-window"
+[input.mouse]
+# accel_speed = 0.0
+# accel_profile = "flat"
+natural_scroll = false
 
-    "alt+e" = "exec emacsclient -c -a 'emacs'"
+# ── Cursor ────────────────────────────────────────────────────────
 
-    "super+space" = "exec fuzzel"
+[cursor]
+theme = "Adwaita"
+size = 24
+inactive_opacity = 0.5
 
-    "super+return" = "exec foot"
-    "alt+return" = "exec foot"
+# ── Navigation ────────────────────────────────────────────────────
 
-    "super+escape" = "exec xfce4-taskmanager"
+[navigation]
+# trackpad_speed = 0.5
+# mouse_speed = 1.4
+# friction = 0.92
+animation_speed = 0.8
+# nudge_step = 20
+# pan_step = 100.0
+anchors = []
 
-    "super+equal" = "zoom-in"
-    "super+minus" = "zoom-out"
-    "super+0" = "zoom-reset"
+[navigation.edge_pan]
+# zone = 100.0
+# speed_min = 4.0
+# speed_max = 10.0
 
-    "alt+tab" = "cycle-windows forward"
-    "alt+shift+tab" = "cycle-windows backward"
-    "super+q" = "close-window"
-    "super+f" = "toggle-fullscreen"
-    "super+c" = "center-window"
+# ── Zoom ──────────────────────────────────────────────────────────
 
-    "super+ctrl+up" = "pan-viewport up"
-    "super+ctrl+down" = "pan-viewport down"
-    "super+ctrl+left" = "pan-viewport left"
-    "super+ctrl+right" = "pan-viewport right"
+[zoom]
+# step = 1.1
+# fit_padding = 80.0
+# reset_on_new_window = true
+# reset_on_activation = true
 
-    "super+up" = "center-nearest up"
-    "super+down" = "center-nearest down"
-    "super+left" = "center-nearest left"
-    "super+right" = "center-nearest right"
+# ── Snap ──────────────────────────────────────────────────────────
 
-    "super+shift+up" = "nudge-window up"
-    "super+shift+down" = "nudge-window down"
-    "super+shift+left" = "nudge-window left"
-    "super+shift+right" = "nudge-window right"
+[snap]
+# enabled = true
+# gap = 15.0
+# distance = 24.0
+# break_force = 32.0
+# same_edge = false
 
-    "super+ctrl+shift+q" = "quit"
+# ── Decorations ───────────────────────────────────────────────────
 
-    "super+h" = "exec systemctl hibernate"
+[decorations]
+bg_color = "#2A2829"
+fg_color = "#E6E1E0"
+corner_radius = 5
+# default_mode = "client"
 
-    [[outputs]]
-    name = "eDP-1"
-    scale = 1.5
+# ── Effects ───────────────────────────────────────────────────────
 
-    [[window_rules]]
-    app_id = ".*"
-    opacity = 0.95
-    blur = true
+[effects]
+blur_radius = 8
+blur_strength = 0.5
 
-    [[window_rules]]
-    app_id = "emacs"
-    opacity = 0.85
-    blur = true
-    decoration = "none"
 
-    [[window_rules]]
-    app_id = "Emacs"
-    opacity = 0.85
-    blur = true
-    decoration = "none"
+# ── Backend ───────────────────────────────────────────────────────
+
+[backend]
+# wait_for_frame_completion = false
+# disable_direct_scanout = false
+
+# ── Output outlines ───────────────────────────────────────────────
+
+[output.outline]
+color = "#2A2829"
+# thickness = 1
+# opacity = 0.5
+
+# ── Background ────────────────────────────────────────────────────
+
+[background]
+
+# type = "wallpaper" # — image tiled across the canvas
+# type = "shader" 
+type = "wallpaper"  # also tile
+# path = "/mnt/data/driftwm/extras/wallpapers/static/dark_sea.glsl"
+# path = "/mnt/data/Downloads/download.jpeg"
+# path = "/home/dimitril/Dropbox/wallpapers/blush.jpg"
+# path = "/home/dimitril/Dropbox/wallpapers/malachite.jpg"
+path = "/home/dimitril/Dropbox/wallpapers/black_1x1.png"
+
+# ── XWayland ──────────────────────────────────────────────────────
+
+[xwayland]
+enabled = true
+path = "xwayland-satellite"
+
+# ── Mouse decoration propagation ──────────────────────────────────
+
+[mouse]
+decoration_resize_snapped = true
+decoration_fit_snapped = true
+
+# ── Mouse bindings: on-window ─────────────────────────────────────
+
+[mouse.on-window]
+"alt+left" = "move-window"
+"alt+shift+left" = "move-snapped-windows"
+"alt+right" = "resize-window"
+"alt+shift+right" = "resize-window-snapped"
+"alt+middle" = "fit-window"
+"alt+shift+middle" = "fit-window-snapped"
+"mod+middle" = "toggle-fullscreen"
+
+# ── Mouse bindings: on-canvas ─────────────────────────────────────
+
+[mouse.on-canvas]
+"left" = "pan-viewport"
+"trackpad-scroll" = "pan-viewport"
+"wheel-scroll" = "zoom"
+
+# ── Mouse bindings: anywhere ──────────────────────────────────────
+
+[mouse.anywhere]
+"mod+left" = "pan-viewport"
+"mod+ctrl+left" = "center-nearest"
+"mod+trackpad-scroll" = "pan-viewport"
+"mod+wheel-scroll" = "zoom"
+
+# ── Gesture thresholds ────────────────────────────────────────────
+
+[gestures]
+swipe_threshold = 6.0
+pinch_in_threshold = 0.99
+pinch_out_threshold = 1.01
+
+# ── Gesture bindings: on-window ───────────────────────────────────
+
+[gestures.on-window]
+# Resize windows
+"alt+3-finger-swipe" = "resize-window-snapped"
+"alt+shift+3-finger-swipe" = "resize-window"
+"3-finger-doubletap-swipe" = "move-window"
+
+# "alt+2-finger-pinch-in" = "fit-window"
+# "alt+2-finger-pinch-out" = "fit-window"
+# "alt+shift+2-finger-pinch-in" = "fit-window-snapped"
+# "alt+shift+2-finger-pinch-out" = "fit-window-snapped"
+# "alt+3-finger-pinch-in" = "toggle-fullscreen"
+# "alt+3-finger-pinch-out" = "toggle-fullscreen"
+
+# ── Gesture bindings: on-canvas ───────────────────────────────────
+
+[gestures.on-canvas]
+"2-finger-pinch" = "zoom"
+
+# ── Gesture bindings: anywhere ────────────────────────────────────
+
+[gestures.anywhere]
+"3-finger-swipe" = "pan-viewport"
+"3-finger-pinch" = "zoom"
+"3-finger-hold" = "focus-center"
+
+"4-finger-swipe" = "center-nearest"
+"4-finger-pinch-in" = "zoom-to-fit"
+"4-finger-pinch-out" = "focus-center"
+"4-finger-hold" = "focus-center"
+
+# Currently unusd
+# "mod+3-finger-swipe" = "center-nearest"
+# "mod+3-finger-hold" = "center-window"
+# "mod+4-finger-pinch-in" = "zoom-to-fit-snapped"
+# "mod+3-finger-pinch-in" = "zoom-to-fit"
+# "mod+3-finger-pinch-out" = "home-toggle"
+# "mod+2-finger-pinch" = "zoom"
+
+# ── Keybindings ───────────────────────────────────────────────────
+# All defaults written out. Your overrides replace the relevant defaults.
+
+[keybindings]
+"mod+d" = "exec noctalia-shell ipc --any-display call launcher toggle"
+"mod+q" = "close-window"
+"mod+f" = "toggle-fullscreen"
+"mod+shift+m" = "fit-window-snapped"
+"mod+c" = "center-window"
+"mod+x" = "focus-center"
+"mod+a" = "home-toggle"
+
+# navigate open windows
+"alt+tab" = "cycle-windows forward"
+"alt+shift+tab" = "cycle-windows backward"
+"mod+h" = "center-nearest left"
+"mod+j" = "center-nearest down"
+"mod+k" = "center-nearest up"
+"mod+l" = "center-nearest right"
+
+# Move windows
+"mod+shift+up" = "nudge-window up"
+"mod+shift+down" = "nudge-window down"
+"mod+shift+left" = "nudge-window left"
+"mod+shift+right" = "nudge-window right"
+
+# Move viewport
+"mod+alt+k" = "pan-viewport up"
+"mod+alt+j" = "pan-viewport down"
+"mod+alt+h" = "pan-viewport left"
+"mod+alt+l" = "pan-viewport right"
+
+# Modify zoom
+"mod+comma" = "zoom-in"
+"mod+period" = "zoom-out"
+"mod+m" = "fit-window-snapped"
+"mod+n" = "zoom-reset"
+"mod+w" = "zoom-to-fit"
+"mod+shift+w" = "zoom-to-fit-snapped"
+
+# jump to location
+# "mod+1" = "go-to -1750 1750"
+# "mod+2" = "go-to 1750 1750"
+# "mod+3" = "go-to 1750 -1750"
+# "mod+4" = "go-to -1750 -1750"
+# "mod+alt+up" = "send-to-output up"
+# "mod+alt+down" = "send-to-output down"
+# "mod+alt+left" = "send-to-output left"
+# "mod+alt+right" = "send-to-output right"
+# "mod+s" = "exec /home/dimitril/.local/share/driftwm-sample/scripts/window-search.sh"
+# "mod+l" = "exec noctalia-shell ipc --any-display call lockScreen lock"
+"mod+semicolon" = "spawn /home/dimitril/.local/share/driftwm-sample/scripts/lock.sh"
+# "mod+n" = "exec noctalia-shell ipc --any-display call notificationHistory toggle"
+"mod+r" = "reload-config"
+"mod+ctrl+shift+q" = "quit"
+# "XF86AudioRaiseVolume" = "exec noctalia-shell ipc --any-display call volume increase"
+# "XF86AudioLowerVolume" = "exec noctalia-shell ipc --any-display call volume decrease"
+# "XF86AudioMute" = "exec noctalia-shell ipc --any-display call volume muteOutput"
+# "XF86MonBrightnessUp" = "exec noctalia-shell ipc --any-display call brightness increase"
+# "XF86MonBrightnessDown" = "exec noctalia-shell ipc --any-display call brightness decrease"
+"Print" = "spawn grim - | tee \"/tmp/screenshots/screenshot_$(date +%Y%m%d_%H%M%S).png\" | wl-copy -t image/png"
+"shift+Print" = "spawn grim -g \"$(slurp -d)\" - | tee \"/tmp/screenshots/screenshot_$(date +%Y%m%d_%H%M%S).png\" | wl-copy -t image/png"
+
+# Open applications
+"super+escape" = "exec alacritty -e btop"
+"super+return" = "exec alacritty"
+"super+e" = "exec emacsclient -c"
+"super+c" = "exec brave"
+"alt+e" = "exec emacsclient -c"
+
+# ── Output configs ────────────────────────────────────────────────
+
+[[outputs]]
+name = "HDMI-A-1"
+position = [1920, 0] # right of eDP-1
+transform = "0"
+
+# ── Window rules ──────────────────────────────────────────────────
+
+[[window_rules]]
+app_id = "Alacritty"
+decoration = "none"
+opacity = 0.8
+blur = true
+
+[[window_rules]]
+app_id = "brave-browser"
+decoration = "client"
+blur = true
+
+[[window_rules]]
+app_id = "emacs"
+opacity = 0.85
+blur = true
+decoration = "none"
+
+[[window_rules]]
+title = "*Emacs*"
+decoration = "client"
+opacity = 0.9815
+blur = false
+size = [1200, 1000]
+
+[[window_rules]]
+app_id = "gcr-prompter"
+opacity = 0.5
+decoration = "client"
+
+# wlrctl toplevel list 2>/dev/null || echo "wlrctl failed"
+[[window_rules]]
+app_id = "brave-*-Default"
+decoration = "client"
+blur = true
+opacity = 0.9
   '';
 in
 {
@@ -3682,6 +3921,7 @@ in
     wlrctl
     alacritty
     grim
+    slurp
     ffmpeg
     vorta
     polkit_gnome
