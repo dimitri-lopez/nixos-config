@@ -21,6 +21,14 @@ let
     buildNpmPackage = pkgs.buildNpmPackage;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
+  anthropic-claude-code = import ./npm-packages/anthropic-claude-code.nix {
+    lib = lib;
+    stdenv = pkgs.stdenv;
+    fetchurl = pkgs.fetchurl;
+    autoPatchelfHook = pkgs.autoPatchelfHook;
+    glibc = pkgs.glibc;
+    gcc-unwrapped = pkgs.gcc-unwrapped;
+  };
 in
 {
 
@@ -45,6 +53,7 @@ in
     # agent shell
     gemini-cli
     claude-code
+    anthropic-claude-code  # Latest version 1.3.14
     claude-agent-acp
     free-coding-models
     # inputs.opencode.packages.${pkgs.system}.default
