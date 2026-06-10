@@ -303,7 +303,7 @@ let
   '';
 in
 {
-  imports = [ ../../modules/btop.nix ];
+  imports = [ (import ../../modules/noctalia.nix { inherit config pkgs lib inputs; settingsFile = ./noctalia.json; }) ../../modules/btop.nix ];
   home.activation.checkDriftwmConfig = lib.hm.dag.entryBefore ["copyDriftwmConfig"] ''
     ${driftwmPkg}/bin/driftwm --config ${driftwmConfig} --check-config || true
   '';
