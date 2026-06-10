@@ -19,7 +19,431 @@ See [[install.org]] for installation instructions.
 
 This build in particular feels very snappy. Way snappier than what I was using in xfce. Though I haven't figured out to how to get it within the gui.
 GNU Emacs 30.2 (build 1, x86_64-pc-linux-gnu, GTK+ Version 3.24.49, cairo version 1.18.2)
+** Emacs Launchers
+*** How I am deeply integrating emacs - The Universe of Joshua Blais
+:PROPERTIES:
+:URL:      https://joshblais.com/blog/how-i-am-deeply-integrating-emacs/
+:CREATED:  [2026-01-10 Sat 13:04]
+:END:
 
+
+** screen sharing app
+ nix run nixpkgs#deskreen
+
+** Update a specific package
+#+begin_src bash
+cd ~/.dotfiles
+nix flake lock --update-input driftwm
+home-manager switch --flake .
+#+end_src
+
+
+** Boox tablet (Weylus - recommended)
+Weylus works better with Boox over WiFi. Install on Boox from Play Store or F-Droid.
+
+Usage:
+1. Run ~weylus-start~ on laptop
+2. On Boox: Open Firefox and go to URL shown (http://:1701)
+3. Accept connection - tablet becomes drawing tablet
+
+USB (no WiFi):
+1. Run: ~adb reverse tcp:1701 tcp:1701 && adb reverse tcp:9001 tcp:9001~
+2. On Boox: Open Firefox and go to http://127.0.0.1:1701
+
+Note: droidux had USB issues with Boox.
+#+begin_src nix :tangle ./modules/droidux.nix
+{ pkgs, ... }:
+
+{
+  home.packages = with pkgs; [
+    xournalpp
+    weylus
+    android-tools
+  ];
+
+  programs.bash = {
+    enable = true;
+shellAliases = {
+      weylus-start = "weylus";
+      weylus-usb = "adb reverse tcp:1701 tcp:1701 && adb reverse tcp:9001 tcp:9001 && weylus";
+    };
+  };
+}
+#+end_src
+** itch.nix
+- [ ] [[*home.nix modules][home.nix modules]]
+- [ ] [[elisp:(org-babel-tangle)]]
+- [ ] [[git add -A ./modules/itch.nix]]
+#+begin_src nix :tangle ./modules/itch.nix
+{ config, lib, pkgs, ... }:
+
+{
+  home.packages = with pkgs; [
+    # itch
+  ];
+}
+#+end_src
+
+** vxwm home config
+#+begin_src nix :tangle ./modules/vxwm-home.nix
+{ config, pkgs, ... }:
+
+{
+  services.picom = {
+    enable = true;
+    package = pkgs.picom-pijulius;
+    backend = "glx";
+    settings = {
+      blur-method = "dual_kawase";
+      blur-strength = 5;
+      blur-background = true;
+      animations = true;
+      animation-stiffness = 500;
+      animation-window-mass = 1;
+      animation-window-open = "effortless EaseInOut";
+      animation-window-close = "effortless EaseInOut";
+      fade = true;
+      fade-in-step = 0.03;
+      fade-out-step = 0.03;
+      no-fading-openclose = false;
+      shadow = true;
+      shadow-opacity = 0.5;
+    };
+  };
+  
+  home.file.".xprofile".text = ''
+#!/bin/sh
+# X resources
+xrdb -merge ~/.Xresources &
+
+# Set key repeat rate (Delay 185ms, Rate 75/s)
+xset r rate 185 75 &
+
+# Source common autostart (caps-lock, emacs, dropbox, syncthing)
+[ -f ~/.local/bin/common-autostart ] && ~/.local/bin/common-autostart &
+
+# Compton (picom) - compositor
+picom -b &
+
+# Tint2 bar
+tint2 &
+
+# sxhkd for keybindings
+sxhkd &
+
+# Set wallpaper
+feh --bg-fill ~/Dropbox/images/Truchas_LopezRanch_MW.jpg &
+'';
+  
+  home.file.".Xresources".text = ''
+    ! Xresources configuration for vxwm
+    
+    ! Cursor theme
+    Xcursor.size: 24
+    
+    ! Window appearance
+    URxvt*font: xft:Iosevka:size=10
+    URxvt*boldFont: xft:Iosevka:bold:size=10
+    URxvt*italicFont: xft:Iosevka:italic:size=10
+    
+    ! Transparency
+    URxvt*depth: 32
+    URxvt*background: [90]#000000
+    
+    ! Colors (Everforest-ish)
+    URxvt*foreground: #d3c6aa
+    URxvt*cursorColor: #a7c080
+  '';
+
+  home.file.".config/sxhkd/sxhkdrc".text = ''
+# Super key
+super = Mod4
+
+# Launch / raise applications (jumpapp-style)
+super + space
+  emenu
+
+super + e
+  dl-jumpapp-emacs
+
+super + t
+  jumpapp urxvt
+
+super + b
+  jumpapp firefox
+
+super + c
+  jumpapp brave
+
+# Window management
+super + q
+  xdotool windowclose
+
+alt + w
+  wmctrl -r :ACTIVE: -b toggle,maximized_vert,maximized_horz
+
+super + f
+  wmctrl -r :ACTIVE: -b toggle,maximized_vert,maximized_horz
+
+super + n
+  xdotool windowminimize
+
+super + m
+  wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz
+
+# Logout
+super + shift + e
+  loginctl terminate-user $USER
+
+super + shift + h
+  systemctl hibernate
+  '';
+
+  home.file.".config/tint2/tint2rc".text = ''
+    # Tint2 configuration
+    
+    # Panel
+    panel = bottom
+    panel_items = LTSC
+    panel_size = 100% 30
+    panel_margin = 0 5
+    panel_padding = 5 0
+    panel_background_id = 1
+    
+    # Battery
+    battery = 1
+    battery_icon = 0
+    battery_tooltip = 1
+    
+    # Clock
+    time1 = %H:%M
+    time2 = %Y-%m-%d
+    time_format = %H:%M
+    tooltip_time_format = %Y-%m-%d
+    
+    # Launcher
+    launcher_item_app = urxvt
+    launcher_item_app = emacs
+    launcher_item_app = emacsclient -c
+  '';
+
+  home.packages = with pkgs; [
+    picom-pijulius
+    lemonbar
+    tint2
+    sxhkd
+    xdotool
+    xorg.xrandr
+    feh
+    arandr
+    jumpapp
+    # xorg.xauth  # TODO: Enable for X11 remote forwarding (ssh -X)
+  ];
+}
+#+end_src
+
+** srwc home config
+- [[~/srwc/resources/config.example.toml][Configuration example]]
+#+begin_src nix :tangle ./modules/srwc-home.nix
+{ config, pkgs, inputs, ... }:
+
+let
+  srwcPkg = inputs.srwc.packages.${pkgs.stdenv.system}.default;
+in
+{
+  home.activation.checkSrwcConfig = ''
+    ${srwcPkg}/bin/srwc check-config || true
+  '';
+
+  home.packages = with pkgs; [
+    waybar
+    xdg-utils
+    libnotify
+    xdg-desktop-portal-gnome
+    xdg-desktop-portal-gtk
+    xdg-desktop-portal
+    wl-clipboard
+    brightnessctl
+    playerctl
+    jumpapp
+    fuzzel
+    wmenu
+    foot
+    alacritty
+    xfce.xfce4-taskmanager
+  ];
+
+  home.file = {
+    ".config/srwc/config.toml".text = ''
+      # srwc configuration
+      # https://github.com/infraflakes/srwc
+
+      [input.keyboard]
+      repeat_rate = 75
+      repeat_delay = 185
+
+      [input.mouse]
+      accel_speed = 0.0           # pointer acceleration (-1.0 to 1.0)
+      accel_profile = "flat"      # "flat" or "adaptive"
+      natural_scroll = false      # reverse scroll direction
+
+      [cursor]
+      theme = "Adwaita"           # sets XCURSOR_THEME
+      size = 24                   # sets XCURSOR_SIZE
+      inactive_opacity = 0.5      # cursor opacity on non-active outputs (0.0–1.0)
+
+      [decorations]
+      bg_color = "#242223"           # title bar background (default: dark gray)
+      fg_color = "00000"           # close button × color (default: white)
+      corner_radius = 8              # clip window corners to this radius (no effect if client rounds more)
+
+      [background]
+
+      shader_path = "~/srwc/resources/extras/wallpapers/dark_sea.glsl"
+      # shader_path = "~/.config/srwc/bg.glsl"
+      # or use tiled image:
+      # tile_path = "~/.config/srwc/tile.png"
+
+      [effects]
+      blur_radius = 2
+      blur_strength = 1.1
+
+      [keybindings]
+      "super+ctrl+r" = "reload-config"
+
+      # Maximize (fit window to viewport)
+      "alt+w" = "fit-window"
+      "super+m" = "fit-window"
+
+      # Open emacs
+      "alt+e" = "exec emacsclient -c -a 'emacs'"
+
+      # emenu (application launcher)
+      "super+space" = "exec fuzzel"
+
+      # Terminal
+      "super+return" = "exec foot"
+      "alt+return" = "exec foot"
+
+      # Task Manager
+      "super+escape" = "exec xfce4-taskmanager"
+
+      # Zoom controls
+      "super+equal" = "zoom-in"
+      "super+minus" = "zoom-out"
+      "super+0" = "zoom-reset"
+
+      # Window navigation
+      "alt+tab" = "cycle-windows forward"
+      "alt+shift+tab" = "cycle-windows backward"
+      "super+q" = "close-window"
+      "super+f" = "toggle-fullscreen"
+      "super+c" = "center-window"
+
+      # Panning
+      "super+ctrl+up" = "pan-viewport up"
+      "super+ctrl+down" = "pan-viewport down"
+      "super+ctrl+left" = "pan-viewport left"
+      "super+ctrl+right" = "pan-viewport right"
+
+      # Center nearest window in direction (Snap Camera)
+      "super+up" = "center-nearest up"
+      "super+down" = "center-nearest down"
+      "super+left" = "center-nearest left"
+      "super+right" = "center-nearest right"
+
+      # Nudge window (pseudo-tiling alignment)
+      "super+shift+up" = "nudge-window up"
+      "super+shift+down" = "nudge-window down"
+      "super+shift+left" = "nudge-window left"
+      "super+shift+right" = "nudge-window right"
+
+
+
+      # Quit
+      "super+ctrl+shift+q" = "quit"
+
+      # Hibernation
+      "super+h" = "exec systemctl hibernate"
+
+      [[window_rules]]
+      app_id = ".*"
+      opacity = 0.95
+      blur = true
+
+      [[window_rules]]
+      app_id = "emacs"
+      # title = "*Emacs*"
+      opacity = 0.85
+      blur = true
+      decoration = "client"
+    '';
+
+    ".config/waybar/config".text = ''
+      {
+        "layer": "top",
+        "position": "top",
+        "height": 30,
+        "modules-left": ["clock"],
+        "modules-center": [],
+        "modules-right": ["battery", "pulseaudio"],
+
+        "clock": {
+          "format": "{:%H:%M}",
+          "tooltip-format": "<big>{:%Y-%m-%d}</big>\n<tt>{:%H:%M:%S}</tt>"
+        },
+
+        "battery": {
+          "format": "{icon} {capacity}%",
+          "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+          "states": {
+            "warning": 30,
+            "critical": 15
+          }
+        },
+
+        "pulseaudio": {
+          "format": "{icon} {volume}%",
+          "format-muted": "󰝟",
+          "format-icons": {
+            "default": ["󰕿", "󰖀", "󰕾"]
+          },
+          "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle"
+        }
+      }
+    '';
+
+    ".config/waybar/style.css".text = ''
+      ,* {
+        border: none;
+        font-family: "Iosevka";
+        font-size: 12px;
+      }
+
+      window#waybar {
+        background: rgba(30, 30, 30, 0.9);
+        color: #d3c6aa;
+      }
+
+      #clock {
+        padding: 0 15px;
+      }
+
+      #battery, #pulseaudio {
+        padding: 0 10px;
+      }
+    '';
+
+    ".xprofile".text = ''
+      #!/bin/sh
+      # Wayland session - xprofile runs before compositor
+      # Start xdg-desktop-portal after compositor is ready
+    '';
+  };
+
+}
+#+end_src
+>>>>>>> origin/thinkpad-driftwm
 * Resources
 ** Common Commands
 - Updating:
@@ -117,13 +541,3 @@ imports = [
 ];
 #+end_src
 
-* Tangling
-#+INCLUDE: ./flake.org
-#+INCLUDE: ./system.org
-#+INCLUDE: ./home.org
-#+INCLUDE: ./modules/core.org
-#+INCLUDE: ./modules/emacs.org
-#+INCLUDE: ./modules/apps.org
-#+INCLUDE: ./modules/phd.org
-#+INCLUDE: ./modules/xfce/xfce.org
-#+INCLUDE: ./modules/driftwm/driftwm.org

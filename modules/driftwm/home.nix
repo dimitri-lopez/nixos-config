@@ -322,6 +322,7 @@ in
     wlrctl
     alacritty
     grim
+    slurp
     ffmpeg
     vorta
     polkit_gnome

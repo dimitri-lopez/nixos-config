@@ -72,7 +72,8 @@ in
   home.packages = with pkgs; [
     gephi
     gpick
-  
+    
+
     # Include the R environment
     rEnv
   
