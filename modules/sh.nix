@@ -35,6 +35,8 @@ in
     # gnugrep gnused
     # bat eza bottom fd bc
     # direnv nix-direnv
+      
+    <<sh.scripts>>
   ];
 
   programs.direnv.enable = true;

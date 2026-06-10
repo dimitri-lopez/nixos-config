@@ -1,0 +1,90 @@
+#+title: Home Manager Configuration
+
+* home.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref home.nix
+:END:
+** Setup
+#+begin_src nix :noweb yes :tangle home.nix :noweb-ref home.nix-setup
+{ config, lib, pkgs, userSettings, ... }:
+
+{
+<<home.nix.imports>>
+<<home.nix>>
+}
+#+end_src
+** Default settings
+#+begin_src nix
+  # Home Manager needs a bit of information about you and the paths it should
+  # manage.
+  home.username = "dimitril";
+  home.homeDirectory = "/home/dimitril";
+
+  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.permittedInsecurePackages = [
+    "python3.12-ecdsa-0.19.1"
+  ];
+  # sessionPath = ["/home/dimitril/.config/emacs"];
+
+  # This value determines the Home Manager release that your configuration is
+  # compatible with. This helps avoid breakage when a new Home Manager release
+  # introduces backwards incompatible changes.
+  #
+  # You should not change this value, even if you update Home Manager. If you do
+  # want to update the value, then make sure to first check the Home Manager
+  # release notes.
+  home.stateVersion = "25.05"; # Please read the comment before changing.
+#+end_src
+** Home Packages
+# Packages go to their own modules now - see modules/*.nix
+#+begin_src nix :noweb-ref home.packages
+  # home.packages = with pkgs; [
+  #   # Add packages here or in the appropriate modules/*.nix file
+  # ];
+#+end_src
+** home.nix dotfiles
+#+begin_src nix
+  # Home Manager is pretty good at managing dotfiles. The primary way to manage
+  # plain files is through 'home.file'.
+  home.file = {
+    # # Building this configuration will create a copy of 'dotfiles/screenrc' in
+    # # the Nix store. Activating the configuration will then make '~/.screenrc' a
+    # # symlink to the Nix store copy.
+    # ".screenrc".source = dotfiles/screenrc;
+
+    # # You can also set the file content immediately.
+    # ".gradle/gradle.properties".text = ''
+    #   org.gradle.console=verbose
+    #   org.gradle.daemon.idletimeout=3600000
+    # '';
+  };
+#+end_src
+** Environment variables
+
+#+begin_src nix
+  # Home Manager can also manage your environment variables through
+  # 'home.sessionVariables'. These will be explicitly sourced when using a
+  # shell provided by Home Manager. If you don't want to manage your shell
+  # through Home Manager then you have to manually source 'hm-session-vars.sh'
+  # located at either
+  #
+  #  ~/.nix-profile/etc/profile.d/hm-session-vars.sh
+  #
+  # or
+  #
+  #  ~/.local/state/nix/profiles/profile/etc/profile.d/hm-session-vars.sh
+  #
+  # or
+  #
+  #  /etc/profiles/per-user/dimitril/etc/profile.d/hm-session-vars.sh
+  #
+  home.sessionVariables = {
+    EDITOR = "emacsclient";
+  };
+#+end_src
+
+** home-manager configuration
+#+begin_src nix
+  # Let Home Manager install and manage itself.
+  programs.home-manager.enable = true;
+#+end_src

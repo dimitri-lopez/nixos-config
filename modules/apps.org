@@ -1,0 +1,679 @@
+#+title: Applications
+
+* Applications
+
+** mcp-nixos.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref mcp-nixos
+:END:
+#+begin_src nix :tangle ./modules/mcp-nixos.nix :noweb yes
+{ pkgs, inputs, ... }:
+
+{
+  <<mcp-nixos.packages>>
+}
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref mcp-nixos.packages
+  home.packages = [
+    inputs.mcp-nixos.packages.${pkgs.system}.default
+  ];
+#+end_src
+
+** python.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref python.nix
+:END:
+#+begin_src nix :tangle ./modules/python.nix :noweb yes
+{ config, lib, pkgs, ... }:
+
+let
+  <<python.nix-let>>
+in
+# let
+#   pytrends = import ./python-packages/pytrends.nix {
+#     lib = lib;
+#     python3 = pkgs.python312;
+#     fetchFromGitHub = pkgs.fetchFromGitHub;
+#   };
+# in
+{
+  <<python.nix.packages>>
+}
+#+end_src
+
+*** Python Package Imports
+#+begin_src nix :noweb-ref python.nix-let
+  epidatpy = import ./python-packages/epidatpy.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  epiweeks = import ./python-packages/epiweeks.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  tailestim = import ./python-packages/tailestim.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  powerlaw = import ./python-packages/powerlaw.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+  };
+  epydemix = import ./python-packages/epydemix.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+    fetchurl = pkgs.fetchurl;
+  };
+  evalidate = import ./python-packages/evalidate.nix {
+    lib = lib;
+    python3 = pkgs.python312;
+    fetchurl = pkgs.fetchurl;
+  };
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref python.nix.packages
+  home.packages = with pkgs; [
+    uv
+    (python312.withPackages (python3Packages: with python3Packages; [
+      jupyter
+      colour # personal
+      conda
+      numpy
+      sympy
+      pandas
+      scipy
+      matplotlib
+      seaborn
+      plotly
+      networkx
+      requests
+      markdownify
+      discordpy
+      folium
+      fastparquet
+      pyarrow
+      qrcode
+      opencv4
+      # brazil
+      geojson
+
+      # influenza forecasting
+      python-dotenv
+      epidatpy
+      epiweeks
+      us
+
+      # nXGF dependencies
+      jax
+      optax
+      blackjax
+      tqdm
+      joblib
+
+      #netsci 1 project
+      google-genai
+      scikit-learn
+      diskcache
+      graph-tool
+      geopandas
+      # stats project
+      statsmodels
+      
+      # network science 2 class
+      powerlaw
+      tailestim
+      epydemix
+
+      pyyaml
+      streamlit
+    ]))
+  ];
+#+end_src
+
+**** py5.nix
+:PROPERTIES:
+:header-args:nix: :tangle no
+:END:
+#+begin_src nix
+# ./modules/python-packages/py5.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+
+python3.pkgs.buildPythonApplication rec {
+  pname = "py5";
+  version = "5-1306-0027-0.10.7a0";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "py5coding";
+    repo = "py5";
+    rev = "py${version}";
+    hash = "sha256-m8w6rbPXrGBMBwDyt7YMYYhEHz3qgia0g9cuqGm6zig=";
+  };
+
+  build-system = [
+    python3.pkgs.hatchling
+  ];
+
+  dependencies = with python3.pkgs; [
+    autopep8
+    jpype1
+    line-profiler
+    numpy
+    pillow
+    # pyobjc
+    pywin32
+    requests
+    stackprinter
+  ];
+
+  optional-dependencies = with python3.pkgs; {
+    extras = [
+      colour
+      matplotlib
+      py5jupyter
+      shapely
+      trimesh
+    ];
+    jupyter = [
+      py5jupyter
+    ];
+  };
+
+  pythonImportsCheck = [
+    "py5"
+  ];
+
+  meta = {
+    description = "A Python library that makes Processing available to the CPython interpreter using JPype";
+    homepage = "https://github.com/py5coding/py5";
+    license = lib.licenses.lgpl21Only;
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "py5";
+  };
+}
+#+end_src
+
+**** pyobjc.nix
+:PROPERTIES:
+:header-args:nix: :tangle no
+:END:
+#+begin_src nix
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+}:
+
+stdenv.mkDerivation rec {
+  pname = "pyobjc";
+  version = "11.1";
+
+  src = fetchFromGitHub {
+    owner = "ronaldoussoren";
+    repo = "pyobjc";
+    rev = "v${version}";
+    hash = "sha256-vbw9F2CQRykP+042lTUL7hrJ2rVWnjk9JMKnUdPWTGQ=";
+  };
+
+  meta = {
+    description = "The Python <-> Objective-C Bridge with bindings for macOS frameworks";
+    homepage = "https://github.com/ronaldoussoren/pyobjc";
+    license = lib.licenses.unfree; # FIXME: nix-init did not find a license
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "pyobjc";
+    platforms = lib.platforms.all;
+  };
+}
+#+end_src
+
+**** pytrends.nix
+:PROPERTIES:
+:header-args:nix: :tangle no
+:END:
+#+begin_src nix
+{
+  lib,
+  python3,
+  fetchPypi,
+}:
+
+python3.pkgs.buildPythonApplication rec {
+  pname = "pytrends";
+  version = "4.9.2";
+  pyproject = true;
+
+  src = fetchPypi {
+    inherit pname version;
+    hash = "sha256-aRxuNrGuqkdU82kr260N/0RuUo/7BS7uLn8TmqosaYk=";
+  };
+
+  build-system = [
+    python3.pkgs.setuptools
+    python3.pkgs.setuptools-scm
+  ];
+
+  dependencies = with python3.pkgs; [
+    lxml
+    pandas
+    requests
+  ];
+
+  pythonImportsCheck = [
+    "pytrends"
+  ];
+
+  meta = {
+    description = "Pseudo API for Google Trends";
+    homepage = "https://pypi.org/project/pytrends/";
+    license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "pytrends";
+  };
+}
+#+end_src
+
+**** epidatpy.nix
+#+begin_src nix :tangle ./modules/python-packages/epidatpy.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+let
+  epiweeks = import ./epiweeks.nix { inherit lib python3 fetchFromGitHub; };
+in
+python3.pkgs.buildPythonPackage rec {
+  pname = "epidatpy";
+  version = "0.1.0";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "cmu-delphi";
+    repo = "epidatpy";
+    rev = "v${version}";
+    hash = "sha256-cQcCgX+pAYeTJ1Nev/VagXn7cCzsIdQqek/9nlVbWe8=";
+  };
+
+  build-system = [
+    python3.pkgs.setuptools
+    python3.pkgs.wheel
+  ];
+
+  propagatedBuildInputs = with python3.pkgs; [
+    appdirs
+    diskcache
+    epiweeks
+    pandas
+    requests
+    tenacity
+  ];
+
+  optional-dependencies = with python3.pkgs; {
+    dev = [
+      ipykernel
+      matplotlib
+      mypy
+      nbsphinx
+      pylint
+      pytest
+      recommonmark
+      ruff
+      sphinx
+      sphinx-autodoc-typehints
+      sphinx-rtd-theme
+      twine
+      types-requests
+    ];
+  };
+
+  pythonImportsCheck = [
+    "epidatpy"
+  ];
+
+  meta = {
+    description = "Delphi Epidata API Python Client";
+    homepage = "https://github.com/cmu-delphi/epidatpy";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ];
+  };
+}
+#+end_src
+
+#+begin_src nix :tangle ./modules/python-packages/epiweeks.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+
+python3.pkgs.buildPythonPackage rec {
+  pname = "epiweeks";
+  version = "2.4.0";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "dralshehri";
+    repo = "epiweeks";
+    rev = "v${version}";
+    hash = "sha256-ZcNOcyUN0YrJvU6vJ19rZHWfGZ1VHthR4maR8WVQXM0=";
+  };
+
+  build-system = [
+    python3.pkgs.hatch-fancy-pypi-readme
+    python3.pkgs.hatchling
+  ];
+
+  pythonImportsCheck = [
+    "epiweeks"
+  ];
+
+  meta = {
+    description = "Epidemiological weeks calculation based on CDC (MMWR) and ISO week numbering systems";
+    homepage = "https://github.com/dralshehri/epiweeks";
+    changelog = "https://github.com/dralshehri/epiweeks/blob/${src.rev}/CHANGELOG.md";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ];
+  };
+}
+#+end_src
+
+**** tailestim.nix
+#+begin_src nix :tangle ./modules/python-packages/tailestim.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+
+python3.pkgs.buildPythonPackage rec {
+  pname = "tailestim";
+  version = "0.6.0";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "mu373";
+    repo = "tailestim";
+    rev = "v${version}";
+    hash = "sha256-mPHM0ch/vFt+HuLTr9NDBSZ/bydOPYU+6W0+IIoztNA=";
+  };
+
+  build-system = [
+    python3.pkgs.hatchling
+  ];
+
+  dependencies = with python3.pkgs; [
+    matplotlib
+    numpy
+  ];
+
+  pythonImportsCheck = [
+    "tailestim"
+  ];
+
+  meta = {
+    description = "Estimate tail parameters of heavy-tailed distributions (including power law exponent gamma) in Python";
+    homepage = "https://github.com/mu373/tailestim";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "tailestim";
+  };
+}
+#+end_src
+
+**** powerlaw.nix
+#+begin_src nix :tangle ./modules/python-packages/powerlaw.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+}:
+
+python3.pkgs.buildPythonPackage rec {
+  pname = "powerlaw";
+  version = "2.0.0";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "jeffalstott";
+    repo = "powerlaw";
+    rev = "v${version}";
+    hash = "sha256-ZLpO1x8Uq+Yh6tD8v8xtjMT9Oq3njUc/7oaxisIp6Jw=";
+  };
+
+  build-system = [
+    python3.pkgs.setuptools
+    python3.pkgs.setuptools-scm
+    python3.pkgs.wheel
+  ];
+
+  dependencies = with python3.pkgs; [
+    matplotlib
+    mpmath
+    numpy
+    scipy
+    tqdm
+  ];
+
+  optional-dependencies = with python3.pkgs; {
+    docs = [
+      furo
+      numpydoc
+      sphinx-subfigure
+    ];
+  };
+
+  pythonImportsCheck = [
+    "powerlaw"
+  ];
+
+  meta = {
+    description = "";
+    homepage = "https://github.com/jeffalstott/powerlaw";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ];
+    mainProgram = "powerlaw";
+  };
+}
+#+end_src
+
+**** epydemix.nix
+#+begin_src nix :tangle ./modules/python-packages/epydemix.nix
+{
+  lib,
+  python3,
+  fetchFromGitHub,
+  fetchurl,
+}:
+let
+  evalidate = import ./evalidate.nix { inherit lib python3 fetchurl; };
+in
+python3.pkgs.buildPythonPackage rec {
+  pname = "epydemix";
+  version = "1.1.0";
+  pyproject = true;
+
+  src = fetchFromGitHub {
+    owner = "epistorm";
+    repo = "epydemix";
+    rev = "v${version}";
+    hash = "sha256-BFzL4MPfWhAfNIyCxFZ/UrgQKz3n0REWeYivLrBAj0E=";
+  };
+
+  build-system = [
+    python3.pkgs.setuptools
+    python3.pkgs.wheel
+  ];
+
+  propagatedBuildInputs = with python3.pkgs; [
+    evalidate
+    matplotlib
+    numpy
+    pandas
+    scipy
+    seaborn
+  ];
+
+  pythonImportsCheck = [
+    "epydemix"
+  ];
+
+  meta = {
+    description = "A Python package for epidemic modeling, simulation, and calibration";
+    homepage = "https://github.com/epistorm/epydemix";
+    license = lib.licenses.gpl3;
+    maintainers = with lib.maintainers; [ ];
+  };
+}
+#+end_src
+
+***** evalidate.nix
+#+begin_src nix :tangle ./modules/python-packages/evalidate.nix
+{
+  lib,
+  python3,
+  fetchurl,
+}:
+
+python3.pkgs.buildPythonPackage rec {
+  pname = "evalidate";
+  version = "2.1.4";
+
+  src = fetchurl {
+    url = "https://files.pythonhosted.org/packages/7a/a3/651a90aa0b4cc1dc3c7905de3a8f2173ecc6dfb997318f042957521d4e8a/evalidate-${version}-py3-none-any.whl";
+    hash = "sha256-4pUJjn9+6vHHfILzFRgO7xUigL2U9GTtouCTQl+X//s=";
+  };
+
+  format = "wheel";
+
+  pythonImportsCheck = [
+    "evalidate"
+  ];
+
+  meta = {
+    description = "Python library for evaluating expressions";
+    homepage = "https://github.com/gradefoot/evalidate";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ ];
+  };
+}
+#+end_src
+
+** minecraft.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref minecraft
+:END:
+#+begin_src nix :tangle ./modules/minecraft.nix :noweb yes
+{ config, lib, pkgs, ... }:
+
+{
+  <<minecraft.packages>>
+}
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref minecraft.packages
+  home.packages = with pkgs; [
+    # minecraft
+    # atlauncher
+    prismlauncher
+  ];
+#+end_src
+
+** droidux.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref droidux
+:END:
+#+begin_src nix :tangle ./modules/droidux.nix :noweb yes
+{ pkgs, ... }:
+
+{
+  <<droidux.packages>>
+
+  programs.bash = {
+    enable = true;
+    shellAliases = {
+      weylus-start = "weylus";
+      weylus-usb = "adb reverse tcp:1701 tcp:1701 && adb reverse tcp:9001 tcp:9001 && weylus";
+    };
+  };
+}
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref droidux.packages
+  home.packages = with pkgs; [
+    xournalpp
+    weylus
+    android-tools
+  ];
+#+end_src
+
+** itch.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref itch
+:END:
+#+begin_src nix :tangle ./modules/itch.nix :noweb yes
+{ config, lib, pkgs, ... }:
+
+{
+  <<itch.packages>>
+}
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref itch.packages
+  home.packages = with pkgs; [
+    # itch
+  ];
+#+end_src
+
+** watchy.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref watchy
+:END:
+#+begin_src nix :tangle ./modules/watchy.nix :noweb yes
+{ config, lib, pkgs, ... }:
+
+{
+  <<watchy.packages>>
+}
+#+end_src
+
+*** Packages
+#+begin_src nix :noweb-ref watchy.packages
+  home.packages = with pkgs; [
+    esptool
+    platformio
+    arduino
+
+    vscode-fhs
+    docker
+    docker-buildx
+  ];
+#+end_src
+
+** noctalia.nix
+#+begin_src nix :tangle ./modules/noctalia.nix
+{ config, pkgs, lib, settingsFile, ... }:
+let
+  settings = builtins.fromJSON (builtins.readFile settingsFile);
+in
+{
+  programs.noctalia-shell = {
+    enable = true;
+    inherit settings;
+  };
+}
+#+end_src

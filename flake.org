@@ -1,28 +1,14 @@
+#+title: Flake Configuration
+
+* flake.nix
+:PROPERTIES:
+:header-args:nix: :noweb-ref flake.nix
+:END:
+** Flake.nix main
+#+begin_src nix :tangle flake.nix :noweb-ref flake.nix-setup :noweb yes
 {
   description = "dimitril's flake";
-  inputs = {
-    nixpkgs.url = "nixpkgs/nixos-25.05";
-    home-manager.url = "github:nix-community/home-manager/release-25.05";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-  
-    opencode.url = "github:AodhanHayter/opencode-flake";
-    driftwm = {
-      url = "github:malbiruk/driftwm";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
-    nixpkgs-unstable = {
-      url = "github:NixOS/nixpkgs/nixos-unstable";
-    };
-  
-    mcp-nixos = {
-      url = "github:utensils/mcp-nixos";
-    };
-  
-    noctalia = {
-      url = "github:noctalia-dev/noctalia-shell";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
-  };
+  <<flake.nix--inputs>>
 
   nixConfig = {
     extra-substituters = [ "https://noctalia.cachix.org" ];
@@ -34,18 +20,8 @@
       system = "x86_64-linux";
       lib = nixpkgs.lib;
       pkgs = nixpkgs.legacyPackages.${system};
-      userSettings = {
-        username = "dimitril";
-        name = "Dimitri";
-        email = "dimitrilopez01@gmail.com";
-        dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
-        # Options: "xfce", "driftwm" - desktop modules auto-loaded in flake.nix
-        wm = "driftwm";
-      };
-      systemSettings = {
-        system = "x86_64-linux"; # system arch
-        hostname = "dimitril-hostname";   # hostname
-      };
+      <<userSettings>>
+      <<systemSettings>>
 
       selectedDesktop = {
         xfce = {
@@ -81,3 +57,30 @@
       };
     };
 }
+#+end_src
+** Flake inputs
+#+begin_src nix :noweb-ref flake.nix--inputs
+  inputs = {
+    nixpkgs.url = "nixpkgs/nixos-25.05";
+    home-manager.url = "github:nix-community/home-manager/release-25.05";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    opencode.url = "github:AodhanHayter/opencode-flake";
+    driftwm = {
+      url = "github:malbiruk/driftwm";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+    nixpkgs-unstable = {
+      url = "github:NixOS/nixpkgs/nixos-unstable";
+    };
+
+    mcp-nixos = {
+      url = "github:utensils/mcp-nixos";
+    };
+
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+  };
+#+end_src

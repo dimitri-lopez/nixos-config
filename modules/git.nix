@@ -6,7 +6,8 @@
     pkgs.git-lfs
     pkgs.git-credential-manager
     pkgs.gh
-                  ];
+  ];
+
   programs.git.enable = true;
   programs.git.userName = userSettings.name;
   programs.git.userEmail = userSettings.email;

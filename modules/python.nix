@@ -65,20 +65,20 @@ in
       opencv4
       # brazil
       geojson
-
+  
       # influenza forecasting
       python-dotenv
       epidatpy
       epiweeks
       us
-
+  
       # nXGF dependencies
       jax
       optax
       blackjax
       tqdm
       joblib
-
+  
       #netsci 1 project
       google-genai
       scikit-learn
@@ -87,12 +87,12 @@ in
       geopandas
       # stats project
       statsmodels
-      
+        
       # network science 2 class
       powerlaw
       tailestim
       epydemix
-
+  
       pyyaml
       streamlit
     ]))
