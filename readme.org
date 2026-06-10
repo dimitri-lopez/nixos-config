@@ -19,6 +19,14 @@ See my [[install.org]] for installation instructions.
 
 This build in particular feels very snappy. Way snappier than what I was using in xfce. Though I haven't figured out to how to get it within the gui.
 GNU Emacs 30.2 (build 1, x86_64-pc-linux-gnu, GTK+ Version 3.24.49, cairo version 1.18.2)
+** Update a specific package
+#+begin_src bash
+cd ~/.dotfiles
+nix flake lock --update-input driftwm
+home-manager switch --flake .
+#+end_src
+
+
 ** Boox tablet (Weylus - recommended)
 Weylus works better with Boox over WiFi. Install on Boox from Play Store or F-Droid.
 
