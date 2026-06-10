@@ -303,7 +303,7 @@ let
   '';
 in
 {
-  imports = [ inputs.noctalia.homeModules.default (import ../../modules/noctalia.nix { inherit config pkgs lib; settingsFile = ./noctalia.json; }) ../../modules/btop.nix ];
+  imports = [ ../../modules/btop.nix ];
   home.activation.checkDriftwmConfig = lib.hm.dag.entryBefore ["copyDriftwmConfig"] ''
     ${driftwmPkg}/bin/driftwm --config ${driftwmConfig} --check-config || true
   '';
@@ -322,7 +322,6 @@ in
     wlrctl
     alacritty
     grim
-    slurp
     ffmpeg
     vorta
     polkit_gnome

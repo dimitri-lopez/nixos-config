@@ -1,0 +1,145 @@
+#+TITLE: Add driftwm-dev flake input for local development
+#+DATE: 2026-05-14
+#+STATUS: pending
+
+* Goal
+
+Add a separate =driftwm-dev= flake input pointing to the local repo at
+=/mnt/data/driftwm=, with a =userSettings.driftwmSource= toggle to switch
+between stable (GitHub fetch) and dev (local build).
+
+* Files to modify
+
+All changes go into =readme.org= then tangle to the corresponding =.nix= files:
+
+| readme.org block            | Tangles to                        | Change type |
+|-----------------------------|-----------------------------------|-------------|
+| flake inputs                | flake.nix                         | Add input   |
+| userSettings                | flake.nix                         | Add field   |
+| flake let bindings          | flake.nix                         | Add alias   |
+| specialArgs / extraSpecialArgs | flake.nix                      | Add arg     |
+| system module               | system/driftwm.nix                | Use arg     |
+| sample home module          | rices/driftwm-sample/home.nix     | Use arg     |
+| driftwm home module         | modules/driftwm-home.nix          | Use arg     |
+
+* Detailed changes
+
+** 1. Add =driftwm-dev= flake input
+
+In the =inputs= block of =readme.org='s flake.nix section, add after the existing
+=driftwm= input:
+
+#+begin_src nix :tangle ./flake.nix
+driftwm = {
+  url = "github:malbiruk/driftwm";
+  inputs.nixpkgs.follows = "nixpkgs-unstable";
+};
+driftwm-dev = {
+  url = "git+file:///mnt/data/driftwm";
+  inputs.nixpkgs.follows = "nixpkgs-unstable";
+};
+#+end_src
+
+** 2. Add =driftwmSource= to userSettings
+
+#+begin_src nix :tangle ./flake.nix
+userSettings = {
+  # ... existing fields ...
+  # Options: "stable" (GitHub), "dev" (local repo)
+  driftwmSource = "stable";
+};
+#+end_src
+
+** 3. Add =driftwmPkg= selector in let block
+
+After the =selectedDesktop= definition (or adjacent to it):
+
+#+begin_src nix :tangle ./flake.nix
+driftwmPkg = if userSettings.driftwmSource == "dev"
+  then inputs.driftwm-dev.packages.${system}.default
+  else inputs.driftwm.packages.${system}.default;
+#+end_src
+
+** 4. Pass =driftwmPkg= in specialArgs
+
+In the output definitions:
+
+#+begin_src nix :tangle ./flake.nix
+nixosConfigurations = {
+  nixos = lib.nixosSystem {
+    inherit system;
+    modules = [ ./configuration.nix ] ++ selectedDesktop.system;
+    specialArgs = { inherit inputs driftwmPkg; };
+  };
+};
+homeConfigurations = {
+  "dimitril" = home-manager.lib.homeManagerConfiguration {
+    inherit pkgs;
+    modules = [ ./home.nix ] ++ selectedDesktop.home;
+    extraSpecialArgs = {
+      inherit userSettings;
+      inherit inputs;
+      inherit driftwmPkg;
+    };
+  };
+};
+#+end_src
+
+** 5. Update =system/driftwm.nix=
+
+Add =driftwmPkg= to module args and replace the inline expression:
+
+#+begin_src nix :tangle ./system/driftwm.nix
+{ config, pkgs, inputs, driftwmPkg, ... }:
+#+end_src
+
+Line 23 changes from:
+#+begin_src nix
+binPath = "${pkgs.writeShellScript "driftwm-uwsm-wrapper" "exec ${inputs.driftwm.packages.${pkgs.stdenv.system}.default}/bin/driftwm start"}";
+#+end_src
+to:
+#+begin_src nix
+binPath = "${pkgs.writeShellScript "driftwm-uwsm-wrapper" "exec ${driftwmPkg}/bin/driftwm start"}";
+#+end_src
+
+** 6. Update =rices/driftwm-sample/home.nix=
+
+Add =driftwmPkg= to module args and remove the local =let= binding.
+
+Current module header:
+#+begin_src nix
+{ config, pkgs, inputs, lib, ... }:
+
+let
+  driftwmPkg = inputs.driftwm.packages.${pkgs.stdenv.system}.default;
+#+end_src
+
+New:
+#+begin_src nix
+{ config, pkgs, inputs, lib, driftwmPkg, ... }:
+#+end_src
+
+Remove the =let driftwmPkg = ...;= line. All references to =driftwmPkg= in the
+file body continue to work since it's now an injected arg.
+
+** 7. Update =modules/driftwm-home.nix= (optional)
+
+Only needed if you ever switch WM to =driftwm= (non-sample). Same pattern as
+step 6.
+
+* Switching between sources
+
+#+begin_src bash
+# 1. Edit readme.org — toggle userSettings.driftwmSource
+# 2. Tangle
+doom +org tangle ~/.dotfiles/readme.org
+
+# 3. Rebuild
+home-manager switch --flake .
+# For system changes too:
+sudo nixos-rebuild switch --flake .
+#+end_src
+
+When =driftwmSource = "stable"=, uses the GitHub fetch from flake.lock (pinned,
+reproducible).
+When =driftwmSource = "dev"=, builds from the local repo on every rebuild.

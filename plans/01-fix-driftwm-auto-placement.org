@@ -1,0 +1,86 @@
+#+TITLE: Fix driftwm auto-placement with noctalia-shell launcher
+#+DATE: 2026-05-14
+#+STATUS: pending
+
+* Problem
+
+When opening a new program via the noctalia-shell app picker, `window_placement =
+"auto"` does not work — the new window lands on top of the previous window
+instead of being snap-placed adjacent to its cluster.
+
+* Root Cause
+
+The noctalia-shell launcher is a **WlrLayershell** surface (not an xdg-toplevel)
+with =WlrKeyboardFocus.Exclusive=.  When the user selects an app:
+
+1. The launcher's layer-shell has exclusive keyboard focus.
+2. Driftwm's ~new_toplevel~ handler snapshots the current keyboard focus for use
+   as the auto-placement anchor anchor.
+3. ~keyboard.current_focus()~ returns the launcher's layer surface.
+4. ~window_for_surface()~ only searches ~space.elements()~ (xdg-toplevels) →
+   returns ~None~.
+5. ~auto_anchor_snapshot[new_app] = None~.
+6. ~auto_placement_pos~ returns ~None~ → falls back to viewport center.
+7. New window lands at center, overlapping the user's previous window.
+
+The ~focus_history~ already correctly tracks the last xdg-toplevel window (it
+skips layer-shell surfaces via ~update_focus_history~), but is never consulted.
+
+* Fix
+
+** File: =src/handlers/xdg_shell.rs=, lines 56-61
+
+Current code:
+
+#+begin_src rust
+let keyboard = self.seat.get_keyboard().unwrap();
+let prev_focus_window = keyboard
+    .current_focus()
+    .and_then(|t| self.window_for_surface(&t.0));
+self.auto_anchor_snapshot
+    .insert(wl_surface.clone(), prev_focus_window);
+#+end_src
+
+Replacement:
+
+#+begin_src rust
+let keyboard = self.seat.get_keyboard().unwrap();
+let current_focus = keyboard.current_focus();
+let prev_focus_window = current_focus
+    .as_ref()
+    .and_then(|t| self.window_for_surface(&t.0))
+    .or_else(|| {
+        // Non-xdg-toplevel (e.g. layer-shell launcher) has keyboard focus.
+        // Fall back to the last xdg-toplevel from focus_history.
+        // If current_focus is None (user clicked empty canvas), keep None.
+        current_focus.as_ref()?;
+        self.focus_history.first().cloned()
+    });
+self.auto_anchor_snapshot
+    .insert(wl_surface.clone(), prev_focus_window);
+#+end_src
+
+** Rationale
+
+- =current_focus.as_ref()?= guards the original contract: ~None~ means "user
+  clicked empty canvas" → centre placement preserved.
+- When a non-xdg-toplevel has focus (layer-shell launcher), falls through to
+  ~focus_history.first()~ which holds the last xdg-toplevel window (the one
+  before the launcher took focus).
+- When an xdg-toplevel has focus, behaviour is unchanged.
+
+** To verify
+
+1. Build driftwm from local repo with this change.
+2. Launch an app from the noctalia-shell launcher.
+3. Observe it snap-place adjacent to the previous window's cluster.
+
+* Related files
+
+| File | Purpose |
+|------|---------|
+| src/handlers/xdg_shell.rs | ~new_toplevel~ — snapshot capture |
+| src/handlers/compositor.rs | ~auto_anchor_snapshot~ cleanup |
+| src/state/mod.rs | ~auto_placement_pos~ — reads the snapshot |
+| src/state/mod.rs | ~focus_history~ — already correct, just unused |
+| src/state/navigation.rs | ~update_focus_history~ — skips layer-shell surfaces |

@@ -1,0 +1,11 @@
+#+title: Boox Palma
+
+- pkg install gnupg
+- :/data/data/org.gnu.emacs/files $ pkg install curl wget fontconfig                                                                           
+
+  (nerd-icons-install-fonts)
+  pkg install npm
+ copilot-install-server 
+
+- reconf
+  pdf-tools-install
