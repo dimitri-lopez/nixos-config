@@ -6,7 +6,7 @@
 #   ./sync.sh --full -> home-manager + nixos-rebuild (requires sudo)
 #
 # Unlocks .nix files, tangles org sources, regenerates manifest, syncs noctalia,
-# rebuilds, then re-locks .nix files (source of truth is .org).
+# syncs driftwm config, rebuilds, then re-locks .nix files (source of truth is .org).
 
 cd ~/.dotfiles || exit 1
 
@@ -37,7 +37,12 @@ if [ -x ~/.local/bin/sync-noctalia ]; then
     ~/.local/bin/sync-noctalia
 fi
 
-# 5. Rebuild
+# 5. Sync driftwm config from local back into repo
+if [ -x modules/driftwm/sync-config.sh ]; then
+    ./modules/driftwm/sync-config.sh
+fi
+
+# 6. Rebuild
 if [ -n "$FULL_REBUILD" ]; then
     echo "Running full rebuild: home-manager + nixos-rebuild..."
     home-manager switch --flake .
@@ -49,5 +54,5 @@ else
     echo "Home sync complete."
 fi
 
-# 6. Lock .nix files (source of truth is .org)
+# 7. Lock .nix files (source of truth is .org)
 find . -name "*.nix" ! -name "hardware-configuration.nix" -exec chmod 444 {} +

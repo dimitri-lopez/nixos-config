@@ -28,11 +28,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781042028,
-        "narHash": "sha256-on9IDeT9mEjn/6dLrXBeyfWWER3hihKk0C78S9eUJPw=",
+        "lastModified": 1781646102,
+        "narHash": "sha256-wpUFr/cyuMVSM4EVe2v6oXy1VTm9ogk4Q678e1ndSHE=",
         "owner": "malbiruk",
         "repo": "driftwm",
-        "rev": "6b17c39478f567596e8d4a6d721c995092112385",
+        "rev": "4fb90eb37b6c418a617682950af73cbd734be1ea",
         "type": "github"
       },
       "original": {
@@ -133,11 +133,11 @@
     },
     "nixpkgs-unstable": {
       "locked": {
-        "lastModified": 1780749050,
-        "narHash": "sha256-3av0pIjlOWQ6rDbNOmpUSvbNnJkGORQKKjb4LtCZsIY=",
+        "lastModified": 1781577229,
+        "narHash": "sha256-lrp67w8AulE9Ks53n27I45ADSzbOCn4H+CNW1Ck8B+8=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "a799d3e3886da994fa307f817a6bc705ae538eeb",
+        "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
         "type": "github"
       },
       "original": {
@@ -185,11 +185,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781108032,
-        "narHash": "sha256-fb6w7nhSN7RYsDzcSwZiloVc8V6ZlGcL1S7fRE3O3vw=",
+        "lastModified": 1781793161,
+        "narHash": "sha256-pKDbrGfaEYVc8UF3KjOV453DCxITa2K+XDV7cWjKd2o=",
         "owner": "noctalia-dev",
         "repo": "noctalia-shell",
-        "rev": "d967ed5f5484e57866350106be8bfe3b50f90cfd",
+        "rev": "44d74a6dffcc57999963f4322a47febd167c4a92",
         "type": "github"
       },
       "original": {

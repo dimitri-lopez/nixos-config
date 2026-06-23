@@ -2,15 +2,15 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
+  [ # Include the results of the hardware scan.
+    ./hardware-configuration.nix
   
-      ./modules/kanata.nix
-      ./modules/steam.nix
-      ./system/bluetooth.nix
-      ./system/pipewire.nix
-      ./system/syncthing.nix
-    ];
+    ./modules/kanata.nix
+    ./modules/steam.nix
+    ./system/bluetooth.nix
+    ./system/pipewire.nix
+    ./system/syncthing.nix
+  ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -110,6 +110,33 @@
     #  thunderbird
     ];
   };
+  # Install firefox.
+  programs.firefox.enable = true;
+  
+  # Enable nix-ld for dynamically linked executables
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    stdenv.cc.cc
+    zlib
+    fuse3
+    icu
+    nss
+    openssl
+    curl
+    expat
+  ];
+  
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.permittedInsecurePackages = [
+    "python3.12-ecdsa-0.19.1"
+  ];
+  
+  # List packages installed in system profile. To search, run:
+  # $ nix search wget
+  environment.systemPackages = with pkgs; [
+    syncthing
+  ];
   system.autoUpgrade.enable = true;
   system.autoUpgrade.dates = "weekly";
   nix.gc.automatic = true;

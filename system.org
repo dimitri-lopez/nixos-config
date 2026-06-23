@@ -153,7 +153,7 @@ users.users.dimitril = {
 #+end_src
 
 ** System Packages
-#+begin_src nix :noweb-ref system.packages
+#+begin_src nix
 # Install firefox.
 programs.firefox.enable = true;
 

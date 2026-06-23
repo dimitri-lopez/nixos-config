@@ -87,6 +87,13 @@
       ],
       "description": "Generates 2 file(s)"
     },
+    "plans/02-nix-driftwm-dev-input.org": {
+      "generates": [
+        "./flake.nix",
+        "./system/driftwm.nix"
+      ],
+      "description": "Generates 2 file(s)"
+    },
     "readme.org": {
       "generates": [],
       "description": "Master config, flake.nix, includes"

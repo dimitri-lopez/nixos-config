@@ -35,16 +35,16 @@
       lib = nixpkgs.lib;
       pkgs = nixpkgs.legacyPackages.${system};
       userSettings = {
-        username = "dimitril";
-        name = "Dimitri";
-        email = "dimitrilopez01@gmail.com";
-        dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
-        # Options: "xfce", "driftwm" - desktop modules auto-loaded in flake.nix
-        wm = "driftwm";
+      username = "dimitril";
+      name = "Dimitri";
+      email = "dimitrilopez01@gmail.com";
+      dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
+      # Options: "xfce", "driftwm" - desktop modules auto-loaded in flake.nix
+      wm = "driftwm";
       };
       systemSettings = {
-        system = "x86_64-linux"; # system arch
-        hostname = "dimitril-hostname";   # hostname
+      system = "x86_64-linux"; # system arch
+      hostname = "dimitril-hostname";   # hostname
       };
 
       selectedDesktop = {

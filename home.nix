@@ -2,17 +2,17 @@
 
 {
 imports = [
-  ./modules/common.nix
-  ./modules/git.nix
-  ./modules/phd.nix
-  ./modules/python.nix
-  ./modules/sh.nix
-  ./modules/scripting.nix
-  ./modules/emacs.nix
-  ./modules/brave.nix
-  ./modules/minecraft.nix
-  ./modules/watchy.nix
-  ./modules/mcp-nixos.nix
+./modules/common.nix
+./modules/git.nix
+./modules/phd.nix
+./modules/python.nix
+./modules/sh.nix
+./modules/scripting.nix
+./modules/emacs.nix
+./modules/brave.nix
+./modules/minecraft.nix
+./modules/watchy.nix
+./modules/mcp-nixos.nix
 ];
 # Home Manager needs a bit of information about you and the paths it should
 # manage.

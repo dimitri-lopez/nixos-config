@@ -59,7 +59,7 @@ NixOS/home-manager dotfiles with literate programming from multiple `.org` files
 | `modules/python-packages/*.nix` | Custom Python packages built from source |
 | `modules/npm-packages/*.nix` | Custom npm packages built from source |
 | `modules/xfce/` | XFCE desktop environment home + system modules |
-| `modules/driftwm/` | DriftWM compositor config, noctalia.json, assets |
+| `modules/driftwm/` | DriftWM compositor config, noctalia.toml, assets |
 | `modules/noctalia.nix` | Reusable Noctalia shell component |
 | `system/*.nix` | System-level NixOS modules (loaded into `configuration.nix`) |
 | `graveyard/` | Archived dead modules (not built) |
