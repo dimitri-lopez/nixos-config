@@ -45,6 +45,8 @@ in
     xfce.thunar
     xdg-desktop-portal
     xdg-desktop-portal-wlr
+    slurp
+      
   ];
   home.file = {
     ".local/share/icons/elementary-pastel/index.theme".text = ''

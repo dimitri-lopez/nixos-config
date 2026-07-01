@@ -131,6 +131,8 @@ It is deployed via ~pkgs.substituteAll~ so that @polkit_gnome@ is replaced with 
     xfce.thunar
     xdg-desktop-portal
     xdg-desktop-portal-wlr
+    slurp
+    
   ];
 #+end_src
 
