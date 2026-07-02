@@ -114,7 +114,6 @@ It is deployed via ~pkgs.substituteAll~ so that @polkit_gnome@ is replaced with 
     alacritty
     grim
     ffmpeg
-    vorta
     polkit_gnome
     elementary-xfce-icon-theme
     everforest-gtk-theme

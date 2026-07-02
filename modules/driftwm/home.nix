@@ -28,7 +28,6 @@ in
     alacritty
     grim
     ffmpeg
-    vorta
     polkit_gnome
     elementary-xfce-icon-theme
     everforest-gtk-theme

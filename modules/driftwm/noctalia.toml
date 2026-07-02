@@ -1,26 +1,10 @@
 [bar.default]
 auto_hide = true
-end = [
-    "media",
-    "tray",
-    "notifications",
-    "clipboard",
-    "network",
-    "bluetooth",
-    "volume",
-    "battery",
-    "control-center",
-    "session"
-]
 position = "right"
 reserve_space = false
-scale = 1.350000012665987
-start = [ "launcher" ]
-thickness = 63
-widget_spacing = 12
-
-[desktop_widgets]
-enabled = false
+scale = 1.5000000149011612
+start = [ "launcher", "caffeine", "cpu", "ram" ]
+thickness = 46
 
 [location]
 auto_locate = true
@@ -28,23 +12,23 @@ auto_locate = true
 [lockscreen_widgets]
 enabled = false
 schema_version = 2
-widget_order = [ "lockscreen-login-box@HDMI-A-1", "lockscreen-login-box@eDP-1" ]
+widget_order = [ "lockscreen-login-box@eDP-1" ]
 
     [lockscreen_widgets.grid]
     cell_size = 16
     major_interval = 4
     visible = true
 
-    [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1"]
+    [lockscreen_widgets.widget."lockscreen-login-box@eDP-1"]
     box_height = 70.0
     box_width = 400.0
     cx = 960.0
-    cy = 961.0
-    output = "HDMI-A-1"
+    cy = 1081.0
+    output = "eDP-1"
     rotation = 0.0
     type = "login_box"
 
-        [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1".settings]
+        [lockscreen_widgets.widget."lockscreen-login-box@eDP-1".settings]
         background_color = "surface_variant"
         background_opacity = 0.88
         background_radius = 12.0
@@ -52,66 +36,20 @@ widget_order = [ "lockscreen-login-box@HDMI-A-1", "lockscreen-login-box@eDP-1" ]
         input_radius = 6.0
         show_login_button = true
 
-    [lockscreen_widgets.widget."lockscreen-login-box@eDP-1"]
-    box_height = 70.0
-    box_width = 400.0
-    cx = 960.0
-    cy = 957.0
-    output = "eDP-1"
-    rotation = 0.0
-    type = "login_box"
-
-        [lockscreen_widgets.widget."lockscreen-login-box@eDP-1".settings]
-        show_login_button = true
-
 [nightlight]
 enabled = true
 force = true
 
 [shell]
-screen_time_enabled = true
-ui_scale = 1.350000012665987
+settings_show_advanced = true
+telemetry_enabled = true
+ui_scale = 1.300000011920929
 
-    [[shell.session.actions]]
-    action = "lock"
-    enabled = true
-    shortcut = "1"
-    variant = "default"
+[theme]
+builtin = "Nord"
 
-    [[shell.session.actions]]
-    action = "logout"
-    enabled = true
-    shortcut = "2"
-    variant = "default"
+[widget.control-center]
+glyph = "settings-cog"
 
-    [[shell.session.actions]]
-    action = "lock_and_suspend"
-    enabled = true
-    shortcut = "3"
-    variant = "default"
-
-    [[shell.session.actions]]
-    action = "reboot"
-    enabled = true
-    shortcut = "4"
-    variant = "default"
-
-    [[shell.session.actions]]
-    action = "shutdown"
-    enabled = true
-    shortcut = "5"
-    variant = "destructive"
-
-    [[shell.session.actions]]
-    action = "command"
-    command = "systemctl hibernate"
-    enabled = true
-    label = "Hibernate"
-    variant = "default"
-
-[theme.templates]
-builtin_ids = [ "alacritty", "btop", "emacs" ]
-community_ids = [ "steam" ]
-
-[weather]
-unit = "imperial"
+[widget.ram]
+stat = "ram_pct"

@@ -117,7 +117,7 @@ corner_radius = 5
 # ── Effects ───────────────────────────────────────────────────────
 
 [effects]
-blur_radius = 8
+blur_radius = 3
 blur_strength = 0.5
 
 
@@ -138,6 +138,7 @@ color = "#2A2829"
 
 [background]
 cache_shader = true
+
 # type = "wallpaper" # — image tiled across the canvas
 type = "shader" 
 # type = "wallpaper"  # also tile
