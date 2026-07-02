@@ -10,6 +10,7 @@
     ./system/bluetooth.nix
     ./system/pipewire.nix
     ./system/syncthing.nix
+    ./system/remote.nix
   ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;

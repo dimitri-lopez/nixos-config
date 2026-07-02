@@ -402,3 +402,29 @@ nix.settings.trusted-users = [ "root" "dimitril" ];
 }
 #+end_src
 
+** remote.nix — SSH + Tailscale for mobile access (Conduit)
+Conduit (gwitko/Conduit) is the phone-side Flutter SSH/Mosh/SFTP client.
+This module enables the server side: OpenSSH for secure shell access and
+Tailscale for a zero-config mesh VPN, so Conduit can reach this machine
+from anywhere (LAN or remote) using the Tailscale IP or MagicDNS name.
+Password auth is disabled; use SSH keys (Conduit can generate ed25519 keys
+on-device and you add the public key to authorized_keys).
+
+#+begin_src nix :tangle ./system/remote.nix
+{ config, pkgs, ... }:
+
+{
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      PermitRootLogin = "no";
+    };
+  };
+
+  services.tailscale.enable = true;
+
+  networking.firewall.allowedTCPPorts = [ 22 ];
+}
+#+end_src
+
