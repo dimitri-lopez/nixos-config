@@ -1,10 +1,29 @@
 [bar.default]
 auto_hide = true
+end = [
+    "media",
+    "tray",
+    "notifications",
+    "clipboard",
+    "network",
+    "bluetooth",
+    "volume",
+    "battery",
+    "control-center",
+    "session"
+]
 position = "right"
 reserve_space = false
 scale = 1.350000012665987
+start = [ "launcher" ]
 thickness = 63
 widget_spacing = 12
+
+[desktop_widgets]
+enabled = false
+
+[location]
+auto_locate = true
 
 [lockscreen_widgets]
 enabled = false
@@ -45,8 +64,54 @@ widget_order = [ "lockscreen-login-box@HDMI-A-1", "lockscreen-login-box@eDP-1" ]
         [lockscreen_widgets.widget."lockscreen-login-box@eDP-1".settings]
         show_login_button = true
 
+[nightlight]
+enabled = true
+force = true
+
 [shell]
+screen_time_enabled = true
 ui_scale = 1.350000012665987
 
-[theme]
-builtin = "Nord"
+    [[shell.session.actions]]
+    action = "lock"
+    enabled = true
+    shortcut = "1"
+    variant = "default"
+
+    [[shell.session.actions]]
+    action = "logout"
+    enabled = true
+    shortcut = "2"
+    variant = "default"
+
+    [[shell.session.actions]]
+    action = "lock_and_suspend"
+    enabled = true
+    shortcut = "3"
+    variant = "default"
+
+    [[shell.session.actions]]
+    action = "reboot"
+    enabled = true
+    shortcut = "4"
+    variant = "default"
+
+    [[shell.session.actions]]
+    action = "shutdown"
+    enabled = true
+    shortcut = "5"
+    variant = "destructive"
+
+    [[shell.session.actions]]
+    action = "command"
+    command = "systemctl hibernate"
+    enabled = true
+    label = "Hibernate"
+    variant = "default"
+
+[theme.templates]
+builtin_ids = [ "alacritty", "btop", "emacs" ]
+community_ids = [ "steam" ]
+
+[weather]
+unit = "imperial"
