@@ -1,11 +1,16 @@
 { config, lib, pkgs, inputs, ... }:
 
 let
+  unstable = import inputs.nixpkgs-unstable {
+    inherit (pkgs) system;
+    config.allowUnfree = true;
+  };
   opencodeConfig = {
     "$schema" = "https://opencode.ai/config.json";
-    mcpServers = {
+    mcp = {
       nixos = {
-        command = "mcp-nixos";
+        type = "local";
+        command = ["mcp-nixos"];
       };
     };
     provider = {
@@ -45,7 +50,7 @@ let
 in
 {
   home.packages = [
-    inputs.opencode.packages.${pkgs.system}.default
+    unstable.opencode
   ];
   xdg.configFile."opencode/opencode.json" = {
     text = builtins.toJSON opencodeConfig;
