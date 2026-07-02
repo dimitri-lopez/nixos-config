@@ -63,6 +63,12 @@
       ],
       "description": "Generates 2 file(s)"
     },
+    "modules/llms.org": {
+      "generates": [
+        "./modules/llms.nix"
+      ],
+      "description": "Generates 1 file(s)"
+    },
     "modules/emacs.org": {
       "generates": [
         "./modules/emacs.nix",
