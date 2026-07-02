@@ -26,7 +26,6 @@ autostart = [
     "@polkit_gnome@/libexec/polkit-gnome-authentication-agent-1",
     "vorta -d",
     "DISPLAY=\"\" dropbox start",
-    "syncthing --no-browser",
     "dl-restart-emacs-daemon",
     # "/home/dimitril/.local/share/driftwm-sample/scripts/battery_notify.sh",
     "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 330 '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh' timeout 600 'systemctl suspend' before-sleep '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh'",

@@ -237,9 +237,9 @@ Syncthing runs as a **system-level NixOS service** (`services.syncthing`) with d
 - Devices and folder IDs in `system/syncthing.nix` may need updating if device IDs change
 
 **Autostart:**
-- `modules/driftwm/config.toml` — `syncthing --no-browser` added to the `autostart` array
-- `modules/core.org` — `common-autostart` script also has `syncthing --no-browser` for X11 sessions
-- These are fallbacks; the system service should handle it. If both run, the second instance will conflict.
+- `modules/driftwm/config.toml` — removed from autostart; the system service handles it
+- `modules/core.org` — `common-autostart` script has `syncthing --no-browser` for X11 sessions
+- The system service is the primary mechanism. User-level autostart would create a separate instance on conflicting ports.
 
 ## Reference
 See loaded `nixos-config` skill for detailed guidance.
