@@ -7,8 +7,6 @@
     user = "dimitril";
     overrideDevices = true;
     overrideFolders = true;
-    key = "";
-    cert = "";
     settings = {
       gui = {
         user = "username";

@@ -25,6 +25,8 @@ autostart = [
     # "wl-paste --type image --watch cliphist store",
     "@polkit_gnome@/libexec/polkit-gnome-authentication-agent-1",
     "vorta -d",
+    "DISPLAY=\"\" dropbox start",
+    "syncthing --no-browser",
     "dl-restart-emacs-daemon",
     # "/home/dimitril/.local/share/driftwm-sample/scripts/battery_notify.sh",
     "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 330 '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh' timeout 600 'systemctl suspend' before-sleep '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh'",
@@ -138,13 +140,16 @@ color = "#2A2829"
 [background]
 
 # type = "wallpaper" # — image tiled across the canvas
-# type = "shader" 
-type = "wallpaper"  # also tile
+type = "shader" 
+# type = "wallpaper"  # also tile
+# path = "/home/dimitril/src/driftwm/extras/wallpapers/animated/fast_smoke.glsl"
+# path = "/home/dimitril/src/driftwm/extras/wallpapers/animated/dense_clouds.glsl"
+path = "/home/dimitril/src/driftwm/extras/wallpapers/static/dark_sea.glsl"
 # path = "/mnt/data/driftwm/extras/wallpapers/static/dark_sea.glsl"
 # path = "/mnt/data/Downloads/download.jpeg"
 # path = "/home/dimitril/Dropbox/wallpapers/blush.jpg"
 # path = "/home/dimitril/Dropbox/wallpapers/malachite.jpg"
-path = "/home/dimitril/Dropbox/wallpapers/black_1x1.png"
+# path = "/home/dimitril/Dropbox/wallpapers/black_1x1.png"
 # path = "/home/dimitril/Dropbox/wallpapers/turbulent2.jpg"
 
 # ── XWayland ──────────────────────────────────────────────────────
@@ -300,8 +305,8 @@ pinch_out_threshold = 1.01
 "super+escape" = "exec alacritty -e btop"
 "super+return" = "exec alacritty"
 "super+e" = "exec emacsclient -c"
-"super+c" = "exec brave"
-"alt+e" = "exec emacsclient -c"
+"super+c" = "spawn brave"
+"alt+e" = "spawn emacsclient -c"
 
 # ── Output configs ────────────────────────────────────────────────
 

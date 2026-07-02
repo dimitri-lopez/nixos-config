@@ -1,9 +1,15 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
+let
+  unstable = import inputs.nixpkgs-unstable {
+    inherit (pkgs) system;
+    config.allowUnfree = true;
+  };
+in
 {
   # Packages that work across all desktop environments
   home.packages = with pkgs; [
-    dropbox
+    unstable.dropbox
     syncthing
     vim
     htop
@@ -35,13 +41,13 @@
   case "$XDG_SESSION_TYPE" in
     x11)
       # X11 desktops (vxwm, xfce)
-      dropbox start &
+      DISPLAY="" dropbox start &
       syncthing --no-browser &
       ;;
     wayland)
       # Wayland desktops - services handled by home-manager services
       # but we still need dropbox/syncthing
-      dropbox start &
+      DISPLAY="" dropbox start &
       syncthing --no-browser &
       ;;
   esac

@@ -209,5 +209,37 @@ When you make structural changes to the repository that affect this guide, updat
 
 After editing `AGENTS.md`, commit it with a message like `docs(agents): update file guide and WM documentation`.
 
+## Dropbox
+
+Dropbox is installed from `nixpkgs-unstable` (to get the latest version) and started via driftwm's `config.toml` `autostart` array.
+
+**Autostart:**
+- `modules/driftwm/config.toml` — `DISPLAY="" dropbox start &` added to the `autostart` array
+- `modules/core.org` — `common-autostart` script also has `DISPLAY="" dropbox start` for X11 sessions
+
+**If Dropbox won't start:**
+- Check `~/.dropbox-dist/VERSION` — if too old, the server will refuse connections
+- Update the flake lock: `nix flake lock --update-input nixpkgs-unstable` in the repo root
+- The `dropbox` package in `modules/core.org` uses `inputs.nixpkgs-unstable` via `unstable.dropbox` (with `allowUnfree = true`)
+- After updating the flake lock, rebuild: `home-manager switch --flake .`
+- The FHS wrapper's `install-and-start-dropbox` script will download the new version to `~/.dropbox-dist/`
+
+**Headless mode:**
+Dropbox runs headless (without GUI) by unsetting `DISPLAY`. This avoids Qt5 dependencies that caused `ImportError: libgthread-2.0.so.0` on older versions.
+
+## Syncthing
+
+Syncthing runs as a **system-level NixOS service** (`services.syncthing`) with devices and folders configured in `system/syncthing.nix` (tangled from `system.org`).
+
+**Caveats:**
+- The `key` and `cert` options must be left unset (or `null`) — empty strings `""` cause the `syncthing-copy-keys` pre-start script to fail with "missing destination file operand"
+- `configuration.nix` used to have a duplicate `services.syncthing.enable = true;` — removed in favor of the config in `system/syncthing.nix`
+- Devices and folder IDs in `system/syncthing.nix` may need updating if device IDs change
+
+**Autostart:**
+- `modules/driftwm/config.toml` — `syncthing --no-browser` added to the `autostart` array
+- `modules/core.org` — `common-autostart` script also has `syncthing --no-browser` for X11 sessions
+- These are fallbacks; the system service should handle it. If both run, the second instance will conflict.
+
 ## Reference
 See loaded `nixos-config` skill for detailed guidance.

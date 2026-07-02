@@ -14,9 +14,8 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  # TODO Not fully sure what these next two lines are for
-  boot.resumeDevice = "/dev/disk/by-uuid/75bde775-be2a-4135-a34d-c18cd526f54e";
-  boot.kernelParams = [ "resume=UUID=75bde775-be2a-4135-a34d-c18cd526f54e" ];
+  boot.resumeDevice = "/dev/disk/by-uuid/f07a843d-3591-4bde-8ce0-24b53fd457a4";
+  boot.kernelParams = [ "resume=UUID=f07a843d-3591-4bde-8ce0-24b53fd457a4" ];
   
   networking.hostName = "nixos"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking
@@ -37,7 +36,6 @@
   services.devmon.enable = true;
   services.gvfs.enable = true; # needed for emacs tramp
   services.udisks2.enable = true;
-  services.syncthing.enable = true;
   # Enable sound with pipewire.
   # services.pulseaudio.enable = false;
   # TODO moved to ./system/pipewire.nix
