@@ -136,15 +136,15 @@ color = "#2A2829"
 # ── Background ────────────────────────────────────────────────────
 
 [background]
-
+cache_shader = true
 # type = "wallpaper" # — image tiled across the canvas
-# type = "shader" 
-type = "wallpaper"  # also tile
-# path = "/mnt/data/driftwm/extras/wallpapers/static/dark_sea.glsl"
+type = "shader" 
+# type = "wallpaper"  # also tile
+path = "/mnt/data/driftwm/extras/wallpapers/static/dark_sea.glsl"
 # path = "/mnt/data/Downloads/download.jpeg"
 # path = "/home/dimitril/Dropbox/wallpapers/blush.jpg"
 # path = "/home/dimitril/Dropbox/wallpapers/malachite.jpg"
-path = "/home/dimitril/Dropbox/wallpapers/black_1x1.png"
+# path = "/home/dimitril/Dropbox/wallpapers/black_1x1.png"
 # path = "/home/dimitril/Dropbox/wallpapers/turbulent2.jpg"
 
 # ── XWayland ──────────────────────────────────────────────────────

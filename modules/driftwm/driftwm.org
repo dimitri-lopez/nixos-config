@@ -220,9 +220,13 @@ DriftWM provides its own =noctalia.toml= settings file.
 Noctalia's settings are edited via its graphical interface. Run this script to sync them back into the repo:
 #+begin_src sh :tangle ./modules/driftwm/sync-noctalia.sh
 #!/bin/sh
+set -e
 SRC="$HOME/.local/state/noctalia/settings.toml"
 DST="$HOME/.dotfiles/modules/driftwm/noctalia.toml"
+chmod +w "$DST" 2>/dev/null || true
 cp "$SRC" "$DST"
+cd "$HOME/.dotfiles"
+git add "modules/driftwm/noctalia.toml" 2>/dev/null || true
 echo "noctalia.toml synced from GUI"
 #+end_src
 
