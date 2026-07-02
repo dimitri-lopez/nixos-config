@@ -162,6 +162,7 @@ imports = [
 ./modules/minecraft.nix
 ./modules/watchy.nix
 ./modules/mcp-nixos.nix
+./modules/llms.nix
 ];
 #+end_src
 
@@ -172,6 +173,7 @@ imports = [
 #+INCLUDE: ./modules/core.org
 #+INCLUDE: ./modules/emacs.org
 #+INCLUDE: ./modules/apps.org
+#+INCLUDE: ./modules/llms.org
 #+INCLUDE: ./modules/phd.org
 #+INCLUDE: ./modules/xfce/xfce.org
 #+INCLUDE: ./modules/driftwm/driftwm.org

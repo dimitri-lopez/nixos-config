@@ -13,6 +13,7 @@ imports = [
 ./modules/minecraft.nix
 ./modules/watchy.nix
 ./modules/mcp-nixos.nix
+./modules/llms.nix
 ];
 # Home Manager needs a bit of information about you and the paths it should
 # manage.

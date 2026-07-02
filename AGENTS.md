@@ -47,6 +47,7 @@ NixOS/home-manager dotfiles with literate programming from multiple `.org` files
 | `home.org` | `home.nix` |
 | `modules/core.org` | `modules/common.nix`, `modules/git.nix`, `modules/sh.nix`, `modules/scripting.nix`, `modules/kanata.nix`, `modules/steam.nix`, `modules/brave.nix`, `modules/btop.nix` |
 | `modules/emacs.org` | `modules/emacs.nix` |
+| `modules/llms.org` | `modules/llms.nix` |
 | `modules/apps.org` | `modules/python.nix` (+ packages), `modules/minecraft.nix`, `modules/watchy.nix`, `modules/mcp-nixos.nix`, `modules/droidux.nix`, `modules/itch.nix`, `modules/noctalia.nix` |
 | `modules/phd.org` | `modules/phd.nix` |
 | `modules/xfce/xfce.org` | `modules/xfce/xfce.nix`, `modules/xfce/xfce-home.nix` |
@@ -78,6 +79,7 @@ NixOS/home-manager dotfiles with literate programming from multiple `.org` files
 | `modules/steam.nix` | Steam gaming config |
 | `modules/kanata.nix` | Keyboard remapping (caps -> control) |
 | `modules/mcp-nixos.nix` | MCP server for NixOS data |
+| `modules/llms.nix` | OpenCode installation and declarative config with mcp-nixos |
 | `modules/noctalia.nix` | Reusable Noctalia shell module (parameterized by settingsFile) |
 | `system/pipewire.nix` | Audio system |
 | `system/bluetooth.nix` | Bluetooth |
