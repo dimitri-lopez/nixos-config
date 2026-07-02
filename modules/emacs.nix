@@ -158,6 +158,8 @@ in
   
     texliveFull
     xorg.xwininfo # needed for emacs everywhere
+    xdotool
+    xclip
     unzip # for dired
     clang-tools # for clangd for emacs development
     pandoc
