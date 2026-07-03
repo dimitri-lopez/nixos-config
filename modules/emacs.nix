@@ -29,6 +29,11 @@ let
     glibc = pkgs.glibc;
     gcc-unwrapped = pkgs.gcc-unwrapped;
   };
+  copilot-language-server = import ./npm-packages/copilot-language-server.nix {
+    lib = lib;
+    stdenvNoCC = pkgs.stdenvNoCC;
+    fetchzip = pkgs.fetchzip;
+  };
 in
 {
 
@@ -197,7 +202,8 @@ in
     texlivePackages.forum
       
   
+    copilot-language-server # native binary, no node needed
     stdenv.cc.cc.lib
-    nodejs # needed for github copilot
+    nodejs
   ];
 }
