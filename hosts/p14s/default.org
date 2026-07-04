@@ -1,6 +1,6 @@
 #+title: p14s Laptop Configuration
 #+begin_src nix :tangle ./hosts/p14s/default.nix
-{ modulesPath, inputs, ... }: {
+{ modulesPath, inputs, pkgs, ... }: {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
     ./hardware-configuration.nix

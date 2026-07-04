@@ -1,4 +1,4 @@
-{ modulesPath, inputs, ... }: {
+{ modulesPath, inputs, pkgs, ... }: {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
     ./hardware-configuration.nix

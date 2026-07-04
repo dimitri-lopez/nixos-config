@@ -76,7 +76,7 @@ in
   };
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
-  { modulesPath, inputs, ... }: {
+  { modulesPath, inputs, pkgs, ... }: {
     imports = [
       (modulesPath + "/installer/scan/not-detected.nix")
       ./hardware-configuration.nix
