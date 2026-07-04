@@ -2,23 +2,17 @@
 
 {
   imports =
-  [ # Include the results of the hardware scan.
-    ./hardware-configuration.nix
-  
+  [
     ./modules/kanata.nix
     ./modules/steam.nix
     ./system/bluetooth.nix
     ./system/pipewire.nix
     ./system/syncthing.nix
-    ./system/remote.nix
   ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.resumeDevice = "/dev/disk/by-uuid/f07a843d-3591-4bde-8ce0-24b53fd457a4";
-  boot.kernelParams = [ "resume=UUID=f07a843d-3591-4bde-8ce0-24b53fd457a4" ];
   
-  networking.hostName = "nixos"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking
   
   # Syncthing ports: 8384 for remote access to GUI
@@ -34,34 +28,6 @@
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   # hardware.enableAllFirmware = true;
     hardware.uinput.enable = true;
-  
-    # Use raw shutdown instead of ACPI S4 for hibernate
-    # (firmware EC bug causes instant wake from S4 — power never cuts).
-    # ArchWiki: "Set HibernateMode=shutdown to solve the problem permanently."
-    # See: https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#System_does_not_power_off_when_hibernating
-    systemd.sleep.extraConfig = ''
-      HibernateMode=shutdown
-    '';
-  
-    # Workaround for mt7925e WiFi driver bug (suspend and hibernate):
-    # Unload the module before sleep to avoid firmware timeout / system hang
-    # during the PCI suspend/freeze path (missing mutex protection).
-    # See: https://github.com/openwrt/mt76/pull/1029
-    environment.etc."systemd/system-sleep/mt7925e-workaround.sh" = {
-      text = ''
-        #!/bin/sh
-        case $1/$2 in
-          pre/suspend|pre/hibernate)  ${pkgs.kmod}/bin/modprobe -r mt7925e ;;
-          post/suspend|post/hibernate) ${pkgs.kmod}/bin/modprobe mt7925e ;;
-        esac
-      '';
-      mode = "0755";
-    };
-  
-    # Disable PCIe root port wakeups to prevent spurious wakes from suspend
-    services.udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="pci", DRIVER=="pcieport", ATTR{power/wakeup}="disabled"
-    '';
   services.devmon.enable = true;
   services.gvfs.enable = true; # needed for emacs tramp
   services.udisks2.enable = true;
