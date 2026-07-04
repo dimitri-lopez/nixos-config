@@ -1,0 +1,38 @@
+#+title: p14s Laptop Configuration
+#+begin_src nix :tangle ./hosts/p14s/default.nix
+{ modulesPath, inputs, ... }: {
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+    ./hardware-configuration.nix
+    ../../configuration.nix
+    ../../system/remote.nix
+    ../../modules/driftwm/system.nix
+  ];
+
+  networking.hostName = "p14s";
+
+  boot.resumeDevice = "/dev/disk/by-uuid/f07a843d-3591-4bde-8ce0-24b53fd457a4";
+  boot.kernelParams = [ "resume=UUID=f07a843d-3591-4bde-8ce0-24b53fd457a4" ];
+
+  # mt7925e driver mutex bug — unload before sleep/reload after
+  systemd.sleep.extraConfig = ''
+    HibernateMode=shutdown
+  '';
+
+  environment.etc."systemd/system-sleep/mt7925e-workaround.sh" = {
+    text = ''
+      #!/bin/sh
+      case $1/$2 in
+        pre/suspend|pre/hibernate)  ${pkgs.kmod}/bin/modprobe -r mt7925e ;;
+        post/suspend|post/hibernate) ${pkgs.kmod}/bin/modprobe mt7925e ;;
+      esac
+    '';
+    mode = "0755";
+  };
+
+  # Disable PCIe root port wakeups (EC wake bug on S4)
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="pci", DRIVER=="pcieport", ATTR{power/wakeup}="disabled"
+  '';
+}
+#+end_src
