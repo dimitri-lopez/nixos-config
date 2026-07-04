@@ -8,9 +8,12 @@
 #+begin_src nix :noweb yes :tangle home.nix :noweb-ref home.nix-setup
 { config, lib, pkgs, userSettings, ... }:
 
+let
+  hostname = lib.strings.fileContents /etc/hostname;
+in
 {
-<<home.nix.imports>>
-<<home.nix>>
+  <<home.nix.imports>>
+  <<home.nix>>
 }
 #+end_src
 ** Default settings

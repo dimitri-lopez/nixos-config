@@ -5,7 +5,8 @@ See [[install.org]] for installation instructions.
 * Table of Contents
 - [[file:readme.org][readme.org]]: Master file, user settings, includes
 - [[file:flake.org][flake.org]]: Flake configuration
-- [[file:system.org][system.org]]: System-level NixOS configuration
+- [[file:system.org][system.org]]: Shared system-level NixOS configuration
+- [[file:hosts/default.org][hosts/]]: Per-host configurations (p14s, t14s)
 - [[file:home.org][home.org]]: Home-manager entry point
 - [[file:modules/core.org][core.org]]: Core shared modules
 - [[file:modules/emacs.org][emacs.org]]: Emacs ecosystem
@@ -119,15 +120,12 @@ username = "dimitril";
 name = "Dimitri";
 email = "dimitrilopez01@gmail.com";
 dotfilesDir = "~/.dotfiles"; # absolute path of the local repo
-# Options: "xfce", "driftwm" - desktop modules auto-loaded in flake.nix
-wm = "driftwm";
 };
 #+end_src
 * System Settings
 #+begin_src nix :noweb-ref systemSettings
 systemSettings = {
 system = "x86_64-linux"; # system arch
-hostname = "dimitril-hostname";   # hostname
 };
 #+end_src
 
@@ -136,34 +134,35 @@ hostname = "dimitril-hostname";   # hostname
 Always included regardless of wm setting:
 #+begin_src nix :noweb-ref configuration.nix-imports
 imports =
-[ # Include the results of the hardware scan.
-  ./hardware-configuration.nix
-
+[
   ./modules/kanata.nix
   ./modules/steam.nix
   ./system/bluetooth.nix
   ./system/pipewire.nix
   ./system/syncthing.nix
-  ./system/remote.nix
 ];
 #+end_src
 
 ** Home base imports (home.nix)
 Always included regardless of wm setting:
 #+begin_src nix :noweb-ref home.nix.imports
-imports = [
-./modules/common.nix
-./modules/git.nix
-./modules/phd.nix
-./modules/python.nix
-./modules/sh.nix
-./modules/scripting.nix
-./modules/emacs.nix
-./modules/brave.nix
-./modules/minecraft.nix
-./modules/watchy.nix
-./modules/mcp-nixos.nix
-./modules/llms.nix
+imports = let
+  hostname = lib.strings.fileContents /etc/hostname;
+in [
+  ./modules/common.nix
+  ./modules/git.nix
+  ./modules/phd.nix
+  ./modules/python.nix
+  ./modules/sh.nix
+  ./modules/scripting.nix
+  ./modules/emacs.nix
+  ./modules/brave.nix
+  ./modules/minecraft.nix
+  ./modules/watchy.nix
+  ./modules/mcp-nixos.nix
+  ./modules/llms.nix
+] ++ lib.optionals (hostname == "p14s" || hostname == "t14s") [
+  ./modules/driftwm/home.nix
 ];
 #+end_src
 
@@ -171,6 +170,7 @@ imports = [
 #+INCLUDE: ./flake.org
 #+INCLUDE: ./system.org
 #+INCLUDE: ./home.org
+#+INCLUDE: ./hosts/default.org
 #+INCLUDE: ./modules/core.org
 #+INCLUDE: ./modules/emacs.org
 #+INCLUDE: ./modules/apps.org
