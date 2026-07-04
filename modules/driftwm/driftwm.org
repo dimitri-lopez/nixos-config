@@ -131,6 +131,7 @@ It is deployed via ~pkgs.substituteAll~ so that @polkit_gnome@ is replaced with 
     xdg-desktop-portal
     xdg-desktop-portal-wlr
     slurp
+    wlopm
     
   ];
 #+end_src

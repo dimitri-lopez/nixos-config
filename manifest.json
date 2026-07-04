@@ -63,12 +63,6 @@
       ],
       "description": "Generates 2 file(s)"
     },
-    "modules/llms.org": {
-      "generates": [
-        "./modules/llms.nix"
-      ],
-      "description": "Generates 1 file(s)"
-    },
     "modules/emacs.org": {
       "generates": [
         "./modules/emacs.nix",
@@ -79,6 +73,12 @@
         "./modules/python-packages/title2bib.nix"
       ],
       "description": "Generates 6 file(s)"
+    },
+    "modules/llms.org": {
+      "generates": [
+        "./modules/llms.nix"
+      ],
+      "description": "Generates 1 file(s)"
     },
     "modules/phd.org": {
       "generates": [
@@ -119,11 +119,12 @@
         "./system/fonts.nix",
         "./system/gnome-keyring.nix",
         "./system/pipewire.nix",
+        "./system/remote.nix",
         "./system/syncthing.nix",
         "./system/wayland.nix",
         "configuration.nix"
       ],
-      "description": "Generates 8 file(s)"
+      "description": "Generates 9 file(s)"
     }
   },
   "rules": {

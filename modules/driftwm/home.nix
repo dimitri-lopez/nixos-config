@@ -45,6 +45,7 @@ in
     xdg-desktop-portal
     xdg-desktop-portal-wlr
     slurp
+    wlopm
       
   ];
   home.file = {
