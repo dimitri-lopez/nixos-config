@@ -1,4 +1,2 @@
 /.agent-shell/
-/hardware-configuration.nix
-/hosts/*/hardware-configuration.nix
 __pycache__/
