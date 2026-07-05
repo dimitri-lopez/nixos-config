@@ -31,6 +31,9 @@ let
         };
       };
     };
+    permission = {
+      task = "deny";
+    };
     model = "opencode-go/deepseek-v4-flash";
     agent = {
       plan = {
