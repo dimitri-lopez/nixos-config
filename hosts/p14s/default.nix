@@ -32,4 +32,17 @@
   services.udev.extraRules = ''
     ACTION=="add", SUBSYSTEM=="pci", DRIVER=="pcieport", ATTR{power/wakeup}="disabled"
   '';
+
+  # TDLS (802.11z) is broken on mt7925e — key install fails on 5 GHz,
+  # taking down the infrastructure link ~60s later. Triggered by
+  # same-LAN direct paths (Tailscale/WireGuard peer-to-peer).
+  # Ref: https://github.com/openwrt/mt76/issues/1095
+  networking.networkmanager.dispatcherScripts = [{
+    source = pkgs.writeText "disable-tdls" ''
+      #!/bin/sh
+      if [ "$2" = "up" ]; then
+        ${pkgs.wpa_supplicant}/bin/wpa_cli set tdls_disabled 1 2>/dev/null || true
+      fi
+    '';
+  }];
 }
