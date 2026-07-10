@@ -120,15 +120,19 @@ imports = [
 ];
 ```
 
-The home manager side is auto-detected from `/etc/hostname` in `home.nix`:
+The home manager side receives `hostname` via `extraSpecialArgs` from
+per-host `homeConfigurations` in `flake.org` (e.g., `"dimitril@p14s"`),
+then uses it for conditional imports in `home.nix`:
 ```nix
-let hostname = lib.strings.fileContents /etc/hostname; in {
+{ config, lib, pkgs, userSettings, hostname, ... }:
+{
   imports = [ ./modules/common.nix ]
     ++ lib.optionals (hostname == "p14s" || hostname == "t14s") [
       ./modules/driftwm/home.nix
     ];
 }
 ```
+`home-manager switch --flake .` automatically resolves `<username>@<hostname>`.
 
 **To switch WMs on a host**: edit `hosts/<name>/default.org`, change the imported
 module, then run `./sync.sh`.

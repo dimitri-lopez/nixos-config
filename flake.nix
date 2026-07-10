@@ -60,11 +60,20 @@
         };
       };
       homeConfigurations = {
-        "dimitril" = home-manager.lib.homeManagerConfiguration {
+        "dimitril@p14s" = home-manager.lib.homeManagerConfiguration {
           inherit pkgs;
           modules = [ ./home.nix ];
           extraSpecialArgs = {
-            inherit inputs;
+            inherit inputs userSettings;
+            hostname = "p14s";
+          };
+        };
+        "dimitril@t14s" = home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
+          modules = [ ./home.nix ];
+          extraSpecialArgs = {
+            inherit inputs userSettings;
+            hostname = "t14s";
           };
         };
       };

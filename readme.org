@@ -146,9 +146,7 @@ imports =
 ** Home base imports (home.nix)
 Always included regardless of wm setting:
 #+begin_src nix :noweb-ref home.nix.imports
-imports = let
-  hostname = lib.strings.fileContents /etc/hostname;
-in [
+imports = [
   ./modules/common.nix
   ./modules/git.nix
   ./modules/phd.nix

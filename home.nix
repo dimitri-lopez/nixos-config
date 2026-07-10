@@ -1,12 +1,6 @@
-{ config, lib, pkgs, userSettings, ... }:
-
-let
-  hostname = lib.strings.fileContents /etc/hostname;
-in
+{ config, lib, pkgs, userSettings, hostname, ... }:
 {
-  imports = let
-    hostname = lib.strings.fileContents /etc/hostname;
-  in [
+  imports = [
     ./modules/common.nix
     ./modules/git.nix
     ./modules/phd.nix
