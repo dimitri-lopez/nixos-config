@@ -92,6 +92,17 @@ in
       executable = true;
     };
   
+    ".local/share/driftwm-sample/scripts/lock-with-caffeine.sh" = {
+      text = ''
+      #!/bin/sh
+      ${pkgs.grim}/bin/grim -l 0 /tmp/lockscreen.png
+      ${pkgs.ffmpeg}/bin/ffmpeg -y -i /tmp/lockscreen.png -vf "boxblur=8:2" /tmp/lockblur.png 2>/dev/null
+      ${pkgs.systemd}/bin/systemd-inhibit --what=sleep --who="Manual lock" --why="Remote access while locked" \
+        ${pkgs.swaylock}/bin/swaylock -i /tmp/lockblur.png
+      '';
+      executable = true;
+    };
+  
     ".local/share/driftwm-sample/scripts/sync-noctalia.sh" = {
       text = ''
         #!/bin/sh
