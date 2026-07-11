@@ -2,23 +2,17 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-  
-      ./modules/kanata.nix
-      ./modules/steam.nix
-      ./system/bluetooth.nix
-      ./system/pipewire.nix
-      ./system/syncthing.nix
-    ];
+  [
+    ./modules/kanata.nix
+    ./modules/steam.nix
+    ./system/bluetooth.nix
+    ./system/pipewire.nix
+    ./system/syncthing.nix
+  ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  # TODO Not fully sure what these next two lines are for
-  boot.resumeDevice = "/dev/disk/by-uuid/75bde775-be2a-4135-a34d-c18cd526f54e";
-  boot.kernelParams = [ "resume=UUID=75bde775-be2a-4135-a34d-c18cd526f54e" ];
   
-  networking.hostName = "nixos"; # Define your hostname.
   networking.networkmanager.enable = true; # Enable networking
   
   # Syncthing ports: 8384 for remote access to GUI
@@ -37,7 +31,6 @@
   services.devmon.enable = true;
   services.gvfs.enable = true; # needed for emacs tramp
   services.udisks2.enable = true;
-  services.syncthing.enable = true;
   # Enable sound with pipewire.
   # services.pulseaudio.enable = false;
   # TODO moved to ./system/pipewire.nix
@@ -110,6 +103,33 @@
     #  thunderbird
     ];
   };
+  # Install firefox.
+  programs.firefox.enable = true;
+  
+  # Enable nix-ld for dynamically linked executables
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    stdenv.cc.cc
+    zlib
+    fuse3
+    icu
+    nss
+    openssl
+    curl
+    expat
+  ];
+  
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.permittedInsecurePackages = [
+    "python3.12-ecdsa-0.19.1"
+  ];
+  
+  # List packages installed in system profile. To search, run:
+  # $ nix search wget
+  environment.systemPackages = with pkgs; [
+    syncthing
+  ];
   system.autoUpgrade.enable = true;
   system.autoUpgrade.dates = "weekly";
   nix.gc.automatic = true;

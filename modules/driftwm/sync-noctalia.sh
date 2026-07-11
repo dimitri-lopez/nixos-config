@@ -1,5 +1,9 @@
 #!/bin/sh
-SRC="$HOME/.config/noctalia/settings.json"
-DST="$HOME/.dotfiles/modules/driftwm/noctalia.json"
+set -e
+SRC="$HOME/.local/state/noctalia/settings.toml"
+DST="$HOME/.dotfiles/modules/driftwm/noctalia.toml"
+chmod +w "$DST" 2>/dev/null || true
 cp "$SRC" "$DST"
-echo "noctalia.json synced from GUI"
+cd "$HOME/.dotfiles"
+git add "modules/driftwm/noctalia.toml" 2>/dev/null || true
+echo "noctalia.toml synced from GUI"

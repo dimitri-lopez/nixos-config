@@ -20,7 +20,7 @@
       driftwm = {
         prettyName = "driftwm";
         comment = "driftwm Wayland compositor managed by UWSM";
-        binPath = "${pkgs.writeShellScript "driftwm-uwsm-wrapper" "exec ${inputs.driftwm.packages.${pkgs.stdenv.system}.default}/bin/driftwm start"}";
+        binPath = "${pkgs.writeShellScript "driftwm-uwsm-wrapper" "exec ${inputs.driftwm.packages.${pkgs.stdenv.system}.default}/bin/driftwm"}";
       };
     };
   };

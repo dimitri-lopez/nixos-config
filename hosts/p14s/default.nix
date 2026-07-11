@@ -1,0 +1,48 @@
+{ modulesPath, inputs, pkgs, ... }: {
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+    ./hardware-configuration.nix
+    ../../configuration.nix
+    ../../system/remote.nix
+    ../../modules/driftwm/system.nix
+  ];
+
+  networking.hostName = "p14s";
+
+  boot.resumeDevice = "/dev/disk/by-uuid/f07a843d-3591-4bde-8ce0-24b53fd457a4";
+  boot.kernelParams = [ "resume=UUID=f07a843d-3591-4bde-8ce0-24b53fd457a4" ];
+
+  # mt7925e driver mutex bug — unload before sleep/reload after
+  systemd.sleep.extraConfig = ''
+    HibernateMode=shutdown
+  '';
+
+  environment.etc."systemd/system-sleep/mt7925e-workaround.sh" = {
+    text = ''
+      #!/bin/sh
+      case $1/$2 in
+        pre/suspend|pre/hibernate)  ${pkgs.kmod}/bin/modprobe -r mt7925e ;;
+        post/suspend|post/hibernate) ${pkgs.kmod}/bin/modprobe mt7925e ;;
+      esac
+    '';
+    mode = "0755";
+  };
+
+  # Disable PCIe root port wakeups (EC wake bug on S4)
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="pci", DRIVER=="pcieport", ATTR{power/wakeup}="disabled"
+  '';
+
+  # TDLS (802.11z) is broken on mt7925e — key install fails on 5 GHz,
+  # taking down the infrastructure link ~60s later. Triggered by
+  # same-LAN direct paths (Tailscale/WireGuard peer-to-peer).
+  # Ref: https://github.com/openwrt/mt76/issues/1095
+  networking.networkmanager.dispatcherScripts = [{
+    source = pkgs.writeText "disable-tdls" ''
+      #!/bin/sh
+      if [ "$2" = "up" ]; then
+        ${pkgs.wpa_supplicant}/bin/wpa_cli set tdls_disabled 1 2>/dev/null || true
+      fi
+    '';
+  }];
+}

@@ -1,0 +1,156 @@
+#+TITLE: Browser Research — Lightweight Reading Workflow
+#+DATE: 2026-05-14
+
+* Problem
+  Emacs EWW is excellent for text-only browsing (documentation, Wikipedia, org-mode
+  integration), but falls short when JavaScript is required. Need a supplementary
+  lightweight browser for reading/research and a heavyweight browser for web apps
+  (password manager, music, etc.).
+
+* Requirements
+  - Great reading experience (dark mode, customizable fonts, minimal chrome)
+  - Ricing-friendly (easy to theme and integrate with desktop aesthetic)
+  - Keyboard-driven navigation
+  - Lightweight for reading, with the option to use a separate heavyweight browser
+
+* Browsers Considered
+
+** Nyxt (Lisp, WebKit)
+   - [[https://github.com/atlas-engineer/nyxt][GitHub]] — 10.9k ★, 13.8k commits, latest v4.0.0 (Jan 2026)
+   - [[https://wiki.archlinux.org/title/Nyxt][ArchWiki]]
+
+   Pros:
+   - Tree-based history navigation (excellent for research trails)
+   - Emacs keybindings
+   - Built-in adblocker, proxy, fingerprinting reduction
+   - Tagged bookmarks with compound queries
+   - Very lightweight (45MB Flatpak)
+
+   Cons:
+   - Configuration is Common Lisp (steep learning curve)
+   - Theming is Lisp-first, not CSS-first — harder to rice than qutebrowser
+   - Startup time slower due to Lisp compilation
+   - Small community
+
+   Verdict: Good for research workflows (tree history, multi-search), but
+   theming/ricing requires comfortable Lisp. Not the easiest to rice.
+
+** qutebrowser (Python, QtWebEngine)
+   - [[https://qutebrowser.org][Homepage]]
+
+   Pros:
+   - Most polished keyboard browser
+   - Python config (~/.config/qutebrowser/config.py) — familiar, easy
+   - CSS-themable UI
+   - Excellent hinting for follow-link workflows
+   - Active development, large community
+   - Qt themes inherit from system GTK/Qt — easier visual integration
+
+   Cons:
+   - Heavier than C-based alternatives (but lighter than full Chrome)
+   - WebEngine is essentially Chromium under the hood
+
+   Verdict: Easiest to rice (Python + CSS). Most approachable.
+
+** vimb (C, WebKitGTK)
+   - [[https://github.com/fanglingsu/vimb][GitHub]] — 1.5k ★
+   - Latest v3.7.1 (Feb 2026), GTK4 + WebKitGTK-6.0
+
+   Pros:
+   - Very lightweight (C, GTK4 native)
+   - Vim-like modal interface
+   - Built-in read-it-later queue
+   - GTK CSS theming
+
+   Cons:
+   - Less development activity
+   - Smaller community than qutebrowser
+
+   Verdict: Good lightweight option, easy to rice via GTK CSS.
+
+** badwolf (C, WebKitGTK)
+   - [[https://hacktivis.me/projects/badwolf][Homepage]]
+
+   Pros:
+   - Extremely minimal (~1500 LOC)
+   - JS off by default (ideal for reading)
+   - Privacy-focused (ephemeral sessions)
+   - Wayland + X11
+
+   Cons:
+   - No tabs (single window)
+   - No modal/vim keyboard interface (standard shortcuts)
+   - Very niche
+
+   Verdict: Best for pure reading with JS stripped out. Hard to beat for simplicity.
+
+** surf (C, WebKitGTK)
+   - [[https://surf.suckless.org][Homepage]]
+   - Suckless philosophy — patches for features
+
+   Pros:
+   - Extreme minimalism
+   - No distractions
+   - MIT license
+
+   Cons:
+   - No tabs (requires separate ~tabbed~)
+   - No config file (XProperties only)
+   - Compile-time customization via patches
+   - Hardest to rice
+
+   Verdict: Only if you're already in the suckless ecosystem.
+
+* Emacs-Focused Approach: EWW + External Browser
+
+  Rather than replacing EWW, consider keeping EWW for text-heavy reading and
+  pairing it with one of the above browsers for when JS is needed.
+
+  Relevant EWW customization:
+  - ~shr-font-family~ — set reading font
+  - ~shr-use-colors~ — respect/inherit Emacs theme
+  - ~eww-readable~ — toggle reader mode
+  - ~org-capture~ integration for research notes
+
+* Extension-Based Standardization
+
+  If sticking with a single mainstream browser, these extensions standardize the
+  reading experience:
+
+  | Extension | Stars | Purpose |
+  |-----------+-------+---------|
+  | [[https://addons.mozilla.org/en-US/firefox/addon/darkreader/][Dark Reader]] | 1.3M users | Universal dark mode, per-site font/contrast control |
+  | [[https://github.com/openstyles/stylus][Stylus]] | 6.6k ★ | Per-site CSS themes (userstyles.world, Greasyfork) |
+  | [[https://github.com/hackademix/noscript][NoScript]] | 1.1k ★ | JS toggle per-site — strip bloat from articles |
+
+  Stack: Dark Reader (dark mode) + Stylus (typography) + NoScript (JS control)
+  gives you a consistent reading experience across any website in any Chromium/Firefox browser.
+
+* Ricing Difficulty Comparison
+
+  | Browser | Config Format | Difficulty | Notes |
+  |---------+--------------+------------+-------|
+  | qutebrowser | Python + CSS | Easy | Familiar syntax, well-documented |
+  | vimb | GTK CSS | Medium | Standard GTK theming |
+  | badwolf | CSS | Medium | Simple, but niche |
+  | Nyxt | Common Lisp | Hard | Runtime redefinition, steep learning curve |
+  | surf | C patches | Hardest | Suckless: patch and recompile |
+
+* Recommendation
+
+  Three-tier workflow:
+
+  1. **EWW** (Emacs) — text-only reading, documentation, org-mode research
+  2. **qutebrowser** (Python) — lightweight JS browsing, reading with extensions
+  3. **Firefox/Brave** — heavy web apps, password manager, media
+
+  qutebrowser hits the sweet spot for a riceable, keyboard-driven, lightweight
+  reading browser. It's approachable to configure, inherits Qt system theming,
+  and can use the same extension stack (Dark Reader + Stylus + NoScript) if
+  running in QtWebEngine mode (Chromium-compatible extensions).
+
+* TODO: Investigate further
+  - [ ] Check if qutebrowser can run Chromium extensions in practice
+  - [ ] Look at Nyxt tree history workflow in more detail
+  - [ ] Test vimb GTK CSS theming with current driftwm-sample aesthetic
+  - [ ] Consider whether extensions in Firefox alone cover the use case

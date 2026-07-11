@@ -1,0 +1,17 @@
+#+title: Yoga Laptop Configuration
+#+begin_src nix :tangle ./hosts/yoga/default.nix
+{ modulesPath, inputs, ... }: {
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+    ./hardware-configuration.nix
+    ../../configuration.nix
+    ../../system/remote.nix
+    ../../modules/driftwm/system.nix
+  ];
+
+  networking.hostName = "yoga";
+
+  boot.resumeDevice = "/dev/disk/by-uuid/667f86cc-c1c9-416b-928b-f08a01bfb12c";
+  boot.kernelParams = [ "resume=UUID=667f86cc-c1c9-416b-928b-f08a01bfb12c" ];
+}
+#+end_src

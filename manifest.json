@@ -4,13 +4,9 @@
   "tangle_command": "python3 tangle.py readme.org",
   "sync_command": "./sync.sh",
   "window_managers": {
-    "active": "driftwm",
-    "available": [
-      [
-        "\n        ",
-        "xfce"
-      ]
-    ]
+    "hosts": "unknown",
+    "p14s": "driftwm",
+    "t14s": "driftwm"
   },
   "files": {
     "flake.org": {
@@ -22,6 +18,18 @@
     "home.org": {
       "generates": [
         "home.nix"
+      ],
+      "description": "Generates 1 file(s)"
+    },
+    "hosts/p14s/default.org": {
+      "generates": [
+        "./hosts/p14s/default.nix"
+      ],
+      "description": "Generates 1 file(s)"
+    },
+    "hosts/t14s/default.org": {
+      "generates": [
+        "./hosts/t14s/default.nix"
       ],
       "description": "Generates 1 file(s)"
     },
@@ -74,6 +82,12 @@
       ],
       "description": "Generates 6 file(s)"
     },
+    "modules/llms.org": {
+      "generates": [
+        "./modules/llms.nix"
+      ],
+      "description": "Generates 1 file(s)"
+    },
     "modules/phd.org": {
       "generates": [
         "./modules/phd.nix"
@@ -84,6 +98,13 @@
       "generates": [
         "./modules/xfce/xfce-home.nix",
         "./modules/xfce/xfce.nix"
+      ],
+      "description": "Generates 2 file(s)"
+    },
+    "plans/02-nix-driftwm-dev-input.org": {
+      "generates": [
+        "./flake.nix",
+        "./system/driftwm.nix"
       ],
       "description": "Generates 2 file(s)"
     },
@@ -106,11 +127,12 @@
         "./system/fonts.nix",
         "./system/gnome-keyring.nix",
         "./system/pipewire.nix",
+        "./system/remote.nix",
         "./system/syncthing.nix",
         "./system/wayland.nix",
         "configuration.nix"
       ],
-      "description": "Generates 8 file(s)"
+      "description": "Generates 9 file(s)"
     }
   },
   "rules": {

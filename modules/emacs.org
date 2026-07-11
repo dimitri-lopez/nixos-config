@@ -29,6 +29,19 @@ let
     buildNpmPackage = pkgs.buildNpmPackage;
     fetchFromGitHub = pkgs.fetchFromGitHub;
   };
+  anthropic-claude-code = import ./npm-packages/anthropic-claude-code.nix {
+    lib = lib;
+    stdenv = pkgs.stdenv;
+    fetchurl = pkgs.fetchurl;
+    autoPatchelfHook = pkgs.autoPatchelfHook;
+    glibc = pkgs.glibc;
+    gcc-unwrapped = pkgs.gcc-unwrapped;
+  };
+  copilot-language-server = import ./npm-packages/copilot-language-server.nix {
+    lib = lib;
+    stdenvNoCC = pkgs.stdenvNoCC;
+    fetchzip = pkgs.fetchzip;
+  };
 in
 {
 
@@ -59,10 +72,9 @@ in
     # agent shell
     gemini-cli
     claude-code
+    anthropic-claude-code  # Latest version 1.3.14
     claude-agent-acp
     free-coding-models
-    # inputs.opencode.packages.${pkgs.system}.default
-    (pkgs.writeShellScriptBin "opencode" "exec npx opencode-ai \"$@\"")
     
     gnuplot
     
@@ -91,6 +103,8 @@ in
 
     texliveFull
     xorg.xwininfo # needed for emacs everywhere
+    xdotool
+    xclip
     unzip # for dired
     clang-tools # for clangd for emacs development
     pandoc
@@ -130,8 +144,9 @@ in
     texlivePackages.forum
     
 
+    copilot-language-server # native binary, no node needed
     stdenv.cc.cc.lib
-    nodejs # needed for github copilot
+    nodejs
   ];
 #+end_src
 

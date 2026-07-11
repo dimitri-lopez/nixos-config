@@ -22,20 +22,17 @@ def find_tangle_targets(org_path):
 
 
 def get_active_wm():
-    """Parse flake.nix for the current wm setting."""
-    flake = (BASE / 'flake.nix').read_text()
-    m = re.search(r'wm\s*=\s*"([^"]+)"', flake)
-    return m.group(1) if m else "unknown"
+    """Parse per-host configs for assigned WMs."""
+    wms = {}
+    for host_org in sorted((BASE / 'hosts').rglob('default.org')):
+        text = host_org.read_text()
+        wms[host_org.parent.name] = "driftwm" if "driftwm" in text else "unknown"
+    return wms
 
 
 def get_available_wms():
-    """Parse flake.nix for all listed WMs in selectedDesktop."""
-    flake = (BASE / 'flake.nix').read_text()
-    # Find selectedDesktop = { ... } block
-    m = re.search(r'selectedDesktop\s*=\s*\{([^}]+)\}', flake, re.DOTALL)
-    if not m:
-        return []
-    return re.findall(r'^(\s+)(\w+)\s*=\s*\{', m.group(1), re.MULTILINE)
+    """Return the list of WMs found in per-host configs."""
+    return sorted(set(get_active_wm().values()))
 
 
 def main():
@@ -61,10 +58,7 @@ def main():
         "source_of_truth": "org",
         "tangle_command": "python3 tangle.py readme.org",
         "sync_command": "./sync.sh",
-        "window_managers": {
-            "active": get_active_wm(),
-            "available": get_available_wms()
-        },
+        "window_managers": get_active_wm(),
         "files": files,
         "rules": {
             "edit_org_only": True,

@@ -36,7 +36,24 @@ in
     # bat eza bottom fd bc
     # direnv nix-direnv
       
-    <<sh.scripts>>
+        (pkgs.writeScriptBin "dl-home-manager-sync" ''
+    #!/usr/bin/env bash
+    cd ~/.dotfiles/
+    python3 tangle.py readme.org && home-manager switch --flake .
+        '')
+        (pkgs.writeScriptBin "dl-nix-system-sync" ''
+    #!/usr/bin/env bash
+    cd ~/.dotfiles/
+    python3 tangle.py readme.org && sudo nixos-rebuild switch --flake .
+        '')
+        (pkgs.writeScriptBin "dl-sync" ''
+    #!/usr/bin/env bash
+    # dl-sync - global entrypoint for dotfile changes.
+    # Usage:
+    #   dl-sync        -> home-manager only (default, fast)
+    #   dl-sync --full -> home-manager + nixos-rebuild (requires sudo)
+    exec ~/.dotfiles/sync.sh "$@"
+        '')
   ];
 
   programs.direnv.enable = true;

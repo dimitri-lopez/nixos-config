@@ -22,11 +22,7 @@ See [[*configuration.nix modules][configuration.nix modules]]
 # Bootloader.
 boot.loader.systemd-boot.enable = true;
 boot.loader.efi.canTouchEfiVariables = true;
-# TODO Not fully sure what these next two lines are for
-boot.resumeDevice = "/dev/disk/by-uuid/75bde775-be2a-4135-a34d-c18cd526f54e";
-boot.kernelParams = [ "resume=UUID=75bde775-be2a-4135-a34d-c18cd526f54e" ];
 
-networking.hostName = "nixos"; # Define your hostname.
 networking.networkmanager.enable = true; # Enable networking
 
 # Syncthing ports: 8384 for remote access to GUI
@@ -52,7 +48,6 @@ networking.firewall.allowedUDPPorts = [ 22000 21027 ];
 services.devmon.enable = true;
 services.gvfs.enable = true; # needed for emacs tramp
 services.udisks2.enable = true;
-services.syncthing.enable = true;
 #+end_src
 
 ** Sound
@@ -153,7 +148,7 @@ users.users.dimitril = {
 #+end_src
 
 ** System Packages
-#+begin_src nix :noweb-ref system.packages
+#+begin_src nix
 # Install firefox.
 programs.firefox.enable = true;
 
@@ -383,8 +378,6 @@ nix.settings.trusted-users = [ "root" "dimitril" ];
     user = "dimitril";
     overrideDevices = true;
     overrideFolders = true;
-    key = "";
-    cert = "";
     settings = {
       gui = {
         user = "username";
@@ -403,6 +396,32 @@ nix.settings.trusted-users = [ "root" "dimitril" ];
       };
     };
   };
+}
+#+end_src
+
+** remote.nix — SSH + Tailscale for mobile access (Conduit)
+Conduit (gwitko/Conduit) is the phone-side Flutter SSH/Mosh/SFTP client.
+This module enables the server side: OpenSSH for secure shell access and
+Tailscale for a zero-config mesh VPN, so Conduit can reach this machine
+from anywhere (LAN or remote) using the Tailscale IP or MagicDNS name.
+Password auth is disabled; use SSH keys (Conduit can generate ed25519 keys
+on-device and you add the public key to authorized_keys).
+
+#+begin_src nix :tangle ./system/remote.nix
+{ config, pkgs, ... }:
+
+{
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      PermitRootLogin = "no";
+    };
+  };
+
+  services.tailscale.enable = true;
+
+  networking.firewall.allowedTCPPorts = [ 22 ];
 }
 #+end_src
 

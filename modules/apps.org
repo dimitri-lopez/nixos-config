@@ -666,14 +666,14 @@ python3.pkgs.buildPythonPackage rec {
 
 ** noctalia.nix
 #+begin_src nix :tangle ./modules/noctalia.nix
-{ config, pkgs, lib, settingsFile, ... }:
+{ config, pkgs, lib, settingsFile, inputs, ... }:
 let
-  settings = builtins.fromJSON (builtins.readFile settingsFile);
+  noctaliaPkg = inputs.noctalia.packages.${pkgs.stdenv.system}.default;
 in
 {
-  programs.noctalia-shell = {
-    enable = true;
-    inherit settings;
-  };
+  home.packages = [ noctaliaPkg ];
+
+  # Create noctalia configuration file (TOML format for v5)
+  xdg.configFile."noctalia/config.toml".text = builtins.readFile settingsFile;
 }
 #+end_src

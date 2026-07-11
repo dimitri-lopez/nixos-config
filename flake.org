@@ -22,36 +22,38 @@
       pkgs = nixpkgs.legacyPackages.${system};
       <<userSettings>>
       <<systemSettings>>
-
-      selectedDesktop = {
-        xfce = {
-          system = [ ./modules/xfce/xfce.nix ];
-          home = [ ./modules/xfce/xfce-home.nix ];
-        };
-        driftwm = {
-          system = [ ./modules/driftwm/system.nix ];
-          home = [ ./modules/driftwm/home.nix ];
-        };
-      }.${userSettings.wm} or (throw "Invalid wm: ${userSettings.wm}");
     in {
       packages.x86_64-linux = {
       };
       legacyPackages.x86_64-linux = {
       };
       nixosConfigurations = {
-        nixos = lib.nixosSystem {
+        p14s = lib.nixosSystem {
           inherit system;
-          modules = [ ./configuration.nix ] ++ selectedDesktop.system;
+          modules = [ ./hosts/p14s ];
+          specialArgs = { inherit inputs; };
+        };
+        t14s = lib.nixosSystem {
+          inherit system;
+          modules = [ ./hosts/t14s ];
           specialArgs = { inherit inputs; };
         };
       };
       homeConfigurations = {
-        "dimitril" = home-manager.lib.homeManagerConfiguration {
+        "dimitril@p14s" = home-manager.lib.homeManagerConfiguration {
           inherit pkgs;
-          modules = [ ./home.nix ] ++ selectedDesktop.home;
+          modules = [ ./home.nix ];
           extraSpecialArgs = {
-            inherit userSettings;
-            inherit inputs;
+            inherit inputs userSettings;
+            hostname = "p14s";
+          };
+        };
+        "dimitril@t14s" = home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
+          modules = [ ./home.nix ];
+          extraSpecialArgs = {
+            inherit inputs userSettings;
+            hostname = "t14s";
           };
         };
       };
@@ -65,7 +67,6 @@
     home-manager.url = "github:nix-community/home-manager/release-25.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    opencode.url = "github:AodhanHayter/opencode-flake";
     driftwm = {
       url = "github:malbiruk/driftwm";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
