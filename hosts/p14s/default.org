@@ -41,11 +41,18 @@
   # taking down the infrastructure link ~60s later. Triggered by
   # same-LAN direct paths (Tailscale/WireGuard peer-to-peer).
   # Ref: https://github.com/openwrt/mt76/issues/1095
+  #
+  # 6 GHz (Wi-Fi 6E) MLO roaming triggers firmware hang on mt7925e —
+  # MCU timeouts followed by complete WiFi outage. The AP "The Nook"
+  # uses band steering (WNM Preferred List) that pushes clients to
+  # 6 GHz, where the driver's firmware hangs.
+  # Ref: https://zbowling.github.io/mt7925/issues/known-issues/
   networking.networkmanager.dispatcherScripts = [{
-    source = pkgs.writeText "disable-tdls" ''
+    source = pkgs.writeText "mt7925e-fixes" ''
       #!/bin/sh
       if [ "$2" = "up" ]; then
         ${pkgs.wpa_supplicant}/bin/wpa_cli set tdls_disabled 1 2>/dev/null || true
+        ${pkgs.networkmanager.out}/bin/nmcli connection modify "$CONNECTION_ID" 802-11-wireless.band a 2>/dev/null || true
       fi
     '';
   }];
