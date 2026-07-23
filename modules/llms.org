@@ -14,6 +14,11 @@ let
     inherit (pkgs) system;
     config.allowUnfree = true;
   };
+  oh-my-pi = import ./llms/oh-my-pi.nix {
+    inherit (pkgs) stdenvNoCC fetchurl makeWrapper;
+    inherit (unstable) bun;
+    inherit lib;
+  };
   opencodeConfig = {
     "$schema" = "https://opencode.ai/config.json";
     mcp = {
@@ -69,6 +74,7 @@ in
 *** Packages
 #+begin_src nix :noweb-ref llms.packages
   home.packages = [
+    oh-my-pi
     unstable.opencode
   ];
 #+end_src

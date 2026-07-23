@@ -146,7 +146,6 @@ type = "shader"
 # path = "/home/dimitril/src/driftwm/extras/wallpapers/animated/fast_smoke.glsl"
 # path = "/home/dimitril/src/driftwm/extras/wallpapers/animated/dense_clouds.glsl"
 path = "/home/dimitril/src/driftwm/extras/wallpapers/static/dark_sea.glsl"
-# path = "/mnt/data/driftwm/extras/wallpapers/static/dark_sea.glsl"
 # path = "/mnt/data/Downloads/download.jpeg"
 # path = "/home/dimitril/Dropbox/wallpapers/blush.jpg"
 # path = "/home/dimitril/Dropbox/wallpapers/malachite.jpg"
@@ -289,7 +288,7 @@ pinch_out_threshold = 1.01
 # "mod+alt+right" = "send-to-output right"
 # "mod+s" = "exec /home/dimitril/.local/share/driftwm-sample/scripts/window-search.sh"
 # "mod+l" = "exec noctalia msg session lock"
-"mod+semicolon" = "spawn /home/dimitril/.local/share/driftwm-sample/scripts/lock.sh"
+"mod+semicolon" = "spawn /home/dimitril/.local/share/driftwm-sample/scripts/lock-with-caffeine.sh"
 "mod+shift+semicolon" = "spawn systemctl hibernate"
 # "mod+n" = "exec noctalia msg panel-toggle notificationHistory"
 "mod+r" = "reload-config"
@@ -331,14 +330,14 @@ blur = true
 
 [[window_rules]]
 app_id = "emacs"
-opacity = 0.85
+opacity = 1.0
 blur = true
 decoration = "none"
 
 [[window_rules]]
 title = "*Emacs*"
 decoration = "client"
-opacity = 0.9815
+opacity = 1.0
 blur = false
 size = [1200, 1000]
 
