@@ -14,11 +14,23 @@ let
     inherit (pkgs) system;
     config.allowUnfree = true;
   };
-  oh-my-pi = import ./llms/oh-my-pi.nix {
-    inherit (pkgs) stdenvNoCC fetchurl makeWrapper;
-    inherit (unstable) bun;
+  oh-my-pi-src = import ./llms/oh-my-pi.nix {
+    inherit (pkgs) stdenvNoCC fetchurl unzip;
     inherit lib;
   };
+  # Custom bun 1.3.14 fetched from GitHub releases (not yet in nixpkgs)
+  bun_omp = oh-my-pi-src.passthru.bun;
+  
+  omp = pkgs.writeShellScriptBin "omp" ''
+    OMP_DIR="$HOME/.local/share/omp"
+    if [ ! -d "$OMP_DIR/node_modules" ]; then
+      echo "Setting up oh-my-pi in $OMP_DIR..."
+      mkdir -p "$OMP_DIR"
+      cp -r "${oh-my-pi-src}/lib/node_modules/@oh-my-pi/pi-coding-agent"/* "$OMP_DIR/"
+      ${bun_omp}/bin/bun install --cwd "$OMP_DIR" --production --no-summary
+    fi
+    exec ${bun_omp}/bin/bun "$OMP_DIR/dist/cli.js" "$@"
+  '';
   opencodeConfig = {
     "$schema" = "https://opencode.ai/config.json";
     mcp = {
@@ -74,9 +86,21 @@ in
 *** Packages
 #+begin_src nix :noweb-ref llms.packages
   home.packages = [
-    oh-my-pi
+    oh-my-pi-src
     unstable.opencode
+    omp
   ];
+
+  home.activation.installOmpDeps = lib.hm.dag.entryAfter ["linkGeneration"] ''
+    omp_store="${oh-my-pi-src}/lib/node_modules/@oh-my-pi/pi-coding-agent"
+    omp_dir="$HOME/.local/share/omp"
+    if [ ! -d "$omp_dir/node_modules" ] && [ -d "$omp_store" ]; then
+      echo "Setting up oh-my-pi in $omp_dir..."
+      mkdir -p "$omp_dir"
+      cp -r "$omp_store"/* "$omp_dir/"
+      ${bun_omp}/bin/bun install --cwd "$omp_dir" --production --no-summary
+    fi
+  '';
 #+end_src
 
 *** opencode.json
