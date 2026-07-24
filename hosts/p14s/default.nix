@@ -31,6 +31,7 @@
   # Disable PCIe root port wakeups (EC wake bug on S4)
   services.udev.extraRules = ''
     ACTION=="add", SUBSYSTEM=="pci", DRIVER=="pcieport", ATTR{power/wakeup}="disabled"
+    ACTION=="add", SUBSYSTEM=="leds", KERNEL=="platform::micmute", ATTR{brightness}="0", ATTR{trigger}="none"
   '';
 
   # TDLS (802.11z) is broken on mt7925e — key install fails on 5 GHz,
