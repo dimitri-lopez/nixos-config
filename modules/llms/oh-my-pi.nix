@@ -1,7 +1,7 @@
 { lib, stdenvNoCC, fetchurl, unzip }:
 
 let
-  version = "17.0.9";
+  version = "17.1.0";
 
   # Bun 1.3.14 — fetched directly from GitHub releases (not yet in nixpkgs)
   bun_1_3_14 = stdenvNoCC.mkDerivation {
@@ -22,7 +22,7 @@ let
 
   src = fetchurl {
     url = "https://registry.npmjs.org/@oh-my-pi/pi-coding-agent/-/pi-coding-agent-${version}.tgz";
-    hash = "sha256-Ivqthnsg8gcf8jq/aVhu4+18XRJkts0XGIeAx2kE8Y8=";
+    hash = "sha256-QId4x26iz3EfvZ3oyUwZ494vB8UAEQkyzbz39DayGtY=";
   };
 in
 stdenvNoCC.mkDerivation {
