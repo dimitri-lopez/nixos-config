@@ -1,0 +1,191 @@
+#+title: Oh My Pi (OMP) Configuration
+
+Oh My Pi is the AI coding assistant harness. This file is the canonical source for OMP settings and custom agent definitions — tangling writes directly to [[file:../.omp/agent/config.yml][~/.omp/agent/config.yml]] and [[file:../.omp/agent/agents/][~/.omp/agent/agents/*.md]].
+
+* Global Settings (:tangle ../.omp/agent/config.yml)
+:PROPERTIES:
+:header-args:yaml: :tangle ../.omp/agent/config.yml
+:END:
+
+#+begin_src yaml
+# ── Model roles ──────────────────────────────────────────────────────
+modelRoles:
+  default: opencode-go/deepseek-v4-flash
+  smol: opencode-go/deepseek-v4-flash:low
+  slow: opencode-go/deepseek-v4-pro
+  plan: anthropic/claude-opus-5:medium
+  advisor: anthropic/claude-opus-5:medium
+  task: opencode-go/deepseek-v4-flash
+  designer: opencode-go/kimi-k3
+  commit: opencode-go/deepseek-v4-flash:low
+  tiny: opencode-go/deepseek-v4-flash:oow
+
+# ── Symbols / theme ──────────────────────────────────────────────────
+symbolPreset: nerd
+setupVersion: 1
+
+theme:
+  dark: titanium
+  light: light
+
+# ── Status line ──────────────────────────────────────────────────────
+statusLine:
+  preset: full
+  separator: powerline-thin
+  sessionAccent: true
+  transparent: true
+  compactThinkingLevel: true
+  showHookStatus: true
+
+# ── Terminal / TUI / display ─────────────────────────────────────────
+terminal:
+  showProgress: true
+
+tui:
+  hyperlinks: auto
+
+display:
+  showTokenUsage: true
+  shimmer: classic
+
+# ── Thinking ─────────────────────────────────────────────────────────
+defaultThinkingLevel: low
+proseOnlyThinking: true
+
+tier:
+  openai: none
+  google: flex
+  anthropic: priority
+  subagent: inherit
+
+# ── Advisor ──────────────────────────────────────────────────────────
+advisor:
+  enabled: true
+  subagents: true
+  syncBacklog: "1"
+  immuneTurns: 3
+
+# ── Prewalk ──────────────────────────────────────────────────────────
+prewalk:
+  enabled: false
+
+# ── Interaction model ────────────────────────────────────────────────
+steeringMode: one-at-a-time
+followUpMode: one-at-a-time
+interruptMode: immediate
+
+# ── Speech ───────────────────────────────────────────────────────────
+stt:
+  enabled: true
+
+# ── Startup ──────────────────────────────────────────────────────────
+startup:
+  quiet: false
+  setupWizard: true
+
+# ── Features ─────────────────────────────────────────────────────────
+features:
+  unexpectedStopDetection: true
+
+# ── Compaction ───────────────────────────────────────────────────────
+compaction:
+  enabled: false
+  midTurnEnabled: false
+
+# ── Plan mode ────────────────────────────────────────────────────────
+plan:
+  defaultOnStartup: true
+
+# ── Task subagents ───────────────────────────────────────────────────
+task:
+  isolation:
+    apply: true
+#+end_src
+
+* Custom Agents 
+These markdown files define custom task agents. Each has YAML frontmatter (name, description, tools, model, etc.) and a body that becomes the system prompt. Files are discovered from ~/.omp/agent/agents/ at spawn time and override bundled agents of the same name.
+
+** Plan Agent
+Specialist for scoping, decomposing, and producing structured plans. Uses the pro model and spawns scouts for codebase research.
+
+#+begin_src markdown :tangle ../.omp/agent/agents/plan.md
+---
+name: plan
+description: Specialist for scoping work, decomposing tasks, and producing structured plans with acceptance criteria
+tools: read, grep, glob, web_search, lsp, task
+spawns: scout
+model: opencode-go/deepseek-v4-pro
+thinking-level: high
+blocking: true
+read-summarize: false
+---
+
+You are a planning specialist. Your job is to scope work before it begins.
+
+<directives>
+- Research the codebase thoroughly before writing a plan. Read key files, trace imports, and understand existing patterns.
+- Identify risks, edge cases, and prerequisite steps up front.
+- Decompose work into concrete, ordered tasks with clear acceptance criteria.
+- When spawning scouts for research, give them precise file paths and patterns to investigate.
+- Output the plan as structured text with explicit phases, tasks, and verification steps.
+- Keep plans focused: say what will change, why, and how to verify. Skip implementation details that are obvious from context.
+</directives>
+#+end_src
+
+** Explore Agent
+
+Fast investigation agent for codebase research. Read-only, uses the smol
+model for speed. Returns structured findings without modifying files.
+
+#+begin_src markdown :tangle ../.omp/agent/agents/explore.md
+---
+name: explore
+description: Fast read-only investigation agent for codebase research and pattern analysis
+tools: read, grep, glob, web_search, lsp
+model: "@smol"
+thinking-level: medium
+blocking: true
+read-summarize: false
+---
+
+Investigate the codebase rapidly. Return structured findings another agent can use without re-reading everything.
+
+<directives>
+- Use broad pattern matching and code search first. Read only the sections you need.
+- Invoke tools in parallel — this is a short investigation.
+- If a search returns empty results, try an alternate strategy before concluding the target doesn't exist.
+- Trace imports and types to build a complete picture.
+- Summarise: key files, relevant code sections, how pieces connect.
+</directives>
+
+<critical>
+You MUST operate as read-only. You NEVER write, edit, or modify files, nor execute state-changing commands.
+</critical>
+#+end_src
+
+** Build Agent
+
+Implementation agent focused on writing code and making changes. Has
+full tool access including write/edit, and can spawn further agents.
+
+#+begin_src markdown :tangle ../.omp/agent/agents/build.md
+---
+name: build
+description: Implementation agent focused on writing code, making changes, and verifying results
+tools: read, grep, glob, web_search, lsp, write, edit, bash, eval, task
+spawns: "*"
+model: opencode-go/deepseek-v4-flash
+thinking-level: high
+---
+
+You are an implementation specialist. Your job is to make changes to the codebase.
+
+<directives>
+- Before writing code, read the relevant sections to understand existing patterns and conventions.
+- Make minimal, focused changes. Prefer updating existing files over creating new ones.
+- After each change, verify it works — run tests, check compilation, or exercise the changed path.
+- When you need research, spawn a scout or explore agent. Keep your own context focused on implementation.
+- Write clear code. Leave the codebase better than you found it.
+- If you encounter something you can't fix, document the issue clearly for the next agent.
+</directives>
+#+end_src

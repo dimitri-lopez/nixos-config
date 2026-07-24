@@ -67,6 +67,7 @@ Uses a per-host structure under `hosts/` — each machine gets its own config
 | `modules/emacs.org` | `modules/emacs.nix` |
 | `modules/llms.org` | `modules/llms.nix` |
 | `modules/apps.org` | `modules/python.nix` (+ packages), `modules/minecraft.nix`, `modules/watchy.nix`, `modules/mcp-nixos.nix`, `modules/droidux.nix`, `modules/itch.nix`, `modules/noctalia.nix` |
+| `modules/omp.org` | `~/.omp/agent/config.yml`, `~/.omp/agent/agents/*.md` |
 | `modules/phd.org` | `modules/phd.nix` |
 | `modules/xfce/xfce.org` | `modules/xfce/xfce.nix`, `modules/xfce/xfce-home.nix` |
 | `modules/driftwm/driftwm.org` | `modules/driftwm/system.nix`, `modules/driftwm/home.nix` |
@@ -94,6 +95,7 @@ Uses a per-host structure under `hosts/` — each machine gets its own config
 | `modules/phd.nix` | R environment, GLEAMviz, academic tools |
 | `modules/scripting.nix` | Custom shell scripts (caps-lock, wifi, visual test setup) |
 | `modules/sh.nix` | Zsh/bash configuration and aliases |
+| `modules/omp.org` | Oh My Pi settings and custom agent definitions |
 | `modules/steam.nix` | Steam gaming config |
 | `modules/kanata.nix` | Keyboard remapping (caps -> control) |
 | `modules/mcp-nixos.nix` | MCP server for NixOS data |
