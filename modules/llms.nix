@@ -95,7 +95,7 @@ in
       URL="https://registry.npmjs.org/@oh-my-pi/pi-coding-agent/-/pi-coding-agent-''${LATEST}.tgz"
       echo "Fetching $URL ..."
       HASH=$(nix store prefetch-file --json "$URL" 2>/dev/null | sed 's/.*"hash":"\([^"]*\)".*/\1/')
-      sed -i '/^    hash = "sha256-/s/".*"/"'"$HASH"'"/' "$FILE"
+      sed -i '/^    hash = "sha256-/s|".*"|"'"$HASH"'"|' "$FILE"
       echo "Hash updated: $HASH"
   
       rm -rf "$HOME/.local/share/omp/node_modules"
