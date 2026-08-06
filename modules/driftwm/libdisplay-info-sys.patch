@@ -1,0 +1,8 @@
+diff --git a/libdisplay-info-sys-0.3.0/Cargo.toml b/libdisplay-info-sys-0.3.0/Cargo.toml
+--- a/libdisplay-info-sys-0.3.0/Cargo.toml
++++ b/libdisplay-info-sys-0.3.0/Cargo.toml
+@@ -43,4 +43,4 @@
+ [package.metadata.system-deps.libdisplay-info]
+ name = "libdisplay-info"
+-version = ">= 0.1.0, < 0.4.0"
++version = ">= 0.1.0, < 0.5.0"

@@ -1,5 +1,12 @@
 { config, pkgs, inputs, ... }:
 
+let
+  driftwmPkg = (inputs.driftwm.packages.${pkgs.stdenv.system}.default).overrideAttrs (old: {
+    postPatch = (old.postPatch or "") + ''
+      patch -d "$NIX_BUILD_TOP/cargo-vendor-dir" -p1 < ${./libdisplay-info-sys.patch}
+    '';
+  });
+in
 {
   imports = [ ../../system/wayland.nix ];
 
@@ -20,7 +27,7 @@
       driftwm = {
         prettyName = "driftwm";
         comment = "driftwm Wayland compositor managed by UWSM";
-        binPath = "${pkgs.writeShellScript "driftwm-uwsm-wrapper" "exec ${inputs.driftwm.packages.${pkgs.stdenv.system}.default}/bin/driftwm"}";
+        binPath = "${pkgs.writeShellScript "driftwm-uwsm-wrapper" "exec ${driftwmPkg}/bin/driftwm"}";
       };
     };
   };
@@ -34,7 +41,7 @@
   xdg.portal = {
     enable = true;
     extraPortals = [ pkgs.xdg-desktop-portal-wlr ];
-    configPackages = [ inputs.driftwm.packages.${pkgs.stdenv.system}.default ];
+    configPackages = [ driftwmPkg ];
   };
 
   services.upower.enable = true;
