@@ -58,6 +58,11 @@
           modules = [ ./hosts/t14s ];
           specialArgs = { inherit inputs; };
         };
+        yoga = lib.nixosSystem {
+          inherit system;
+          modules = [ ./hosts/yoga ];
+          specialArgs = { inherit inputs; };
+        };
       };
       homeConfigurations = {
         "dimitril@p14s" = home-manager.lib.homeManagerConfiguration {
@@ -74,6 +79,14 @@
           extraSpecialArgs = {
             inherit inputs userSettings;
             hostname = "t14s";
+          };
+        };
+        "dimitril@yoga" = home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
+          modules = [ ./home.nix ];
+          extraSpecialArgs = {
+            inherit inputs userSettings;
+            hostname = "yoga";
           };
         };
       };

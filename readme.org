@@ -6,7 +6,7 @@ See [[install.org]] for installation instructions.
 - [[file:readme.org][readme.org]]: Master file, user settings, includes
 - [[file:flake.org][flake.org]]: Flake configuration
 - [[file:system.org][system.org]]: Shared system-level NixOS configuration
-- [[file:hosts/default.org][hosts/]]: Per-host configurations (p14s, t14s)
+- [[file:hosts/default.org][hosts/]]: Per-host configurations (p14s, t14s, yoga)
 - [[file:home.org][home.org]]: Home-manager entry point
 - [[file:modules/core.org][core.org]]: Core shared modules
 - [[file:modules/emacs.org][emacs.org]]: Emacs ecosystem

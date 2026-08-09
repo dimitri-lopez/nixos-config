@@ -2,3 +2,4 @@
 
 #+INCLUDE: ./p14s/default.org
 #+INCLUDE: ./t14s/default.org
+#+INCLUDE: ./yoga/default.org

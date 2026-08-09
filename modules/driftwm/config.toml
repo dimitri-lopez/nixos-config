@@ -20,16 +20,15 @@ window_placement = "auto"
 
 # Commands to run at startup (sh -c), after WAYLAND_DISPLAY is set
 autostart = [
-    "noctalia",
+    # "noctalia-shell",
     # "wl-paste --type text --watch cliphist store",
     # "wl-paste --type image --watch cliphist store",
     "@polkit_gnome@/libexec/polkit-gnome-authentication-agent-1",
     "vorta -d",
-    "DISPLAY=\"\" dropbox start",
     "dl-restart-emacs-daemon",
+    "dropbox start",
     # "/home/dimitril/.local/share/driftwm-sample/scripts/battery_notify.sh",
-    "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 330 '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh' timeout 600 'systemctl suspend' before-sleep '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh' after-resume 'brightnessctl -r && wlopm --on eDP-1'",
-
+    "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 330 '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh' timeout 600 'systemctl suspend' before-sleep '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh'",
 ]
 
 # Environment variables set before any clients launch
@@ -138,20 +137,16 @@ color = "#2A2829"
 # ── Background ────────────────────────────────────────────────────
 
 [background]
-cache_shader = true
 
 # type = "wallpaper" # — image tiled across the canvas
-type = "shader" 
-# type = "wallpaper"  # also tile
-# path = "/home/dimitril/src/driftwm/extras/wallpapers/animated/fast_smoke.glsl"
-# path = "/home/dimitril/src/driftwm/extras/wallpapers/animated/dense_clouds.glsl"
-path = "/home/dimitril/src/driftwm/extras/wallpapers/static/dark_sea.glsl"
+# type = "shader" 
+cache_shader = true
+type = "wallpaper"  # also tile
 # path = "/mnt/data/driftwm/extras/wallpapers/static/dark_sea.glsl"
 # path = "/mnt/data/Downloads/download.jpeg"
 # path = "/home/dimitril/Dropbox/wallpapers/blush.jpg"
 # path = "/home/dimitril/Dropbox/wallpapers/malachite.jpg"
-# path = "/home/dimitril/Dropbox/wallpapers/black_1x1.png"
-# path = "/home/dimitril/Dropbox/wallpapers/turbulent2.jpg"
+path = "/home/dimitril/Dropbox/wallpapers/black_1x1.png"
 
 # ── XWayland ──────────────────────────────────────────────────────
 
@@ -194,7 +189,7 @@ decoration_fit_snapped = true
 # ── Gesture thresholds ────────────────────────────────────────────
 
 [gestures]
-swipe_threshold = 6.0
+swipe_threshold = 5.0
 pinch_in_threshold = 0.99
 pinch_out_threshold = 1.01
 
@@ -242,7 +237,7 @@ pinch_out_threshold = 1.01
 # All defaults written out. Your overrides replace the relevant defaults.
 
 [keybindings]
-"mod+d" = "exec noctalia msg panel-toggle launcher"
+"mod+d" = "exec noctalia-shell ipc --any-display call launcher toggle"
 "mod+q" = "close-window"
 "mod+f" = "toggle-fullscreen"
 "mod+shift+m" = "fit-window-snapped"
@@ -288,17 +283,16 @@ pinch_out_threshold = 1.01
 # "mod+alt+left" = "send-to-output left"
 # "mod+alt+right" = "send-to-output right"
 # "mod+s" = "exec /home/dimitril/.local/share/driftwm-sample/scripts/window-search.sh"
-# "mod+l" = "exec noctalia msg session lock"
+# "mod+l" = "exec noctalia-shell ipc --any-display call lockScreen lock"
 "mod+semicolon" = "spawn /home/dimitril/.local/share/driftwm-sample/scripts/lock.sh"
-"mod+shift+semicolon" = "spawn systemctl hibernate"
-# "mod+n" = "exec noctalia msg panel-toggle notificationHistory"
+# "mod+n" = "exec noctalia-shell ipc --any-display call notificationHistory toggle"
 "mod+r" = "reload-config"
 "mod+ctrl+shift+q" = "quit"
-# "XF86AudioRaiseVolume" = "exec noctalia msg volume-up"
-# "XF86AudioLowerVolume" = "exec noctalia msg volume-down"
-# "XF86AudioMute" = "exec noctalia msg volume-mute"
-# "XF86MonBrightnessUp" = "exec noctalia msg brightness-up"
-# "XF86MonBrightnessDown" = "exec noctalia msg brightness-down"
+# "XF86AudioRaiseVolume" = "exec noctalia-shell ipc --any-display call volume increase"
+# "XF86AudioLowerVolume" = "exec noctalia-shell ipc --any-display call volume decrease"
+# "XF86AudioMute" = "exec noctalia-shell ipc --any-display call volume muteOutput"
+# "XF86MonBrightnessUp" = "exec noctalia-shell ipc --any-display call brightness increase"
+# "XF86MonBrightnessDown" = "exec noctalia-shell ipc --any-display call brightness decrease"
 "Print" = "spawn grim - | tee \"/tmp/screenshots/screenshot_$(date +%Y%m%d_%H%M%S).png\" | wl-copy -t image/png"
 "shift+Print" = "spawn grim -g \"$(slurp -d)\" - | tee \"/tmp/screenshots/screenshot_$(date +%Y%m%d_%H%M%S).png\" | wl-copy -t image/png"
 
@@ -306,9 +300,8 @@ pinch_out_threshold = 1.01
 "super+escape" = "exec alacritty -e btop"
 "super+return" = "exec alacritty"
 "super+e" = "exec emacsclient -c"
-"super+c" = "spawn brave"
-"alt+e" = "spawn emacsclient -c"
-"alt+shift+e" = "spawn emacs"
+"super+c" = "exec brave"
+"alt+e" = "exec emacsclient -c"
 
 # ── Output configs ────────────────────────────────────────────────
 

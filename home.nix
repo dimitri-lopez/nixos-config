@@ -13,7 +13,7 @@
     ./modules/watchy.nix
     ./modules/mcp-nixos.nix
     ./modules/llms.nix
-  ] ++ lib.optionals (hostname == "p14s" || hostname == "t14s") [
+  ] ++ lib.optionals (hostname == "p14s" || hostname == "t14s" || hostname == "yoga") [
     ./modules/driftwm/home.nix
   ];
   # Home Manager needs a bit of information about you and the paths it should

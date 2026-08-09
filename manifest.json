@@ -6,7 +6,8 @@
   "window_managers": {
     "hosts": "unknown",
     "p14s": "driftwm",
-    "t14s": "driftwm"
+    "t14s": "driftwm",
+    "yoga": "driftwm"
   },
   "files": {
     "flake.org": {
@@ -30,6 +31,12 @@
     "hosts/t14s/default.org": {
       "generates": [
         "./hosts/t14s/default.nix"
+      ],
+      "description": "Generates 1 file(s)"
+    },
+    "hosts/yoga/default.org": {
+      "generates": [
+        "./hosts/yoga/default.nix"
       ],
       "description": "Generates 1 file(s)"
     },
