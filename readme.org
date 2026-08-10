@@ -171,6 +171,7 @@ imports = [
 #+INCLUDE: ./modules/emacs.org
 #+INCLUDE: ./modules/apps.org
 #+INCLUDE: ./modules/llms.org
+#+INCLUDE: ./modules/omp.org
 #+INCLUDE: ./modules/phd.org
 #+INCLUDE: ./modules/xfce/xfce.org
 #+INCLUDE: ./modules/driftwm/driftwm.org

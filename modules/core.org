@@ -58,6 +58,11 @@ in
 #!/bin/sh
 # Common autostart for all desktop environments
 
+# Fix stale steam bootstrap dir (must be symlink, not directory)
+if [ -d "$HOME/.steam/steam" ] && [ ! -L "$HOME/.steam/steam" ]; then
+  rm -rf "$HOME/.steam/steam"
+fi
+
 # Caps lock to control (works everywhere)
 dl-caps-lock-to-control &
 
@@ -272,6 +277,9 @@ in
     enableCompletion = true;
     shellAliases = myAliases;
     initContent = ''
+    export XDG_DATA_HOME="''${XDG_DATA_HOME:-$HOME/.local/share}"
+    export XDG_STATE_HOME="''${XDG_STATE_HOME:-$HOME/.local/state}"
+    export XDG_CACHE_HOME="''${XDG_CACHE_HOME:-$HOME/.cache}"
     PROMPT=" - %U%F{magenta}%n%f%u@%U%F{blue}%m%f%u:%F{yellow}%~%f
      %F{green}→%f "
     RPROMPT="%F{red}|%f%F{yellow}|%f%F{green}|%f%F{cyan}|%f%F{blue}|%f%F{magenta}|%f%F{white}|%f"
@@ -285,6 +293,11 @@ in
     enable = true;
     enableCompletion = true;
     shellAliases = myAliases;
+    initExtra = ''
+    export XDG_DATA_HOME="''${XDG_DATA_HOME:-$HOME/.local/share}"
+    export XDG_STATE_HOME="''${XDG_STATE_HOME:-$HOME/.local/state}"
+    export XDG_CACHE_HOME="''${XDG_CACHE_HOME:-$HOME/.cache}"
+    '';
   };
 
   <<sh.packages>>

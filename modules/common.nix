@@ -32,6 +32,11 @@ in
   #!/bin/sh
   # Common autostart for all desktop environments
   
+  # Fix stale steam bootstrap dir (must be symlink, not directory)
+  if [ -d "$HOME/.steam/steam" ] && [ ! -L "$HOME/.steam/steam" ]; then
+    rm -rf "$HOME/.steam/steam"
+  fi
+  
   # Caps lock to control (works everywhere)
   dl-caps-lock-to-control &
   

@@ -21,9 +21,15 @@ window_placement = "auto"
 # Commands to run at startup (sh -c), after WAYLAND_DISPLAY is set
 autostart = [
     "noctalia",
+    # "wl-paste --type text --watch cliphist store",
+    # "wl-paste --type image --watch cliphist store",
+    "@polkit_gnome@/libexec/polkit-gnome-authentication-agent-1",
+    "vorta -d",
+    "DISPLAY=\"\" dropbox start",
     "dl-restart-emacs-daemon",
-    "dropbox start",
-    "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 330 '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh' timeout 600 'systemctl suspend' before-sleep '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh'",
+    # "/home/dimitril/.local/share/driftwm-sample/scripts/battery_notify.sh",
+    "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 330 '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh' timeout 600 'systemctl suspend' before-sleep '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh' after-resume 'brightnessctl -r && wlopm --on eDP-1'",
+
 ]
 
 # Environment variables set before any clients launch
@@ -52,7 +58,7 @@ tap_and_drag = true
 # accel_speed = 0.0
 # accel_profile = "adaptive"
 # click_method = "none"
-# disable_while_typing = true
+disable_while_typing = true
 
 # ── Input: Mouse ──────────────────────────────────────────────────
 
@@ -74,7 +80,7 @@ inactive_opacity = 0.5
 # trackpad_speed = 0.5
 # mouse_speed = 1.4
 # friction = 0.92
-animation_speed = 0.3
+animation_speed = 0.8
 # nudge_step = 20
 # pan_step = 100.0
 anchors = []
@@ -112,7 +118,7 @@ corner_radius = 5
 # ── Effects ───────────────────────────────────────────────────────
 
 [effects]
-blur_radius = 8
+blur_radius = 3
 blur_strength = 0.5
 
 
@@ -132,17 +138,20 @@ color = "#2A2829"
 # ── Background ────────────────────────────────────────────────────
 
 [background]
-
-type = "wallpaper" # — image tiled across the canvas
-# type = "shader" 
 cache_shader = true
-# type = "wallpaper"  # also tile
-# path = "/mnt/data/driftwm/extras/wallpapers/static/dark_sea.glsl"
 
+# type = "wallpaper" # — image tiled across the canvas
+type = "shader" 
+# type = "wallpaper"  # also tile
+# path = "/home/dimitril/src/driftwm/extras/wallpapers/animated/fast_smoke.glsl"
+# path = "/home/dimitril/src/driftwm/extras/wallpapers/animated/dense_clouds.glsl"
+path = "/home/dimitril/src/driftwm/extras/wallpapers/static/dark_sea.glsl"
+# path = "/home/dimitril/src/driftwm/extras/wallpapers/static/psp_classic_wave_turquoise_additive.glsl"
 # path = "/mnt/data/Downloads/download.jpeg"
 # path = "/home/dimitril/Dropbox/wallpapers/blush.jpg"
-path = "/home/dimitril/Dropbox/wallpapers/malachite.jpg"
+# path = "/home/dimitril/Dropbox/wallpapers/malachite.jpg"
 # path = "/home/dimitril/Dropbox/wallpapers/black_1x1.png"
+# path = "/home/dimitril/Dropbox/wallpapers/turbulent2.jpg"
 
 # ── XWayland ──────────────────────────────────────────────────────
 
@@ -185,7 +194,7 @@ decoration_fit_snapped = true
 # ── Gesture thresholds ────────────────────────────────────────────
 
 [gestures]
-swipe_threshold = 5.0
+swipe_threshold = 6.0
 pinch_in_threshold = 0.99
 pinch_out_threshold = 1.01
 
@@ -233,7 +242,7 @@ pinch_out_threshold = 1.01
 # All defaults written out. Your overrides replace the relevant defaults.
 
 [keybindings]
-"mod+d" = "exec noctalia-shell ipc --any-display call launcher toggle"
+"mod+d" = "exec noctalia msg panel-toggle launcher"
 "mod+q" = "close-window"
 "mod+f" = "toggle-fullscreen"
 "mod+shift+m" = "fit-window-snapped"
@@ -279,16 +288,17 @@ pinch_out_threshold = 1.01
 # "mod+alt+left" = "send-to-output left"
 # "mod+alt+right" = "send-to-output right"
 # "mod+s" = "exec /home/dimitril/.local/share/driftwm-sample/scripts/window-search.sh"
-# "mod+l" = "exec noctalia-shell ipc --any-display call lockScreen lock"
-"mod+semicolon" = "spawn /home/dimitril/.local/share/driftwm-sample/scripts/lock.sh"
-# "mod+n" = "exec noctalia-shell ipc --any-display call notificationHistory toggle"
+# "mod+l" = "exec noctalia msg session lock"
+"mod+semicolon" = "spawn /home/dimitril/.local/share/driftwm-sample/scripts/lock-with-caffeine.sh"
+"mod+shift+semicolon" = "spawn systemctl hibernate"
+# "mod+n" = "exec noctalia msg panel-toggle notificationHistory"
 "mod+r" = "reload-config"
 "mod+ctrl+shift+q" = "quit"
-# "XF86AudioRaiseVolume" = "exec noctalia-shell ipc --any-display call volume increase"
-# "XF86AudioLowerVolume" = "exec noctalia-shell ipc --any-display call volume decrease"
-# "XF86AudioMute" = "exec noctalia-shell ipc --any-display call volume muteOutput"
-# "XF86MonBrightnessUp" = "exec noctalia-shell ipc --any-display call brightness increase"
-# "XF86MonBrightnessDown" = "exec noctalia-shell ipc --any-display call brightness decrease"
+# "XF86AudioRaiseVolume" = "exec noctalia msg volume-up"
+# "XF86AudioLowerVolume" = "exec noctalia msg volume-down"
+# "XF86AudioMute" = "exec noctalia msg volume-mute"
+# "XF86MonBrightnessUp" = "exec noctalia msg brightness-up"
+# "XF86MonBrightnessDown" = "exec noctalia msg brightness-down"
 "Print" = "spawn grim - | tee \"/tmp/screenshots/screenshot_$(date +%Y%m%d_%H%M%S).png\" | wl-copy -t image/png"
 "shift+Print" = "spawn grim -g \"$(slurp -d)\" - | tee \"/tmp/screenshots/screenshot_$(date +%Y%m%d_%H%M%S).png\" | wl-copy -t image/png"
 
@@ -296,8 +306,9 @@ pinch_out_threshold = 1.01
 "super+escape" = "exec alacritty -e btop"
 "super+return" = "exec alacritty"
 "super+e" = "exec emacsclient -c"
-"super+c" = "exec brave"
-"alt+e" = "exec emacsclient -c"
+"super+c" = "spawn brave"
+"alt+e" = "spawn emacsclient -c"
+"alt+shift+e" = "spawn emacs"
 
 # ── Output configs ────────────────────────────────────────────────
 
@@ -320,14 +331,14 @@ blur = true
 
 [[window_rules]]
 app_id = "emacs"
-opacity = 0.85
+opacity = 1.0
 blur = true
 decoration = "none"
 
 [[window_rules]]
 title = "*Emacs*"
 decoration = "client"
-opacity = 0.9815
+opacity = 1.0
 blur = false
 size = [1200, 1000]
 

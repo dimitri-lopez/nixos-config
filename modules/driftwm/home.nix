@@ -1,7 +1,11 @@
 { config, pkgs, inputs, lib, ... }:
 
 let
-  driftwmPkg = inputs.driftwm.packages.${pkgs.stdenv.system}.default;
+  driftwmPkg = (inputs.driftwm.packages.${pkgs.stdenv.system}.default).overrideAttrs (old: {
+    postPatch = (old.postPatch or "") + ''
+      patch -d "$NIX_BUILD_TOP/cargo-vendor-dir" -p1 < ${./libdisplay-info-sys.patch}
+    '';
+  });
   driftwmConfig = pkgs.substituteAll {
     src = ./config.toml;
     polkit_gnome = pkgs.polkit_gnome;

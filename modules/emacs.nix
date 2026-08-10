@@ -1,6 +1,10 @@
 { config, lib, pkgs, inputs, ... }:
 
 let
+  unstable = import inputs.nixpkgs-unstable {
+    inherit (pkgs) system;
+    config.allowUnfree = true;
+  };
   title2bib = import ./python-packages/title2bib.nix {
     lib = lib;
     python3 = pkgs.python312;
@@ -20,14 +24,6 @@ let
     lib = lib;
     buildNpmPackage = pkgs.buildNpmPackage;
     fetchFromGitHub = pkgs.fetchFromGitHub;
-  };
-  anthropic-claude-code = import ./npm-packages/anthropic-claude-code.nix {
-    lib = lib;
-    stdenv = pkgs.stdenv;
-    fetchurl = pkgs.fetchurl;
-    autoPatchelfHook = pkgs.autoPatchelfHook;
-    glibc = pkgs.glibc;
-    gcc-unwrapped = pkgs.gcc-unwrapped;
   };
   copilot-language-server = import ./npm-packages/copilot-language-server.nix {
     lib = lib;
@@ -57,8 +53,7 @@ in
       
     # agent shell
     gemini-cli
-    claude-code
-    anthropic-claude-code  # Latest version 1.3.14
+    unstable.claude-code  # Latest from nixpkgs-unstable
     claude-agent-acp
     free-coding-models
       

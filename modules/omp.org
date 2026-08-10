@@ -1,0 +1,104 @@
+#+title: Oh My Pi (OMP) Configuration
+
+Oh My Pi is the AI coding assistant harness. This file is the canonical source for OMP settings — tangling writes directly to [[file:../.omp/agent/config.yml][~/.omp/agent/config.yml]].
+
+* Global Settings (:tangle ../.omp/agent/config.yml)
+:PROPERTIES:
+:header-args:yaml: :tangle ../.omp/agent/config.yml
+:END:
+
+#+begin_src yaml
+# ── Model roles ──────────────────────────────────────────────────────
+modelRoles:
+  default: opencode-go/deepseek-v4-flash
+  smol: opencode-go/deepseek-v4-flash:low
+  slow: opencode-go/deepseek-v4-pro
+  plan: anthropic/claude-opus-4.8
+  advisor: anthropic/claude-opus-4.8
+  task: opencode-go/deepseek-v4-flash
+  designer: opencode-go/kimi-k3
+  commit: opencode-go/deepseek-v4-flash:low
+  tiny: opencode-go/deepseek-v4-flash:low
+
+# ── Symbols / theme ──────────────────────────────────────────────────
+symbolPreset: nerd
+setupVersion: 1
+
+theme:
+  dark: titanium
+  light: light
+
+# ── Status line ──────────────────────────────────────────────────────
+statusLine:
+  preset: full
+  separator: powerline-thin
+  sessionAccent: true
+  transparent: true
+  compactThinkingLevel: true
+  showHookStatus: true
+
+# ── Terminal / TUI / display ─────────────────────────────────────────
+terminal:
+  showProgress: true
+
+tui:
+  hyperlinks: auto
+
+display:
+  showTokenUsage: true
+  shimmer: classic
+
+# ── Thinking ─────────────────────────────────────────────────────────
+defaultThinkingLevel: low
+proseOnlyThinking: true
+
+tier:
+  openai: none
+  google: flex
+  anthropic: priority
+  subagent: inherit
+
+# ── Advisor ──────────────────────────────────────────────────────────
+advisor:
+  enabled: true
+  subagents: true
+  syncBacklog: "1"
+  immuneTurns: 3
+
+# ── Prewalk ──────────────────────────────────────────────────────────
+prewalk:
+  enabled: false
+
+# ── Interaction model ────────────────────────────────────────────────
+steeringMode: one-at-a-time
+followUpMode: one-at-a-time
+interruptMode: immediate
+
+# ── Speech ───────────────────────────────────────────────────────────
+stt:
+  enabled: true
+
+# ── Startup ──────────────────────────────────────────────────────────
+startup:
+  quiet: false
+  setupWizard: true
+
+# ── Features ─────────────────────────────────────────────────────────
+features:
+  unexpectedStopDetection: true
+
+# ── Compaction ───────────────────────────────────────────────────────
+compaction:
+  enabled: false
+  midTurnEnabled: false
+
+# ── Plan mode ────────────────────────────────────────────────────────
+plan:
+  defaultOnStartup: true
+
+# ── Task subagents ───────────────────────────────────────────────────
+task:
+  isolation:
+    apply: true
+#+end_src
+

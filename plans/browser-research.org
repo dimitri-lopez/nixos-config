@@ -2,11 +2,8 @@
 #+DATE: 2026-05-14
 
 * Problem
-  Emacs EWW is excellent for text-only browsing (documentation, Wikipedia, org-mode
-  integration), but falls short when JavaScript is required. Need a supplementary
-  lightweight browser for reading/research and a heavyweight browser for web apps
-  (password manager, music, etc.).
-
+  Emacs EWW is excellent for text-only browsing (documentation, Wikipedia, org-mode integration), but falls short when JavaScript is required. Need a supplementary lightweight browser for reading/research and a heavyweight browser for web apps (password manager, music, etc.).
+  
 * Requirements
   - Great reading experience (dark mode, customizable fonts, minimal chrome)
   - Ricing-friendly (easy to theme and integrate with desktop aesthetic)
@@ -117,24 +114,24 @@
   If sticking with a single mainstream browser, these extensions standardize the
   reading experience:
 
-  | Extension | Stars | Purpose |
-  |-----------+-------+---------|
+  | Extension   | Stars      | Purpose                                             |
+  |-------------+------------+-----------------------------------------------------|
   | [[https://addons.mozilla.org/en-US/firefox/addon/darkreader/][Dark Reader]] | 1.3M users | Universal dark mode, per-site font/contrast control |
-  | [[https://github.com/openstyles/stylus][Stylus]] | 6.6k ★ | Per-site CSS themes (userstyles.world, Greasyfork) |
-  | [[https://github.com/hackademix/noscript][NoScript]] | 1.1k ★ | JS toggle per-site — strip bloat from articles |
+  | [[https://github.com/openstyles/stylus][Stylus]]      | 6.6k ★     | Per-site CSS themes (userstyles.world, Greasyfork)  |
+  | [[https://github.com/hackademix/noscript][NoScript]]    | 1.1k ★     | JS toggle per-site — strip bloat from articles      |
 
   Stack: Dark Reader (dark mode) + Stylus (typography) + NoScript (JS control)
   gives you a consistent reading experience across any website in any Chromium/Firefox browser.
 
 * Ricing Difficulty Comparison
 
-  | Browser | Config Format | Difficulty | Notes |
-  |---------+--------------+------------+-------|
-  | qutebrowser | Python + CSS | Easy | Familiar syntax, well-documented |
-  | vimb | GTK CSS | Medium | Standard GTK theming |
-  | badwolf | CSS | Medium | Simple, but niche |
-  | Nyxt | Common Lisp | Hard | Runtime redefinition, steep learning curve |
-  | surf | C patches | Hardest | Suckless: patch and recompile |
+  | Browser     | Config Format | Difficulty | Notes                                      |
+  |-------------+---------------+------------+--------------------------------------------|
+  | qutebrowser | Python + CSS  | Easy       | Familiar syntax, well-documented           |
+  | vimb        | GTK CSS       | Medium     | Standard GTK theming                       |
+  | badwolf     | CSS           | Medium     | Simple, but niche                          |
+  | Nyxt        | Common Lisp   | Hard       | Runtime redefinition, steep learning curve |
+  | surf        | C patches     | Hardest    | Suckless: patch and recompile              |
 
 * Recommendation
 

@@ -10,6 +10,21 @@
     "yoga": "driftwm"
   },
   "files": {
+    "docs/02-nix-driftwm-dev-input.org": {
+      "generates": [
+        "./flake.nix",
+        "./system/driftwm.nix"
+      ],
+      "description": "Generates 2 file(s)"
+    },
+    "docs/scratch.org": {
+      "generates": [
+        "./modules/hyprland/hyprland-home.nix",
+        "./modules/hyprland/hyprland.nix",
+        "./modules/wm/hyprland.nix"
+      ],
+      "description": "Generates 3 file(s)"
+    },
     "flake.org": {
       "generates": [
         "flake.nix"
@@ -108,24 +123,9 @@
       ],
       "description": "Generates 2 file(s)"
     },
-    "plans/02-nix-driftwm-dev-input.org": {
-      "generates": [
-        "./flake.nix",
-        "./system/driftwm.nix"
-      ],
-      "description": "Generates 2 file(s)"
-    },
     "readme.org": {
       "generates": [],
       "description": "Master config, flake.nix, includes"
-    },
-    "scratch.org": {
-      "generates": [
-        "./modules/hyprland/hyprland-home.nix",
-        "./modules/hyprland/hyprland.nix",
-        "./modules/wm/hyprland.nix"
-      ],
-      "description": "Generates 3 file(s)"
     },
     "system.org": {
       "generates": [
