@@ -20,14 +20,9 @@ window_placement = "auto"
 
 # Commands to run at startup (sh -c), after WAYLAND_DISPLAY is set
 autostart = [
-    # "noctalia-shell",
-    # "wl-paste --type text --watch cliphist store",
-    # "wl-paste --type image --watch cliphist store",
-    "@polkit_gnome@/libexec/polkit-gnome-authentication-agent-1",
-    "vorta -d",
+    "noctalia",
     "dl-restart-emacs-daemon",
     "dropbox start",
-    # "/home/dimitril/.local/share/driftwm-sample/scripts/battery_notify.sh",
     "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 330 '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh' timeout 600 'systemctl suspend' before-sleep '/home/dimitril/.local/share/driftwm-sample/scripts/lock.sh'",
 ]
 
@@ -57,7 +52,7 @@ tap_and_drag = true
 # accel_speed = 0.0
 # accel_profile = "adaptive"
 # click_method = "none"
-disable_while_typing = true
+# disable_while_typing = true
 
 # ── Input: Mouse ──────────────────────────────────────────────────
 
@@ -79,7 +74,7 @@ inactive_opacity = 0.5
 # trackpad_speed = 0.5
 # mouse_speed = 1.4
 # friction = 0.92
-animation_speed = 0.8
+animation_speed = 0.3
 # nudge_step = 20
 # pan_step = 100.0
 anchors = []
@@ -117,7 +112,7 @@ corner_radius = 5
 # ── Effects ───────────────────────────────────────────────────────
 
 [effects]
-blur_radius = 3
+blur_radius = 8
 blur_strength = 0.5
 
 
@@ -138,15 +133,16 @@ color = "#2A2829"
 
 [background]
 
-# type = "wallpaper" # — image tiled across the canvas
+type = "wallpaper" # — image tiled across the canvas
 # type = "shader" 
 cache_shader = true
-type = "wallpaper"  # also tile
+# type = "wallpaper"  # also tile
 # path = "/mnt/data/driftwm/extras/wallpapers/static/dark_sea.glsl"
+
 # path = "/mnt/data/Downloads/download.jpeg"
 # path = "/home/dimitril/Dropbox/wallpapers/blush.jpg"
-# path = "/home/dimitril/Dropbox/wallpapers/malachite.jpg"
-path = "/home/dimitril/Dropbox/wallpapers/black_1x1.png"
+path = "/home/dimitril/Dropbox/wallpapers/malachite.jpg"
+# path = "/home/dimitril/Dropbox/wallpapers/black_1x1.png"
 
 # ── XWayland ──────────────────────────────────────────────────────
 

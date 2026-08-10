@@ -41,7 +41,6 @@ GNU Emacs 30.2 (build 1, x86_64-pc-linux-gnu, GTK+ Version 3.24.49, cairo versio
 :URL:      https://joshblais.com/blog/how-i-am-deeply-integrating-emacs/
 :CREATED:  [2026-01-10 Sat 13:04]
 :END:
-
 ** screen sharing app
 nix run nixpkgs#deskreen
 
