@@ -122,6 +122,18 @@ in
       executable = true;
     };
   };
+  programs.alacritty = {
+    enable = true;
+    settings = {
+      # Preserve the existing colorscheme import so enabling HM management
+      # (which replaces ~/.config/alacritty/alacritty.toml) does not regress theming.
+      general.import = [ "~/.config/alacritty/themes/noctalia.toml" ];
+      font = {
+        normal.family = "JetBrainsMono Nerd Font";
+        size = 18; # 24px at 96 DPI — matches doom-font (emacs)
+      };
+    };
+  };
   systemd.user.startServices = "sd-switch";
   services.gpg-agent = {
     enable = true;
