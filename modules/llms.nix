@@ -19,6 +19,9 @@ let
       mkdir -p "$OMP_DIR"
       cp -r "${oh-my-pi-src}/lib/node_modules/@oh-my-pi/pi-coding-agent"/* "$OMP_DIR/"
       ${bun_omp}/bin/bun install --cwd "$OMP_DIR" --production --no-summary
+      # Re-apply the vim list-navigation keybindings patch to the fresh bundle
+      # (idempotent; aborts loudly if the bundle drifted from 17.2.10 anchors).
+      ${pkgs.python3}/bin/python "${./llms/omp/vim-keys.patch.py}" "$OMP_DIR/dist/cli.js"
     fi
     exec ${bun_omp}/bin/bun "$OMP_DIR/dist/cli.js" "$@"
   '';
@@ -115,6 +118,9 @@ in
       chmod -R u+w "$omp_dir"
       echo "${oh-my-pi-src}" > "$omp_dir/.version"
       ${bun_omp}/bin/bun install --cwd "$omp_dir" --production --no-summary
+      # Re-apply the vim list-navigation keybindings patch to the fresh bundle
+      # (idempotent; aborts loudly if the bundle drifted from 17.2.10 anchors).
+      ${pkgs.python3}/bin/python "${./llms/omp/vim-keys.patch.py}" "$omp_dir/dist/cli.js"
     fi
   '';
   xdg.configFile."opencode/opencode.json" = {

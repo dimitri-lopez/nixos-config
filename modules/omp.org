@@ -102,3 +102,22 @@ task:
     apply: true
 #+end_src
 
+* Vim List Navigation Keybindings (:tangle ../.omp/agent/keybindings.yml)
+:PROPERTIES:
+:header-args:yaml: :tangle ../.omp/agent/keybindings.yml
+:END:
+
+Makes Ctrl+H/J/K/L behave like the four arrow keys when navigating lists in
+the omp TUI. Loaded from the default profile's agent dir (config.yml declares
+no profile). User chords REPLACE the default arrows per action, so the arrow
+keys stay bound. Only the tui.select.* *list-navigation* actions are rebound;
+editor text keys (Ctrl+J=newline, Ctrl+K=kill-line, Ctrl+H=backspace,
+Ctrl+L=live-voice) route to tui.editor.* and are unaffected.
+
+#+begin_src yaml
+tui.select.up: [Up, Ctrl+K]
+tui.select.down: [Down, Ctrl+J]
+tui.select.left: [Left, Ctrl+H]
+tui.select.right: [Right, Ctrl+L]
+#+end_src
+
