@@ -46,6 +46,10 @@ in
     "${config.home.homeDirectory}/.config/emacs/bin"
   ];
 
+  home.sessionVariables = {
+    QT_QPA_PLATFORM_PLUGIN_PATH = "${unstable.qt6.qtbase}/lib/qt-6/plugins";
+  };
+
   <<emacs.packages>>
 }
 #+end_src
@@ -99,7 +103,14 @@ in
     texliveFull
     xorg.xwininfo # needed for emacs everywhere
     xdotool
+    wmctrl # EAF window-focus helper (eaf.el calls wmctrl -m / wmctrl -i -a)
+    xdg-utils # xdg-open used by eaf-open-external
     xclip
+    # EAF python env; eaf-python-command points at this wrapper
+    (pkgs.writeScriptBin "eaf-python" ''
+      #!/usr/bin/env bash
+      exec ${(unstable.python313.withPackages (ps: with ps; [ pyqt6 pyqt6-sip pyqt6-webengine epc sexpdata tld lxml pymupdf packaging ]))}/bin/python3 "$@"
+    '')
     unzip # for dired
     clang-tools # for clangd for emacs development
     pandoc
@@ -109,7 +120,39 @@ in
     playwright-test # CLI for running playwright tests
 
     mu
-    ((emacsPackagesFor emacs30-gtk3).emacsWithPackages (epkgs: [ epkgs.mu4e ]))
+    ((emacsPackagesFor emacs30-gtk3).emacsWithPackages (epkgs: [
+      epkgs.mu4e
+      (epkgs.trivialBuild {
+        pname = "reader";
+        version = "0-unstable-2026-08-12";
+        src = pkgs.fetchFromGitea {
+          domain = "codeberg.org";
+          owner = "MonadicSheep";
+          repo = "emacs-reader";
+          rev = "87b193d6996093530ab01cb0314c4d23b9777057";
+          hash = "sha256-fpmcVO7IS0oop2zOWzMngC6nSTmYoi1vRUbhV3PQMGk=";
+        };
+        nativeBuildInputs = [ pkgs.pkg-config ];
+        buildInputs = [ pkgs.gcc pkgs.gnumake pkgs.pkg-config unstable.mupdf ];
+        # build the dynamic module + autoloads (make emits render-core.so and
+        # reader-autoloads.el); trivialBuild's byte-compile then runs with
+        # `-L .` so the cross-file (require 'reader) / (require 'render-core)
+        # resolve, unlike melpaBuild's elpa2nix recompile.
+        preBuild = "make clean all";
+        # trivialBuild installs only *.el/*.elc. Install the .so and autoloads
+        # here (in installPhase, BEFORE the generic native-comp postInstall)
+        # so native-compilation can resolve (require 'render-core).
+        installPhase = ''
+          runHook preInstall
+          LISPDIR=$out/share/emacs/site-lisp
+          install -d $LISPDIR
+          install *.el *.elc $LISPDIR
+          install -m755 render-core.so $LISPDIR/
+          install reader-autoloads.el $LISPDIR/
+          runHook postInstall
+        '';
+      })
+    ]))
 
     # Neomacs (GPU-accelerated Emacs - for testing)
     # inputs.neomacs.packages.${pkgs.system}.default
