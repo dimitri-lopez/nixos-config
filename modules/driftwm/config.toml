@@ -55,44 +55,47 @@ num_lock = true
 tap_to_click = true
 natural_scroll = true
 tap_and_drag = true
-# accel_speed = 0.0
-# accel_profile = "adaptive"
-# click_method = "none"
+accel_speed = 0.2
+accel_profile = "adaptive"
+click_method = "clickfinger"
 disable_while_typing = true
 
 # ── Input: Mouse ──────────────────────────────────────────────────
 
 [input.mouse]
-# accel_speed = 0.0
-# accel_profile = "flat"
+accel_speed = 0.8
+accel_profile = "adaptive"
 natural_scroll = false
+
+[input.touch]
+enable = true
 
 # ── Cursor ────────────────────────────────────────────────────────
 
 [cursor]
 theme = "Adwaita"
-size = 24
+size = 32
 inactive_opacity = 0.5
 
 # ── Navigation ────────────────────────────────────────────────────
 
 [navigation]
-# trackpad_speed = 0.5
-# mouse_speed = 1.4
-# friction = 0.92
-animation_speed = 0.8
-# nudge_step = 20
-# pan_step = 100.0
+trackpad_speed = 2.8
+mouse_speed = 1.4
+drift = 0.3
+animation_speed = 0.4
+nudge_step = 20
+pan_step = 100.0
 anchors = []
 
 [navigation.edge_pan]
-# zone = 100.0
+# zone = 80.0
 # speed_min = 4.0
 # speed_max = 10.0
 
 # ── Zoom ──────────────────────────────────────────────────────────
 
-[zoom]
+# [zoom]
 # step = 1.1
 # fit_padding = 80.0
 # reset_on_new_window = true
@@ -118,9 +121,8 @@ corner_radius = 5
 # ── Effects ───────────────────────────────────────────────────────
 
 [effects]
-blur_radius = 3
-blur_strength = 0.5
-
+blur_radius = 4
+blur_strength = 1.1
 
 # ── Backend ───────────────────────────────────────────────────────
 
@@ -139,6 +141,7 @@ color = "#2A2829"
 
 [background]
 cache_shader = true
+cache_budget_mb = 256
 
 # type = "wallpaper" # — image tiled across the canvas
 type = "shader" 
@@ -194,9 +197,10 @@ decoration_fit_snapped = true
 # ── Gesture thresholds ────────────────────────────────────────────
 
 [gestures]
-swipe_threshold = 6.0
-pinch_in_threshold = 0.99
-pinch_out_threshold = 1.01
+swipe_threshold = 68
+# pinch_in_threshold = 1.04
+pinch_in_threshold = 1.08
+pinch_out_threshold = 1.08
 
 # ── Gesture bindings: on-window ───────────────────────────────────
 
@@ -321,8 +325,11 @@ position = [1920, 0] # right of eDP-1
 [[window_rules]]
 app_id = "Alacritty"
 decoration = "none"
-opacity = 0.8
-blur = true
+opacity = 1.0
+blur = false
+size = [1000, 800]
+
+
 
 [[window_rules]]
 app_id = "brave-browser"
@@ -338,9 +345,10 @@ decoration = "none"
 [[window_rules]]
 title = "*Emacs*"
 decoration = "client"
-opacity = 1.0
-blur = false
+opacity = 0.925
+blur = true
 size = [1200, 1000]
+corner_radius = 11
 
 [[window_rules]]
 app_id = "gcr-prompter"
