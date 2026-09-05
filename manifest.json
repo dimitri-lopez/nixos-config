@@ -10,13 +10,6 @@
     "yoga": "driftwm"
   },
   "files": {
-    "docs/02-nix-driftwm-dev-input.org": {
-      "generates": [
-        "./flake.nix",
-        "./system/driftwm.nix"
-      ],
-      "description": "Generates 2 file(s)"
-    },
     "docs/scratch.org": {
       "generates": [
         "./modules/hyprland/hyprland-home.nix",
