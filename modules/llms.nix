@@ -70,6 +70,27 @@ let
       };
     };
   };
+  # Matt Pocock's engineering skill set (github:mattpocock/skills), pinned.
+  # Update: bump rev, blank the hash to sha256-<52 A's>, rebuild, paste the real hash.
+  mattpocock-skills-src = pkgs.fetchFromGitHub {
+    owner = "mattpocock";
+    repo = "skills";
+    rev = "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76";
+    hash = "sha256-N5tpUIHO2VFeJntBTl6/VLDIVpqoshwFxNJlfXXUwsQ=";
+  };
+  # Flatten skills/<category>/<name>/ into a flat name -> path map. Only the
+  # curated categories; deprecated/ and in-progress/ are intentionally skipped.
+  mattpocockSkills =
+    let
+      root = mattpocock-skills-src + "/skills";
+      categories = [ "engineering" "productivity" "misc" ];
+      skillsIn = cat:
+        let dir = root + "/${cat}"; in
+        map (name: lib.nameValuePair name { source = dir + "/${name}"; })
+          (builtins.attrNames
+            (lib.filterAttrs (_: t: t == "directory") (builtins.readDir dir)));
+    in
+      lib.listToAttrs (lib.concatMap skillsIn categories);
 in
 {
   home.packages = [
@@ -126,4 +147,13 @@ in
   xdg.configFile."opencode/opencode.json" = {
     text = builtins.toJSON opencodeConfig;
   };
+  home.file =
+    let
+      roots = [ ".claude/skills" ".config/opencode/skills" ".omp/agent/skills" ];
+      linksFor = prefix:
+        lib.mapAttrs'
+          (name: v: lib.nameValuePair "${prefix}/${name}" { inherit (v) source; })
+          mattpocockSkills;
+    in
+      lib.mkMerge (map linksFor roots);
 }

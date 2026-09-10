@@ -10,15 +10,16 @@ Oh My Pi is the AI coding assistant harness. This file is the canonical source f
 #+begin_src yaml
 # ── Model roles ──────────────────────────────────────────────────────
 modelRoles:
-  default: opencode-go/deepseek-v4-flash
-  smol: opencode-go/deepseek-v4-flash:low
-  slow: opencode-go/deepseek-v4-pro
+  default: anthropic/claude-opus-4.8
+  smol: opencode-go/glm-5.3-flash
   plan: anthropic/claude-opus-4.8
   advisor: anthropic/claude-opus-4.8
-  task: opencode-go/deepseek-v4-flash
-  designer: opencode-go/kimi-k3
-  commit: opencode-go/deepseek-v4-flash:low
-  tiny: opencode-go/deepseek-v4-flash:low
+  task: opencode-go/glm-5.3-flash
+  commit: opencode-go/glm-5.3-flash
+  tiny: opencode-go/glm-5.3-flash
+  
+  slow: opencode-go/muse-spark-1.3-contributor
+  designer: opencode-go/muse-spark-1.3-contributor
 
 # ── Symbols / theme ──────────────────────────────────────────────────
 symbolPreset: nerd
@@ -49,13 +50,13 @@ display:
   shimmer: classic
 
 # ── Thinking ─────────────────────────────────────────────────────────
-defaultThinkingLevel: low
+defaultThinkingLevel: auto
 proseOnlyThinking: true
 
 tier:
   openai: none
   google: flex
-  anthropic: priority
+  anthropic: none
   subagent: inherit
 
 # ── Advisor ──────────────────────────────────────────────────────────

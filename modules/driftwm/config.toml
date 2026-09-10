@@ -63,8 +63,8 @@ disable_while_typing = true
 # ── Input: Mouse ──────────────────────────────────────────────────
 
 [input.mouse]
-accel_speed = 0.8
-accel_profile = "adaptive"
+accel_speed = 0.6
+accel_profile = "flat"
 natural_scroll = false
 
 [input.touch]
@@ -81,9 +81,9 @@ inactive_opacity = 0.5
 
 [navigation]
 trackpad_speed = 2.8
-mouse_speed = 1.4
+mouse_speed = 0.3
 drift = 0.3
-animation_speed = 0.4
+camera_speed = 0.4
 nudge_step = 20
 pan_step = 100.0
 anchors = []

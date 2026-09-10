@@ -79,10 +79,32 @@ let
       };
     };
   };
+  # Matt Pocock's engineering skill set (github:mattpocock/skills), pinned.
+  # Update: bump rev, blank the hash to sha256-<52 A's>, rebuild, paste the real hash.
+  mattpocock-skills-src = pkgs.fetchFromGitHub {
+    owner = "mattpocock";
+    repo = "skills";
+    rev = "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76";
+    hash = "sha256-N5tpUIHO2VFeJntBTl6/VLDIVpqoshwFxNJlfXXUwsQ=";
+  };
+  # Flatten skills/<category>/<name>/ into a flat name -> path map. Only the
+  # curated categories; deprecated/ and in-progress/ are intentionally skipped.
+  mattpocockSkills =
+    let
+      root = mattpocock-skills-src + "/skills";
+      categories = [ "engineering" "productivity" "misc" ];
+      skillsIn = cat:
+        let dir = root + "/${cat}"; in
+        map (name: lib.nameValuePair name { source = dir + "/${name}"; })
+          (builtins.attrNames
+            (lib.filterAttrs (_: t: t == "directory") (builtins.readDir dir)));
+    in
+      lib.listToAttrs (lib.concatMap skillsIn categories);
 in
 {
   <<llms.packages>>
   <<llms.config>>
+  <<llms.agent-skills>>
 }
 #+end_src
 
@@ -146,4 +168,23 @@ in
   xdg.configFile."opencode/opencode.json" = {
     text = builtins.toJSON opencodeConfig;
   };
+#+end_src
+
+*** Agent skills
+Symlink Matt Pocock's skills into each agent's discovery root (flat, one dir per
+skill, read-only from the Nix store). All three use the same
+=<root>/skills/<name>/SKILL.md= layout: Claude Code (=~/.claude/skills=),
+opencode (=~/.config/opencode/skills=), and oh-my-pi's native user provider
+(=~/.omp/agent/skills=). Run =/setup-matt-pocock-skills= once per repo to pick an
+issue tracker (see chat: local markdown is the zero-setup choice).
+#+begin_src nix :noweb-ref llms.agent-skills
+  home.file =
+    let
+      roots = [ ".claude/skills" ".config/opencode/skills" ".omp/agent/skills" ];
+      linksFor = prefix:
+        lib.mapAttrs'
+          (name: v: lib.nameValuePair "${prefix}/${name}" { inherit (v) source; })
+          mattpocockSkills;
+    in
+      lib.mkMerge (map linksFor roots);
 #+end_src
