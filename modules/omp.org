@@ -23,7 +23,7 @@ modelRoles:
 
 # ── Symbols / theme ──────────────────────────────────────────────────
 symbolPreset: nerd
-setupVersion: 1
+setupVersion: 2
 
 theme:
   dark: titanium
@@ -62,7 +62,6 @@ tier:
 # ── Advisor ──────────────────────────────────────────────────────────
 advisor:
   enabled: true
-  subagents: true
   syncBacklog: "1"
   immuneTurns: 3
 
@@ -86,7 +85,7 @@ startup:
 
 # ── Features ─────────────────────────────────────────────────────────
 features:
-  unexpectedStopDetection: true
+  unexpectedStopDetection: smart
 
 # ── Compaction ───────────────────────────────────────────────────────
 compaction:
@@ -101,6 +100,8 @@ plan:
 task:
   isolation:
     apply: true
+  agentAdvisor:
+    task: "on"
 #+end_src
 
 * Vim List Navigation Keybindings (:tangle ../.omp/agent/keybindings.yml)
